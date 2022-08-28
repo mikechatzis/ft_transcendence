@@ -1,8 +1,9 @@
 import React from 'react';
+import Typography from '@mui/material/Typography'
 
 const Home: React.FC = () => {
 
-	return <h1>Home</h1>
+	return <Typography variant="h3">Home</Typography>
 }
 
 export default Home
