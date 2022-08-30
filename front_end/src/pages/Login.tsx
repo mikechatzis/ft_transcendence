@@ -31,7 +31,7 @@ const Login: React.FC = () => {
 					spacing={2}
 					direction="column"
 					justifyContent="center"
-					style={{minHeight: "100vh"}}
+					style={{minHeight: "80vh"}}
 				>
 					<Paper elevation={2} sx={{padding: 5}}>
 						<form>

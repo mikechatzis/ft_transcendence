@@ -4,7 +4,7 @@ import {Route, Routes} from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline'
 import {createTheme, ThemeProvider} from '@mui/material/styles'
 import Home from './pages/Home'
-import Menu from './components/Menu'
+import MenuBar from './components/Menu'
 import Login from './pages/Login'
 import Error404 from './pages/Error404'
 import Account from './pages/Account'
@@ -33,7 +33,7 @@ const App: React.FC = () => {
 	return (
 		<ThemeProvider theme={theme}>
 		<CssBaseline />
-		<Menu handleToggle={handleToggle} />
+		<MenuBar handleToggle={handleToggle} />
 		<Routes>
 			<Route path="/" element={<Home />} />
 			<Route path="/login" element={<Login />} />
