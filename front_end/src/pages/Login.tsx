@@ -12,7 +12,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 
 const Login: React.FC = () => {
 	const [values, setValues] = useState({
-		uname:'',
+		username:'',
 		password: '',
 		showPassword: false
 	})
@@ -37,7 +37,7 @@ const Login: React.FC = () => {
 						<form>
 							<Grid container direction="column" spacing={2}>
 								<Grid item>
-									<TextField type="Username"
+									<TextField type="username"
 										fullWidth
 										label="Enter your username"
 										placeholder="Username"
