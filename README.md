@@ -11,7 +11,7 @@ In appropriate folder run 'npm run <script>'
 * prisma:dev:deploy - migrates changes to database and prisma structure
 * db:dev:rm - removes the database container and its associated volumes
 * db:dev:up - starts only the database container
-* db:dev:restart - rm and up
+* db:dev:restart - rm, up and deploy
 * nest:dev:rm - removes the nestJS container and its associated volumes
 * nest:dev:up - starts only the nestJS container
 * nest:dev:restart - rm and up
