@@ -1,14 +1,38 @@
 version: '3.8'
 services:
-  database:
+  postgres:
     image: postgres:latest
     ports:
       - "5434:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
-      POSTGRES_DB: nest
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
     networks:
       - transcendence
+
+  back-end:
+    build: ./back_end
+    depends_on:
+      - postgres
+    # environment:
+    #   - DATABASE_URL
+    #   - NODE_ENV
+    #   - PORT
+    ports:
+      - "3333:3333"
+    networks:
+      - transcendence
+
+  front-end:
+    build: ./front_end
+    depends_on:
+      - postgres
+      - back-end
+    ports:
+      - "3000:3000"
+    networks:
+      - transcendence
+
 networks:
   transcendence:
