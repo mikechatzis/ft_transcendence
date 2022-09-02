@@ -9,6 +9,9 @@ import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import axios from 'axios'
+
+const baseUrl = "http://localhost:3333"
 
 const Login: React.FC = () => {
 	const [values, setValues] = useState({
@@ -23,6 +26,18 @@ const Login: React.FC = () => {
 			showPassword: !values.showPassword,
 		});
 	};
+
+	const handleSignUp = () => {
+		axios.post(baseUrl + "/auth/signup", {
+			email: values.username,
+			password: values.password
+		}).then((response) => {
+			console.log(response)
+			console.log(values)
+		}).catch((error) => {
+			console.log(error)
+		})
+	}
 
 	return (
 		<div>
@@ -42,7 +57,8 @@ const Login: React.FC = () => {
 										label="Enter your username"
 										placeholder="Username"
 										variant="outlined"
-										required />
+										required
+										onChange={(e) => {setValues({...values, username: e.target.value})}} />
 								</Grid>
 								<Grid item>
 									<TextField type={values.showPassword ? "text" : "password"}
@@ -61,11 +77,17 @@ const Login: React.FC = () => {
 												</IconButton>
 											</InputAdornment>
 										)
-									}} />
+									}}
+									onChange={(e) => {setValues({...values, password: e.target.value})}} />
 								</Grid>
 								<Grid item>
-									<Button type="submit" fullWidth variant="contained">
+									<Button fullWidth variant="contained">
 										Sign In
+									</Button>
+								</Grid>
+								<Grid item>
+									<Button fullWidth variant="contained" onClick={handleSignUp}>
+										Sign Up
 									</Button>
 								</Grid>
 							</Grid>

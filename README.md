@@ -24,3 +24,4 @@ In appropriate folder run 'npm run <script>'
 Copy any template.env file as .env in the same location, and then populate it with appropriate values for the variables, then run docker-compose in the root directory.
 Frontend will be available at localhost:3000, backend at localhost:3333.
 For database gui client run 'npx prisma studio' in the backend folder, then access it at url seen on the console (you might need to install prisma with npm first).
+Run 'npm run prisma:dev:deploy' with the database active after changes to the prisma schema

@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
-import { PrismaService } from "src/prisma/prisma.service";
+import { PrismaService } from "../prisma/prisma.service";
 import * as argon from 'argon2'
 import { AuthDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
@@ -39,7 +39,7 @@ export class AuthService {
 		// find user by email, throw exception if email not found
 		const user = await this.prisma.user.findUnique({
 			where: {
-				email: dto.email 
+				email: dto.email
 			}
 		})
 		if (!user) {
