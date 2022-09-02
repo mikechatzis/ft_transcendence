@@ -32,8 +32,20 @@ const Login: React.FC = () => {
 			email: values.username,
 			password: values.password
 		}).then((response) => {
-			console.log(response)
-			console.log(values)
+			console.log("response", response)
+			console.log("values", values)
+		}).catch((error) => {
+			console.log(error)
+		})
+	}
+
+	const handleSignIn = () => {
+		axios.post(baseUrl + "/auth/signin", {
+			email: values.username,
+			password: values.password
+		}).then((response) => {
+			console.log("response", response)
+			console.log("values", values)
 		}).catch((error) => {
 			console.log(error)
 		})
@@ -81,7 +93,7 @@ const Login: React.FC = () => {
 									onChange={(e) => {setValues({...values, password: e.target.value})}} />
 								</Grid>
 								<Grid item>
-									<Button fullWidth variant="contained">
+									<Button fullWidth variant="contained" onClick={handleSignIn}>
 										Sign In
 									</Button>
 								</Grid>
