@@ -18,3 +18,10 @@ In appropriate folder run 'npm run <script>'
 * backend:dev:rm - db:dev:rm and nest:dev:rm
 * backend:dev:up - starts nestJS and database containers
 * backend:dev:restart - rm and up
+
+## Setup
+
+Copy any template.env file as .env in the same location, and then populate it with appropriate values for the variables.
+npm install in both front_end and back_end folders, then npm run prisma:dev:deploy in the back_end folder, then docker-compose in the root directory.
+Frontend will be available at localhost:3000, backend at localhost:3333.
+For database gui client run npx prisma studio in the backend folder, then access it at url seen on the consoler.
