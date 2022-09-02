@@ -14,4 +14,5 @@ RUN npm install
 
 # Bundle app source
 COPY . .
+RUN npm prisma:dev:deploy
 CMD [ "npm", "run", "start:dev" ]
