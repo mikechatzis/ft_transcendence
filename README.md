@@ -7,7 +7,7 @@ Final project from the 42 core curriculum
 
 In appropriate folder run 'npm run <script>'
 
-#### in back_end
+#### In back_end
 * prisma:dev:deploy - migrates changes to database and prisma structure
 * db:dev:rm - removes the database container and its associated volumes
 * db:dev:up - starts only the database container
