@@ -45,6 +45,8 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 					</Box>
 					<Box display="flex" justifyContent="center" alignItems="center" flex={1}>
 						<Button color="inherit" onClick={() => (navigate("/"))}>Home</Button>
+						<Button color="inherit" onClick={() => (navigate("/play"))}>Play</Button>
+						<Button color="inherit" onClick={() => (navigate("/chat"))}>Chat</Button>
 					</Box>
 					<Box>
 						<IconButton
