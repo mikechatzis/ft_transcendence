@@ -1,6 +1,6 @@
 import React from 'react'
-import {useState} from 'react'
-import {useNavigate} from 'react-router-dom'
+import { useState, useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AppBar from '@mui/material/AppBar'
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
@@ -11,7 +11,8 @@ import Toolbar from '@mui/material/Toolbar'
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
 import AccountCircle from '@mui/icons-material/AccountCircle'
-import {useTheme} from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
+import { UserContext } from '../context/UserContext'
 
 interface MenuProps {
 	handleToggle: React.ButtonHTMLAttributes<HTMLButtonElement> ["onClick"]
@@ -21,6 +22,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	const [anchorElem, setAnchorElem] = useState<null | HTMLElement>(null)
 	const navigate = useNavigate()
 	const theme = useTheme()
+	const {context, setContext} = useContext(UserContext)
 
 	const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorElem(event.currentTarget)
@@ -67,18 +69,26 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 							open={Boolean(anchorElem)}
 							onClose={handleClose}
 						>
-							<MenuItem onClick={() => {
+							{!context && <MenuItem onClick={() => {
 								handleClose()
 								navigate("/login")
 							}} >
 								Sign in
-							</MenuItem>
-							<MenuItem onClick={() => {
+							</MenuItem>}
+							{context && <MenuItem onClick={() => {
 								handleClose()
 								navigate("/account")
 							}} >
 								Account
-							</MenuItem>
+							</MenuItem>}
+							{context && <MenuItem onClick={() => {
+								setContext?.(false)
+								handleClose()
+								sessionStorage.setItem('jwt', '')
+								navigate("/")
+							}} >
+								Sign out
+							</MenuItem>}
 						</Menu>
 					</Box>
 				</Toolbar>

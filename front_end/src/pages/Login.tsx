@@ -1,5 +1,5 @@
-import React from 'react'
-import {useState} from 'react'
+import React, { useContext } from 'react'
+import { useState } from 'react'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
@@ -10,8 +10,11 @@ import InputAdornment from '@mui/material/InputAdornment'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+import { UserContext } from '../context/UserContext'
 
 const baseUrl = "http://localhost:3333"
+
 
 const Login: React.FC = () => {
 	const [values, setValues] = useState({
@@ -19,6 +22,10 @@ const Login: React.FC = () => {
 		password: '',
 		showPassword: false
 	})
+	const {context, setContext} = useContext(UserContext)
+
+	const navigate = useNavigate()
+
 
 	const handleVisibility = () => {
 		setValues({
@@ -32,11 +39,14 @@ const Login: React.FC = () => {
 			email: values.username,
 			password: values.password
 		}).then((response) => {
-			console.log("response", response)
-			console.log("values", values)
+			console.log(response.data)
+			sessionStorage.setItem('jwt', response.data.access_token)
+			setContext?.(true)
+			setTimeout(() => navigate("/account"), 500)
 		}).catch((error) => {
 			console.log(error)
 		})
+
 	}
 
 	const handleSignIn = () => {
@@ -44,11 +54,14 @@ const Login: React.FC = () => {
 			email: values.username,
 			password: values.password
 		}).then((response) => {
-			console.log("response", response)
-			console.log("values", values)
+			console.log(response.data)
+			sessionStorage.setItem('jwt', response.data.access_token)
+			setContext?.(true)
+			setTimeout(() => navigate("/account"), 500)
 		}).catch((error) => {
 			console.log(error)
 		})
+
 	}
 
 	return (

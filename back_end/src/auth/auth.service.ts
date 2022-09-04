@@ -5,6 +5,7 @@ import { AuthDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from '@nestjs/config';
+import { Request, Response } from "express";
 
 @Injectable()
 export class AuthService {
@@ -70,4 +71,12 @@ export class AuthService {
 			access_token: token
 		}
 	}
+
+	// async fortyTwoAuthCallback(req: Request, res: Response) {
+	// 	const user = await this.prisma.user.findUnique({
+	// 		where: {
+	// 			id: req.user.id
+	// 		}
+	// 	})
+	// }
 }
