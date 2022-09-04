@@ -7,12 +7,12 @@ import { PrismaService } from "src/prisma/prisma.service";
 const Strategy = require('passport-42').Strategy
 
 @Injectable()
-export class FtStrategy extends PassportStrategy(Strategy, 'oauth2') {
+export class FtStrategy extends PassportStrategy(Strategy, '42') {
 	constructor(config: ConfigService) {
 		super({
 			clientID: config.get('42_UID'),
 			clientSecret: config.get('42_SECRET'),
-			callbackURL: config.get('42_URL')
+			callbackURL: config.get('42_CALLBACK')
 		})
 	}
 

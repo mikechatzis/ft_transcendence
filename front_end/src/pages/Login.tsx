@@ -12,6 +12,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/UserContext'
+import { Link } from '@mui/material'
 
 const baseUrl = "http://localhost:3333"
 
@@ -114,6 +115,11 @@ const Login: React.FC = () => {
 									<Button fullWidth variant="contained" onClick={handleSignUp}>
 										Sign Up
 									</Button>
+								</Grid>
+								<Grid item>
+									<Link href="http://localhost:3333/auth/42/login" color="inherit" marginTop={10}>
+										Prefer to sign in with intra instead?
+									</Link>
 								</Grid>
 							</Grid>
 						</form>

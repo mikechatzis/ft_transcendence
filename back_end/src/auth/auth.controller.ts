@@ -1,6 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AuthDto } from "./dto";
+import { FtGuard } from "./guard";
 
 @Controller('auth')
 export class AuthController {
@@ -17,5 +19,16 @@ export class AuthController {
 	@Post('signin')
 	signin(@Body() dto: AuthDto) {
 		return this.authService.signin(dto)
+	}
+
+	@UseGuards(FtGuard)
+    @Get('42/login')
+    async login() {}
+
+	@UseGuards(FtGuard)
+	@Get('42/callback')
+	async fortyTwoAuthCallback(@Req() req: Request, @Res({passthrough: true}) res: Response) {
+		console.log(req.user)
+		res.redirect("http://localhost:3000")
 	}
 }
