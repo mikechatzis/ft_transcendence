@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from "@nestjs/common";
-import { Request, Response } from "express";
+import { Request, Response, Router } from "express";
+import * as bodyParser from 'body-parser'
 import { AuthService } from "./auth.service";
 import { AuthDto } from "./dto";
 import { FtGuard } from "./guard";
@@ -28,7 +29,7 @@ export class AuthController {
 	@UseGuards(FtGuard)
 	@Get('42/callback')
 	async fortyTwoAuthCallback(@Req() req: Request, @Res({passthrough: true}) res: Response) {
-		console.log(req.user)
-		res.redirect("http://localhost:3000")
+		this.authService.fortyTwoAuthCallback(req, res)
+		res.redirect("http://localhost:3000/account")
 	}
 }

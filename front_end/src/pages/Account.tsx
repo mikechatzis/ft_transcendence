@@ -8,19 +8,19 @@ import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 
 const Account: React.FC = () => {
-	const [email, setEmail] = useState('')
+	const [name, setname] = useState('')
 
-	const getEmail = () => {
+	const getname = () => {
 		let config = {
 			headers: {
 				Authorization: 'Bearer ' + sessionStorage.getItem('jwt')
 			}
 		}
 
-		axios.get("http://localhost:3333/users/me", config).then(response => setEmail(response.data.email))
+		axios.get("http://localhost:3333/users/me", config).then(response => setname(response.data.name))
 	}
 
-	useEffect(getEmail, [])
+	useEffect(getname, [])
 
 	return (
 		<div>
@@ -38,7 +38,7 @@ const Account: React.FC = () => {
 					</Grid>
 					<Grid item>
 						<Typography variant="h1">
-							{`Your email is ${email}`}
+							{`Your username is ${name}`}
 						</Typography>
 					</Grid>
 				</Grid>

@@ -37,7 +37,7 @@ const Login: React.FC = () => {
 
 	const handleSignUp = () => {
 		axios.post(baseUrl + "/auth/signup", {
-			email: values.username,
+			name: values.username,
 			password: values.password
 		}).then((response) => {
 			console.log(response.data)
@@ -52,7 +52,7 @@ const Login: React.FC = () => {
 
 	const handleSignIn = () => {
 		axios.post(baseUrl + "/auth/signin", {
-			email: values.username,
+			name: values.username,
 			password: values.password
 		}).then((response) => {
 			console.log(response.data)

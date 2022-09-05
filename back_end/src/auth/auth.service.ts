@@ -18,16 +18,16 @@ export class AuthService {
 		try {
 			const user = await this.prisma.user.create({
 				data: {
-					email: dto.email,
+					name: dto.name,
 					hash: hash
 				}
 			})
 
-			return this.signToken(user.id, user.email)
+			return this.signToken(user.id, user.name)
 		}
 		catch (error) {
 			if (error instanceof PrismaClientKnownRequestError) {
-				// if tried to create new record with violated unique field (that email already exists)
+				// if tried to create new record with violated unique field (that name already exists)
 				if (error.code === "P2002") {
 					throw new ForbiddenException("Credentials taken")
 				}
@@ -37,10 +37,10 @@ export class AuthService {
 	}
 
 	async signin(dto: AuthDto) {
-		// find user by email, throw exception if email not found
+		// find user by name, throw exception if name not found
 		const user = await this.prisma.user.findUnique({
 			where: {
-				email: dto.email
+				name: dto.name
 			}
 		})
 		if (!user) {
@@ -51,13 +51,13 @@ export class AuthService {
 		if (!pwMatches) {
 			throw new ForbiddenException("Credentials incorrect")
 		}
-		return this.signToken(user.id, user.email)
+		return this.signToken(user.id, user.name)
 	}
 
-	async signToken(userId: number, email: string): Promise<{access_token: string}> {
+	async signToken(userId: number, name: string): Promise<{access_token: string}> {
 		const payload = {
 			sub: userId,
-			email
+			name
 		}
 
 		const secret = this.config.get('JWT_SECRET')
@@ -72,11 +72,41 @@ export class AuthService {
 		}
 	}
 
-	// async fortyTwoAuthCallback(req: Request, res: Response) {
-	// 	const user = await this.prisma.user.findUnique({
-	// 		where: {
-	// 			id: req.user.id
-	// 		}
-	// 	})
-	// }
+	async getUser(user: any) {
+		const found = await this.prisma.user.findUnique({
+			where: {
+				intraName: user.name
+			}
+		})
+
+		return found
+	}
+
+	async addIntraUser(user: any) {
+		const newUser = await this.prisma.user.create({
+			data: {
+				intraName: user.name,
+				name: ''
+			}
+		})
+		return newUser
+	}
+
+	async fortyTwoAuthCallback(req: Request, res: Response) {
+		let user = await this.getUser(req.user)
+
+		if (!user) {
+			let newUser = await this.addIntraUser(req.user)
+			console.log('user', newUser)
+			let test = await this.prisma.user.update({
+				where: {
+					intraName: newUser.intraName,
+				},
+				data: {
+					name: `${newUser.id}`
+				}
+			})
+			console.log('test', test)
+		}
+	}
 }
