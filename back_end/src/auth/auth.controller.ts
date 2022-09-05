@@ -1,9 +1,10 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseFilters, UseGuards } from "@nestjs/common";
 import { Request, Response, Router } from "express";
 import * as bodyParser from 'body-parser'
 import { AuthService } from "./auth.service";
 import { AuthDto } from "./dto";
 import { FtGuard } from "./guard";
+import { FtFilter } from "./filter";
 
 @Controller('auth')
 export class AuthController {
@@ -27,9 +28,19 @@ export class AuthController {
     async login() {}
 
 	@UseGuards(FtGuard)
+	@UseFilters(FtFilter)
 	@Get('42/callback')
 	async fortyTwoAuthCallback(@Req() req: Request, @Res({passthrough: true}) res: Response) {
-		this.authService.fortyTwoAuthCallback(req, res)
+		let user = await this.authService.getUser(req.user)
+
+		if (!user) {
+			user = await this.authService.singUpIntra(req)
+		}
+		const accessToken = await this.authService.signToken(user.id, user.name)
+		res.cookie('jwt', accessToken, {
+			httpOnly: true,
+			sameSite: 'strict'
+		})
 		res.redirect("http://localhost:3000/account")
 	}
 }

@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prisma:dev:deploy": "npx prisma migrate deploy",
+    "prisma:dev:deploy": "npx prisma migrate deploy && npx prisma db push",
     "db:dev:rm": "docker-compose -f ../docker-compose.yml rm postgres -s -f -v",
     "db:dev:up": "docker-compose -f ../docker-compose.yml up postgres",
     "db:dev:restart": "npm run db:dev:rm && npm run db:dev:up && sleep 1 && npm run prisma:dev:deploy",

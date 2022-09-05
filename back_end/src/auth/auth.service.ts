@@ -5,7 +5,7 @@ import { AuthDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from '@nestjs/config';
-import { Request, Response } from "express";
+import { Request } from "express";
 
 @Injectable()
 export class AuthService {
@@ -92,21 +92,16 @@ export class AuthService {
 		return newUser
 	}
 
-	async fortyTwoAuthCallback(req: Request, res: Response) {
-		let user = await this.getUser(req.user)
-
-		if (!user) {
-			let newUser = await this.addIntraUser(req.user)
-			console.log('user', newUser)
-			let test = await this.prisma.user.update({
-				where: {
-					intraName: newUser.intraName,
-				},
-				data: {
-					name: `${newUser.id}`
-				}
-			})
-			console.log('test', test)
-		}
+	async singUpIntra(req: Request) {
+		let newUser = await this.addIntraUser(req.user)
+		newUser = await this.prisma.user.update({
+			where: {
+				intraName: newUser.intraName,
+			},
+			data: {
+				name: `${newUser.id}`
+			}
+		})
+		return newUser
 	}
 }
