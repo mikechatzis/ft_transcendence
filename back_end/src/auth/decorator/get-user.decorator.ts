@@ -12,12 +12,6 @@ export const GetUser = createParamDecorator(
 				id: request.user['sub']
 			}
 		})
-		if (data) {
-			console.log(user)
-			console.log(data)
-			console.log(user[data])
-			return user[data]
-		}
 		return user
 	}
 )

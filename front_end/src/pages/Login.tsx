@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { useState } from 'react'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
@@ -23,10 +23,10 @@ const Login: React.FC = () => {
 		password: '',
 		showPassword: false
 	})
+
 	const {context, setContext} = useContext(UserContext)
 
 	const navigate = useNavigate()
-
 
 	const handleVisibility = () => {
 		setValues({
@@ -39,24 +39,19 @@ const Login: React.FC = () => {
 		axios.post(baseUrl + "/auth/signup", {
 			name: values.username,
 			password: values.password
-		}).then((response) => {
-			console.log(response.data)
-			sessionStorage.setItem('jwt', response.data.access_token)
+		}, {withCredentials: true}).then((response) => {
 			setContext?.(true)
 			setTimeout(() => navigate("/account"), 500)
 		}).catch((error) => {
 			console.log(error)
 		})
-
 	}
 
 	const handleSignIn = () => {
 		axios.post(baseUrl + "/auth/signin", {
 			name: values.username,
 			password: values.password
-		}).then((response) => {
-			console.log(response.data)
-			sessionStorage.setItem('jwt', response.data.access_token)
+		}, {withCredentials: true}).then((response) => {
 			setContext?.(true)
 			setTimeout(() => navigate("/account"), 500)
 		}).catch((error) => {

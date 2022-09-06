@@ -6,7 +6,6 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from '@nestjs/config';
 import { Request } from "express";
-import { sign } from "crypto";
 
 @Injectable()
 export class AuthService {
@@ -24,7 +23,9 @@ export class AuthService {
 				}
 			})
 
-			return this.signToken(user.id, user.name)
+			return this.signToken({
+				sub: user.id
+			})
 		}
 		catch (error) {
 			if (error instanceof PrismaClientKnownRequestError) {
@@ -52,7 +53,9 @@ export class AuthService {
 		if (!pwMatches) {
 			throw new ForbiddenException("Credentials incorrect")
 		}
-		return this.signToken(user.id, user.name)
+		return this.signToken({
+			sub: user.id
+		})
 	}
 
 	async signToken(payload: any, options: any = {}) {

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import Avatar from '@mui/material/Avatar'
@@ -6,19 +6,31 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
+import { useNavigate } from 'react-router-dom'
+import { UserContext } from '../context/UserContext'
 
 const Account: React.FC = () => {
 	const [name, setName] = useState('')
+	const {context, setContext} = useContext(UserContext)
+
+	const navigate = useNavigate()
 
 	const getName = () => {
 		let config = {
-			// headers: {
-			// 	Authorization: 'Bearer ' + sessionStorage.getItem('jwt')
-			// }
 			withCredentials: true
 		}
 
-		axios.get("http://localhost:3333/users/me/name", config).then(response => setName(response.data)).catch((error) => console.log(error))
+		axios.get("http://localhost:3333/users/me/name", config).then(response => {
+			setName(response.data)
+		}).catch((error) => {
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/unauthorized")
+			}
+			else {
+				console.log(error)
+			}
+		})
 	}
 
 	useEffect(getName, [])

@@ -82,23 +82,21 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 							}} >
 								Account
 							</MenuItem>}
-							{/* {context && <MenuItem onClick={() => {
-								setContext?.(false)
-								handleClose()
-								sessionStorage.setItem('jwt', '')
-								navigate("/")
-							}} >
-								Sign out
-							</MenuItem>} */}
-							<MenuItem onClick={() => {
+							{context && <MenuItem onClick={() => {
 								let config = {
 									withCredentials: true
 								}
-
-								axios.post("http://localhost:3333/auth/signout", config).then(() => navigate("/account"))
+								handleClose()
+								axios.get("http://localhost:3333/auth/signout", config).then(() => {
+									setContext?.(false)
+									navigate("/")
+								}).catch((error) => {
+									setContext?.(false)
+									navigate("/")
+								})
 							}}>
 								Sign out
-							</MenuItem>
+							</MenuItem>}
 						</Menu>
 					</Box>
 				</Toolbar>

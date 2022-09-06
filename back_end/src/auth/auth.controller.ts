@@ -1,6 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseFilters, UseGuards } from "@nestjs/common";
-import { Request, Response, Router } from "express";
-import * as bodyParser from 'body-parser'
+import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AuthDto } from "./dto";
 import { FtGuard, JwtGuard } from "./guard";
@@ -11,16 +10,28 @@ export class AuthController {
 	constructor(private authService: AuthService) {}
 
 	@Post('signup')
-	signup(@Body() dto: AuthDto) {
-		return this.authService.signup(dto)
+	async signup(@Body() dto: AuthDto, @Res({passthrough: true}) res: Response) {
+		const token = await this.authService.signup(dto)
+
+		res.cookie('jwt', token, {
+			httpOnly: true,
+			sameSite: 'strict',
+			maxAge: 15 * 60 * 1000
+		})
 	}
 
 	// the HttpCode decorator lets us change the returned status code on success
 	// in this case returning 200 (instead of the default 201 for POST requests) because no new data has been created on the server
 	@HttpCode(HttpStatus.OK)
 	@Post('signin')
-	signin(@Body() dto: AuthDto) {
-		return this.authService.signin(dto)
+	async signin(@Body() dto: AuthDto, @Res({passthrough: true}) res: Response) {
+		const token = await this.authService.signin(dto)
+
+		res.cookie('jwt', token, {
+			httpOnly: true,
+			sameSite: 'strict',
+			maxAge: 15 * 60 * 1000
+		})
 	}
 
 	@UseGuards(FtGuard)
@@ -49,14 +60,19 @@ export class AuthController {
 
 	@UseGuards(JwtGuard)
 	@Get('signout')
-	signOut(@Res() res: Response) {
-		// might have to remove res from function declaration, and create a new response in function body. too tired rn to think
+	signOut(@Res({passthrough: true}) res: Response) {
 		res.cookie('jwt', '', {
 			httpOnly: true,
 			sameSite: 'strict',
-			maxAge: 15 * 60 * 1000
+			maxAge: 0
 		})
-		console.log('bruh')
-		res.redirect('http://localhost:3000/account')
+	}
+
+	@UseGuards(JwtGuard)
+	@Get('logged_in')
+	loggedIn() {
+		return {
+			loggedIn: true
+		}
 	}
 }
