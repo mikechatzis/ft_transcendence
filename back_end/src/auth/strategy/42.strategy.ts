@@ -17,13 +17,6 @@ export class FtStrategy extends PassportStrategy(Strategy, '42') {
 		})
 	}
 
-	// authenticate() {
-	// 	return passport.authenticate('42', {
-	// 		failureRedirect: "http://localhost:3000/",
-	// 		failureFlash: "Authentication"
-	// 	})
-	// }
-
 	async validate(accessToken: string, refreshToken: string, profile: any, done:VerifiedCallback) {
 		const user = {
 			id: profile.id,

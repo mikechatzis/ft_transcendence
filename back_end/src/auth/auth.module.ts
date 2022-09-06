@@ -8,7 +8,10 @@ import { FtStrategy } from "./strategy";
 import { JwtStrategy } from "./strategy/jwt.strategy";
 
 @Module({
-	imports: [JwtModule.register({}), PassportModule],
+	imports: [JwtModule.register({
+		secret: "4dfa5401b2f9e4311c824bb3f897d47ceb0029d5957d7b140ffb0dd377a03dfc",
+		signOptions: {expiresIn: '15m'}
+	}), PassportModule],
 	controllers: [AuthController],
 	providers: [AuthService, JwtStrategy, JwtGuard, FtStrategy, FtGuard]
 })

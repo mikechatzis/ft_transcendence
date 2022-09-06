@@ -117,7 +117,7 @@ const Login: React.FC = () => {
 									</Button>
 								</Grid>
 								<Grid item>
-									<Link href="http://localhost:3333/auth/42/login" color="inherit" marginTop={10}>
+									<Link href="http://localhost:3333/auth/42/callback" color="inherit" marginTop={10}>
 										Prefer to sign in with intra instead?
 									</Link>
 								</Grid>

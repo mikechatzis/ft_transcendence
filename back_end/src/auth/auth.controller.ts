@@ -3,7 +3,7 @@ import { Request, Response, Router } from "express";
 import * as bodyParser from 'body-parser'
 import { AuthService } from "./auth.service";
 import { AuthDto } from "./dto";
-import { FtGuard } from "./guard";
+import { FtGuard, JwtGuard } from "./guard";
 import { FtFilter } from "./filter";
 
 @Controller('auth')
@@ -36,11 +36,26 @@ export class AuthController {
 		if (!user) {
 			user = await this.authService.singUpIntra(req)
 		}
-		const accessToken = await this.authService.signToken(user.id, user.name)
+		const accessToken = await this.authService.signToken({
+			sub: user.id
+		})
 		res.cookie('jwt', accessToken, {
 			httpOnly: true,
-			sameSite: 'strict'
+			sameSite: 'strict',
+			maxAge: 15 * 60 * 1000
 		})
 		res.redirect("http://localhost:3000/account")
+	}
+
+	@UseGuards(JwtGuard)
+	@Get('signout')
+	signOut(@Res() res: Response) {
+		res.cookie('jwt', '', {
+			httpOnly: true,
+			sameSite: 'strict',
+			maxAge: 15 * 60 * 1000
+		})
+		console.log('bruh')
+		res.redirect('http://localhost:3000/account')
 	}
 }

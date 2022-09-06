@@ -6,6 +6,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from '@nestjs/config';
 import { Request } from "express";
+import { sign } from "crypto";
 
 @Injectable()
 export class AuthService {
@@ -54,22 +55,8 @@ export class AuthService {
 		return this.signToken(user.id, user.name)
 	}
 
-	async signToken(userId: number, name: string): Promise<{access_token: string}> {
-		const payload = {
-			sub: userId,
-			name
-		}
-
-		const secret = this.config.get('JWT_SECRET')
-
-		const token = await this.jwt.signAsync(payload, {
-			expiresIn: '15m',
-			secret
-		})
-
-		return {
-			access_token: token
-		}
+	async signToken(payload: any, options: any = {}) {
+		return this.jwt.sign(payload, options)
 	}
 
 	async getUser(user: any) {

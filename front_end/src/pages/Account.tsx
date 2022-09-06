@@ -8,19 +8,20 @@ import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 
 const Account: React.FC = () => {
-	const [name, setname] = useState('')
+	const [name, setName] = useState('')
 
-	const getname = () => {
+	const getName = () => {
 		let config = {
-			headers: {
-				Authorization: 'Bearer ' + sessionStorage.getItem('jwt')
-			}
+			// headers: {
+			// 	Authorization: 'Bearer ' + sessionStorage.getItem('jwt')
+			// }
+			withCredentials: true
 		}
 
-		axios.get("http://localhost:3333/users/me", config).then(response => setname(response.data.name))
+		axios.get("http://localhost:3333/users/me/name", config).then(response => setName(response.data)).catch((error) => console.log(error))
 	}
 
-	useEffect(getname, [])
+	useEffect(getName, [])
 
 	return (
 		<div>

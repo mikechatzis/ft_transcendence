@@ -1,9 +1,10 @@
-import {  IsString, IsNotEmpty, IsAlpha } from 'class-validator'
+import {  IsString, IsNotEmpty, IsAlpha, Matches } from 'class-validator'
 
 export class AuthDto {
-	@IsString()
+	@Matches(/^[a-zA-Z][a-zA-Z0-9.-]+$/, {
+		message: "First character has to be a letter, others must be alphanumeric, dots or hyphens"
+	})
 	@IsNotEmpty()
-	@IsAlpha()
 	name: string;
 
 	@IsString()

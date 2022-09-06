@@ -12,6 +12,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
 import AccountCircle from '@mui/icons-material/AccountCircle'
 import { useTheme } from '@mui/material/styles'
+import axios from 'axios'
 import { UserContext } from '../context/UserContext'
 
 interface MenuProps {
@@ -81,14 +82,23 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 							}} >
 								Account
 							</MenuItem>}
-							{context && <MenuItem onClick={() => {
+							{/* {context && <MenuItem onClick={() => {
 								setContext?.(false)
 								handleClose()
 								sessionStorage.setItem('jwt', '')
 								navigate("/")
 							}} >
 								Sign out
-							</MenuItem>}
+							</MenuItem>} */}
+							<MenuItem onClick={() => {
+								let config = {
+									withCredentials: true
+								}
+
+								axios.post("http://localhost:3333/auth/signout", config).then(() => navigate("/account"))
+							}}>
+								Sign out
+							</MenuItem>
 						</Menu>
 					</Box>
 				</Toolbar>
