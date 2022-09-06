@@ -18,6 +18,8 @@ model User {
 	name String @unique
 	intraName String? @unique
 	hash String?
+	twoFactorAuth Boolean
+	twoFactorSecret String?
 
 	@@map("users")
 }

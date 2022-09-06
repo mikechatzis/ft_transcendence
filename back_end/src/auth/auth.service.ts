@@ -6,10 +6,14 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from '@nestjs/config';
 import { Request } from "express";
+import { User } from "@prisma/client";
+import { authenticator } from "otplib";
+import { toDataUrl } from "qrcode";
+import { UserService } from "../user/user.service";
 
 @Injectable()
 export class AuthService {
-	constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService) {}
+	constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService, private userService: UserService) {}
 
 	async signup(dto: AuthDto) {
 		// generate password hash
@@ -19,7 +23,8 @@ export class AuthService {
 			const user = await this.prisma.user.create({
 				data: {
 					name: dto.name,
-					hash: hash
+					hash: hash,
+					twoFactorAuth: false
 				}
 			})
 
@@ -76,7 +81,8 @@ export class AuthService {
 		const newUser = await this.prisma.user.create({
 			data: {
 				intraName: user.name,
-				name: ''
+				name: '',
+				twoFactorAuth: false
 			}
 		})
 		return newUser
@@ -93,5 +99,44 @@ export class AuthService {
 			}
 		})
 		return newUser
+	}
+
+	async generateTwoFactorAuthenticationSecret(user: User) {
+		const secret = authenticator.generateSecret()
+
+		const otpauthUrl = authenticator.keyuri(user.name, 'ft_transcendence', secret)
+
+		await this.userService.setTwoFactorAuthenticationSecret(secret, user.id)
+
+		return {
+			secret,
+			otpauthUrl
+		}
+	}
+
+	async generateQrCodeDataUrl(otpAuthUrl: string) {
+		return toDataUrl(otpAuthUrl)
+	}
+
+	isTwoFactorAuthenticationCodeValid(code: string, user: any) {
+		return authenticator.verify({
+			token: code,
+			secret: user.twoFactorSecret
+		})
+	}
+
+	// Partial makes all elements of User optional here
+	async login2fa(user: Partial<User>) {
+		const payload = {
+			name: user.name,
+			// the '!!' is a double negation - making sure twoFactorAuth will be a boolean
+			twoFactorAuthEnabled: !!user.twoFactorAuth,
+			isAuthenticated: true
+		}
+
+		return {
+			name: payload.name,
+			access_token: this.jwt.sign(payload)
+		}
 	}
 }

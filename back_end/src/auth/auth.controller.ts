@@ -1,13 +1,16 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseFilters, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UnauthorizedException, UseFilters, UseGuards } from "@nestjs/common";
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AuthDto } from "./dto";
 import { FtGuard, JwtGuard } from "./guard";
 import { FtFilter } from "./filter";
+import { UserService } from "../user/user.service";
+import { GetUser } from "./decorator";
+import { User } from "@prisma/client";
 
 @Controller('auth')
 export class AuthController {
-	constructor(private authService: AuthService) {}
+	constructor(private authService: AuthService, private userService: UserService) {}
 
 	@Post('signup')
 	async signup(@Body() dto: AuthDto, @Res({passthrough: true}) res: Response) {
@@ -33,10 +36,6 @@ export class AuthController {
 			maxAge: 15 * 60 * 1000
 		})
 	}
-
-	// @UseGuards(FtGuard)
-    // @Get('42/login')
-    // async login() {}
 
 	@UseGuards(FtGuard)
 	@UseFilters(FtFilter)
@@ -75,4 +74,42 @@ export class AuthController {
 			loggedIn: true
 		}
 	}
+
+	@UseGuards(JwtGuard)
+	@Post('2fa/turn-on')
+	async turnOnTwoFactorAuth(@GetUser() user: User, @Body() body) {
+		const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
+			body.twoFactorAuthenticationCode,
+			user
+		)
+		if (!isCodeValid) {
+			throw new UnauthorizedException("Wrong authentication code")
+		}
+		await this.userService.turnOnTwoFactorAuthentication(user.id)
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@UseGuards(JwtGuard)
+	@Post('2fa/authenticate')
+	async authenticate(@GetUser() user: User, @Body() body, @Res({passthrough: true}) res: Response) {
+		const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
+			body.twoFactorAuthenticationCode,
+			user
+		)
+
+		if (!isCodeValid) {
+			throw new UnauthorizedException("Wrong authentication code")
+		}
+
+		const logData = await this.authService.login2fa(user)
+
+		res.cookie('jwt', logData.access_token, {
+			httpOnly: true,
+			sameSite: 'strict',
+			maxAge: 15 * 60 * 1000
+		})
+
+		return logData
+	}
+
 }
