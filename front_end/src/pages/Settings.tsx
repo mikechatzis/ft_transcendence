@@ -23,7 +23,7 @@ const Settings: React.FC = () => {
 			setMessage(error.response.data.message)
 			setTimeout(() => {
 				setMessage(null)
-			}, 5000)
+			}, 5000)	
 		})
 	}
 
