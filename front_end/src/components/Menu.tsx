@@ -82,6 +82,12 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 							}} >
 								Account
 							</MenuItem>}
+							{context && <MenuItem onClick= {() => {
+								handleClose()
+								navigate("/settings")
+							}}>
+								Settings
+							</MenuItem>}
 							{context && <MenuItem onClick={() => {
 								let config = {
 									withCredentials: true

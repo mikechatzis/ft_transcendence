@@ -8,10 +8,12 @@ import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/UserContext'
+import { UrlContext } from '../context/UrlContext'
 
 const Account: React.FC = () => {
 	const [name, setName] = useState('')
 	const {context, setContext} = useContext(UserContext)
+	const baseUrl = useContext(UrlContext)
 
 	const navigate = useNavigate()
 
@@ -20,7 +22,7 @@ const Account: React.FC = () => {
 			withCredentials: true
 		}
 
-		axios.get("http://localhost:3333/users/me/name", config).then(response => {
+		axios.get(baseUrl + "users/me/name", config).then(response => {
 			setName(response.data)
 		}).catch((error) => {
 			if (error.response.status === 401) {

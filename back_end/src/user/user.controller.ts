@@ -1,10 +1,11 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AuthGuard } from '@nestjs/passport'
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
+import { Request } from 'express';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 @Controller('users')
 export class UserController {
@@ -20,19 +21,37 @@ export class UserController {
 
 	@UseGuards(JwtGuard)
 	@Get('me/name')
-	async getMyName(@GetUser() user: User) {
-		const userFound = await retrieveMe(user)
-		return userFound?.name
+	getMyName(@GetUser() user: User) {
+		return user.name
+	}
+
+	@UseGuards(JwtGuard)
+	@Post('me/name')
+	async setMyName(@GetUser() user: User, @Req() req: Request) {
+		const userUpdated = await setName(user, req)
 	}
 }
 
-const retrieveMe = async (user: User) => {
+const setName = async (user: User, req: Request) => {
 	const config = new ConfigService()
 	const prisma = new PrismaService(config)
-	const userFound = await prisma.user.findUnique({
-		where: {
-			id: user.id
+	try {
+		const userUpdated = await prisma.user.update({
+			where: {
+				id: user.id
+			},
+			data: {
+				name: req.body.name
+			}
+		})
+		return userUpdated
+	}
+	catch (error) {
+		if (error instanceof PrismaClientKnownRequestError) {
+			if (error.code === "P2002") {
+				throw new ForbiddenException("That username is already taken")
+			}
 		}
-	})
-	return userFound
+		throw error
+	}
 }

@@ -34,9 +34,9 @@ export class AuthController {
 		})
 	}
 
-	@UseGuards(FtGuard)
-    @Get('42/login')
-    async login() {}
+	// @UseGuards(FtGuard)
+    // @Get('42/login')
+    // async login() {}
 
 	@UseGuards(FtGuard)
 	@UseFilters(FtFilter)

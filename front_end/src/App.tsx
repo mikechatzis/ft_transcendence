@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { useState, useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline'
@@ -9,14 +9,17 @@ import Login from './pages/Login'
 import Error401 from './pages/Error401'
 import Error404 from './pages/Error404'
 import Account from './pages/Account'
+import Settings from './pages/Settings'
 import { UserContext } from './context/UserContext'
 import axios from 'axios'
+import { UrlContext } from './context/UrlContext'
 
-const baseUrl = 'http://localhost:3333/'
 
 const App: React.FC = () => {
 	const [darkMode, setDarkMode] = useState(false)
 	const [context, setContext] = useState(false)
+
+	const baseUrl = useContext(UrlContext)
 
 	const theme = createTheme ({
 		palette: {
@@ -47,7 +50,7 @@ const App: React.FC = () => {
 	}
 
 	return (
-		<ThemeProvider theme={theme}>
+		<ThemeProvider theme={theme}>	
 			<UserContext.Provider value={{context, setContext}}>
 				<CssBaseline />
 				<MenuBar handleToggle={handleToggle} />
@@ -56,6 +59,7 @@ const App: React.FC = () => {
 					<Route path="/login" element={<Login />} />
 					<Route path="/account" element={<Account />} />
 					<Route path="/unauthorized" element={<Error401 />} />
+					<Route path="/settings" element={<Settings />} />
 					<Route path="*" element={<Error404 />} />
 				</Routes>
 			</UserContext.Provider>

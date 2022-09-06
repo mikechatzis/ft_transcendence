@@ -14,8 +14,8 @@ import { Link } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/UserContext'
 import Notification from '../components/Notification'
+import { UrlContext } from '../context/UrlContext'
 
-const baseUrl = "http://localhost:3333"
 
 
 const Login: React.FC = () => {
@@ -24,6 +24,8 @@ const Login: React.FC = () => {
 		password: '',
 		showPassword: false
 	})
+
+	const baseUrl = useContext(UrlContext)
 
 	const [message, setMessage] = useState<string | null>(null)
 
@@ -39,7 +41,7 @@ const Login: React.FC = () => {
 	};
 
 	const handleSignUp = () => {
-		axios.post(baseUrl + "/auth/signup", {
+		axios.post(baseUrl + "auth/signup", {
 			name: values.username,
 			password: values.password
 		}, {withCredentials: true}).then((response) => {
@@ -50,12 +52,11 @@ const Login: React.FC = () => {
 			setTimeout(() => {
 				setMessage(null)
 			}, 5000)
-			console.log(error.response.data.message)
 		})
 	}
 
 	const handleSignIn = () => {
-		axios.post(baseUrl + "/auth/signin", {
+		axios.post(baseUrl + "auth/signin", {
 			name: values.username,
 			password: values.password
 		}, {withCredentials: true}).then((response) => {
@@ -123,7 +124,7 @@ const Login: React.FC = () => {
 									</Button>
 								</Grid>
 								<Grid item>
-									<Link href="http://localhost:3333/auth/42/callback" color="inherit" marginTop={10}>
+									<Link href={baseUrl + "auth/42/callback"} color="inherit" marginTop={10}>
 										Prefer to sign in with intra instead?
 									</Link>
 								</Grid>
