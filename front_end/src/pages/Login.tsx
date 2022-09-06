@@ -10,9 +10,10 @@ import InputAdornment from '@mui/material/InputAdornment'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import axios from 'axios'
+import { Link } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/UserContext'
-import { Link } from '@mui/material'
+import Notification from '../components/Notification'
 
 const baseUrl = "http://localhost:3333"
 
@@ -23,6 +24,8 @@ const Login: React.FC = () => {
 		password: '',
 		showPassword: false
 	})
+
+	const [message, setMessage] = useState<string | null>(null)
 
 	const {context, setContext} = useContext(UserContext)
 
@@ -43,7 +46,11 @@ const Login: React.FC = () => {
 			setContext?.(true)
 			setTimeout(() => navigate("/account"), 500)
 		}).catch((error) => {
-			console.log(error)
+			setMessage(error.response.data.message)
+			setTimeout(() => {
+				setMessage(null)
+			}, 5000)
+			console.log(error.response.data.message)
 		})
 	}
 
@@ -55,13 +62,17 @@ const Login: React.FC = () => {
 			setContext?.(true)
 			setTimeout(() => navigate("/account"), 500)
 		}).catch((error) => {
-			console.log(error)
+			setMessage(error.response.data.message)
+			setTimeout(() => {
+				setMessage(null)
+			}, 5000)
 		})
 
 	}
 
 	return (
 		<div>
+			<Notification message={message} />
 			<Container maxWidth="sm">
 				<Grid container
 					spacing={2}
