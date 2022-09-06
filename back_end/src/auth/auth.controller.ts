@@ -50,6 +50,7 @@ export class AuthController {
 	@UseGuards(JwtGuard)
 	@Get('signout')
 	signOut(@Res() res: Response) {
+		// might have to remove res from function declaration, and create a new response in function body. too tired rn to think
 		res.cookie('jwt', '', {
 			httpOnly: true,
 			sameSite: 'strict',
