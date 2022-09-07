@@ -1,4 +1,5 @@
 import Button from '@mui/material/Button'
+import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
@@ -13,6 +14,9 @@ import { UrlContext } from '../context/UrlContext'
 const Settings: React.FC = () => {
 	const [name, setName] = useState('')
 	const [message, setMessage] = useState<string | null>(null)
+	const [qrUrl, setQrUrl] = useState('')
+	const [code, setCode] = useState('')
+	const [qrDisplayed, setQrDisplayed] = useState(false)
 	const baseUrl = useContext(UrlContext)
 	const navigate = useNavigate()
 
@@ -23,7 +27,7 @@ const Settings: React.FC = () => {
 			setMessage(error.response.data.message)
 			setTimeout(() => {
 				setMessage(null)
-			}, 5000)	
+			}, 5000)
 		})
 	}
 
@@ -40,18 +44,52 @@ const Settings: React.FC = () => {
 					<Paper elevation={2} sx={{padding: 5}}>
 						<form>
 							<Grid container direction="column" spacing={2}>
-								<TextField fullWidth
-									label="New username"
-									placeholder="Username"
-									variant="outlined"
-									required
-									onChange={(e) => {setName(e.target.value)}}
-								/>
+								<Grid item>
+									<TextField fullWidth
+										label="New username"
+										placeholder="Username"
+										variant="outlined"
+										required
+										onChange={(e) => {setName(e.target.value)}}
+									/>
+								</Grid>
 								<Grid item>
 									<Button fullWidth variant="contained" onClick={handleNameChange}>
 										Change username
 									</Button>
 								</Grid>
+								{!qrDisplayed && <Grid item>
+									<Button fullWidth onClick={() => {
+										axios.get(baseUrl + "auth/2fa/generate", {withCredentials: true}).then((response) => {
+											console.log(response.data)
+											setQrUrl(response.data)
+											setQrDisplayed(true)
+										})
+									}}>
+										Enable Google authenticator
+									</Button>
+								</Grid>}
+								{qrDisplayed && <Grid item>
+									<Box display="flex" justifyContent="center" alignItems="center" flex={1}>
+										<img src={qrUrl} />
+									</Box>
+								</Grid>}
+								{qrDisplayed && <Grid item>
+									<TextField fullWidth
+										label="Google Authenticator code"
+										placeholder="code"
+										variant="outlined"
+										required
+										onChange={(e) => {setCode(e.target.value)}}
+									/>
+								</Grid>}
+								{qrDisplayed && <Grid item>
+									<Button fullWidth variant="contained" onClick={() => {
+										axios.post(baseUrl + "auth/2fa/turn-on", {twoFactorAuthenticationCode: code}, {withCredentials: true}).then(() => console.log("frorg"))
+									}}>
+										Submit code
+									</Button>
+								</Grid>}
 							</Grid>
 						</form>
 					</Paper>

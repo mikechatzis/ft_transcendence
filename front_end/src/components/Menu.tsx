@@ -14,6 +14,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle'
 import { useTheme } from '@mui/material/styles'
 import axios from 'axios'
 import { UserContext } from '../context/UserContext'
+import { UrlContext } from '../context/UrlContext'
 
 interface MenuProps {
 	handleToggle: React.ButtonHTMLAttributes<HTMLButtonElement> ["onClick"]
@@ -24,6 +25,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	const navigate = useNavigate()
 	const theme = useTheme()
 	const {context, setContext} = useContext(UserContext)
+	const baseUrl = useContext(UrlContext)
 
 	const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorElem(event.currentTarget)
