@@ -2,15 +2,14 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, Unauthoriz
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AuthDto } from "./dto";
-import { FtGuard, JwtGuard } from "./guard";
+import { FtGuard, JwtGuard, Jwt2faGuard } from "./guard";
 import { FtFilter } from "./filter";
 import { UserService } from "../user/user.service";
-import { GetUser } from "./decorator";
-import { User } from "@prisma/client";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Controller('auth')
 export class AuthController {
-	constructor(private authService: AuthService, private userService: UserService) {}
+	constructor(private authService: AuthService, private userService: UserService, private prisma: PrismaService) {}
 
 	@Post('signup')
 	async signup(@Body() dto: AuthDto, @Res({passthrough: true}) res: Response) {
@@ -57,7 +56,7 @@ export class AuthController {
 		res.redirect("http://localhost:3000/account")
 	}
 
-	@UseGuards(JwtGuard)
+	@UseGuards(Jwt2faGuard)
 	@Get('signout')
 	signOut(@Res({passthrough: true}) res: Response) {
 		res.cookie('jwt', '', {
@@ -67,7 +66,7 @@ export class AuthController {
 		})
 	}
 
-	@UseGuards(JwtGuard)
+	@UseGuards(Jwt2faGuard)
 	@Get('logged_in')
 	loggedIn() {
 		return {
@@ -77,7 +76,13 @@ export class AuthController {
 
 	@UseGuards(JwtGuard)
 	@Post('2fa/turn-on')
-	async turnOnTwoFactorAuth(@GetUser() user: User, @Body() body) {
+	async turnOnTwoFactorAuth(@Req() req, @Body() body) {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id: req.user.sub
+			}
+		})
+		console.log(user)
 		const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
 			body.twoFactorAuthenticationCode,
 			user
@@ -85,23 +90,23 @@ export class AuthController {
 		if (!isCodeValid) {
 			throw new UnauthorizedException("Wrong authentication code")
 		}
-		await this.userService.turnOnTwoFactorAuthentication(user.id)
+		await this.userService.turnOnTwoFactorAuthentication(req.user.sub)
 	}
 
 	@HttpCode(HttpStatus.OK)
-	@UseGuards(JwtGuard)
+	@UseGuards(Jwt2faGuard)
 	@Post('2fa/authenticate')
-	async authenticate(@GetUser() user: User, @Body() body, @Res({passthrough: true}) res: Response) {
+	async authenticate(@Req() req, @Body() body, @Res({passthrough: true}) res: Response) {
 		const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
 			body.twoFactorAuthenticationCode,
-			user
+			req.user
 		)
 
 		if (!isCodeValid) {
 			throw new UnauthorizedException("Wrong authentication code")
 		}
 
-		const logData = await this.authService.login2fa(user)
+		const logData = await this.authService.login2fa(req.user)
 
 		res.cookie('jwt', logData.access_token, {
 			httpOnly: true,
@@ -112,4 +117,18 @@ export class AuthController {
 		return logData
 	}
 
+	@UseGuards(JwtGuard)
+	@Get('2fa/generate')
+	async generateQr(@Req() req) {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id: req.user.sub
+			}
+		})
+		const values = await this.authService.generateTwoFactorAuthenticationSecret(user)
+
+		const qr = await this.authService.generateQrCodeDataUrl(values.otpauthUrl)
+
+		return qr
+	}
 }

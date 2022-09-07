@@ -9,7 +9,7 @@ export const GetUser = createParamDecorator(
 		const prisma = new PrismaService(config)
 		const user = prisma.user.findUnique({
 			where: {
-				id: request.user['sub']
+				id: request.user.id
 			}
 		})
 		return user

@@ -5,8 +5,8 @@ import { UserService } from "../user/user.service";
 import { UserModule } from "../user/user.module";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { FtGuard, JwtGuard } from "./guard";
-import { FtStrategy } from "./strategy";
+import { FtGuard, Jwt2faGuard, JwtGuard } from "./guard";
+import { FtStrategy, Jwt2faStrategy } from "./strategy";
 import { JwtStrategy } from "./strategy/jwt.strategy";
 
 @Module({
@@ -15,6 +15,6 @@ import { JwtStrategy } from "./strategy/jwt.strategy";
 		signOptions: {expiresIn: '15m'}
 	}), PassportModule, UserModule],
 	controllers: [AuthController],
-	providers: [AuthService, JwtStrategy, JwtGuard, FtStrategy, FtGuard, UserService]
+	providers: [AuthService, JwtStrategy, JwtGuard, FtStrategy, FtGuard, UserService, Jwt2faStrategy, Jwt2faGuard]
 })
 export class AuthModule {}

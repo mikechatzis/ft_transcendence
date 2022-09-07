@@ -5,10 +5,10 @@ import { AuthDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from '@nestjs/config';
-import { Request } from "express";
+import { Request, Response } from "express";
 import { User } from "@prisma/client";
 import { authenticator } from "otplib";
-import { toDataUrl } from "qrcode";
+import { toDataURL } from "qrcode";
 import { UserService } from "../user/user.service";
 
 @Injectable()
@@ -29,7 +29,9 @@ export class AuthService {
 			})
 
 			return this.signToken({
-				sub: user.id
+				sub: user.id,
+				name: user.name,
+				twoFactorAuthEnabled: !!user.twoFactorAuth,
 			})
 		}
 		catch (error) {
@@ -59,7 +61,10 @@ export class AuthService {
 			throw new ForbiddenException("Credentials incorrect")
 		}
 		return this.signToken({
-			sub: user.id
+			sub: user.id,
+			name: user.name,
+			twoFactorAuthEnabled: !!user.twoFactorAuth,
+
 		})
 	}
 
@@ -103,8 +108,9 @@ export class AuthService {
 
 	async generateTwoFactorAuthenticationSecret(user: User) {
 		const secret = authenticator.generateSecret()
+		console.log(secret)
 
-		const otpauthUrl = authenticator.keyuri(user.name, 'ft_transcendence', secret)
+		const otpauthUrl = authenticator.keyuri(user.id.toString(), 'ft_transcendence', secret)
 
 		await this.userService.setTwoFactorAuthenticationSecret(secret, user.id)
 
@@ -115,7 +121,7 @@ export class AuthService {
 	}
 
 	async generateQrCodeDataUrl(otpAuthUrl: string) {
-		return toDataUrl(otpAuthUrl)
+		return toDataURL(otpAuthUrl)
 	}
 
 	isTwoFactorAuthenticationCodeValid(code: string, user: any) {
@@ -126,9 +132,10 @@ export class AuthService {
 	}
 
 	// Partial makes all elements of User optional here
-	async login2fa(user: Partial<User>) {
+	async login2fa(user: User) {
 		const payload = {
 			name: user.name,
+			sub: user.id,
 			// the '!!' is a double negation - making sure twoFactorAuth will be a boolean
 			twoFactorAuthEnabled: !!user.twoFactorAuth,
 			isAuthenticated: true

@@ -16,7 +16,7 @@ export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
 		})
 	}
 
-	async validate(payload: any) {
+	async validate(payload: {sub: number}) {
 		const user = await this.prisma.user.findUnique({
 			where: {
 				id: payload.sub
@@ -24,9 +24,6 @@ export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
 		})
 
 		if (!user.twoFactorAuth) {
-			return user
-		}
-		if (payload.isAuthenticated) {
 			return user
 		}
 	}

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { GetUser } from '../auth/decorator';
-import { JwtGuard } from '../auth/guard';
+import { Jwt2faGuard, JwtGuard } from '../auth/guard';
 import { Request } from 'express';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
@@ -13,19 +13,19 @@ export class UserController {
 	// if get decorator is left with no parameters it will use the one in @controller
 	// something like @Get('test') would work for 'GET /users/test'
 	// if controller had nothing, an empty @Get() would catch it at '/'
-	@UseGuards(JwtGuard)
+	@UseGuards(Jwt2faGuard)
 	@Get('me')
 	getMe(@GetUser() user: User) {
 		return user
 	}
 
-	@UseGuards(JwtGuard)
+	@UseGuards(Jwt2faGuard)
 	@Get('me/name')
 	getMyName(@GetUser() user: User) {
 		return user.name
 	}
 
-	@UseGuards(JwtGuard)
+	@UseGuards(Jwt2faGuard)
 	@Post('me/name')
 	async setMyName(@GetUser() user: User, @Req() req: Request) {
 		const userUpdated = await setName(user, req)
