@@ -27,7 +27,7 @@ const Account: React.FC = () => {
 		}).catch((error) => {
 			if (error.response.status === 401) {
 				setContext?.(false)
-				navigate("/unauthorized")
+				navigate("/login")
 			}
 			else {
 				console.log(error)

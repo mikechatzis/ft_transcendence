@@ -14,6 +14,7 @@ import { UserContext } from './context/UserContext'
 import axios from 'axios'
 import { UrlContext } from './context/UrlContext'
 import TwoFactor from './pages/2fa'
+import Chat from './pages/Chat'
 
 
 const App: React.FC = () => {
@@ -62,6 +63,7 @@ const App: React.FC = () => {
 					<Route path="/unauthorized" element={<Error401 />} />
 					<Route path="/settings" element={<Settings />} />
 					<Route path="/2fa" element={<TwoFactor /> } />
+					<Route path="/chat" element={<Chat />} />
 					<Route path="*" element={<Error404 />} />
 				</Routes>
 			</UserContext.Provider>

@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
 import { Jwt2faGuard, JwtGuard } from '../auth/guard';
@@ -18,6 +18,7 @@ export class UserController {
 	@Get('me')
 	getMe(@GetUser() user: User) {
 		delete user.hash
+		delete user.twoFactorSecret
 		return user
 	}
 
@@ -31,6 +32,20 @@ export class UserController {
 	@Post('me/name')
 	async setMyName(@GetUser() user: User, @Body() body: UsernameDto) {
 		const userUpdated = await this.userService.setName(user, body)
+	}
+
+	@Get(':id')
+	async getById(@Param('id') id) {
+		const user = await this.userService.findById(parseInt(id))
+
+		return user
+	}
+
+	@Get('user/:name')
+	async getByName(@Param('name') name) {
+		const user = await this.userService.findByName(name)
+
+		return user
 	}
 }
 

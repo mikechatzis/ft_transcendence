@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from "@nestjs/common";
+import { Injectable, ForbiddenException, NotFoundException } from "@nestjs/common";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
@@ -59,7 +59,30 @@ export class UserService {
 			}
 		})
 
+		if (!user) {
+			throw new NotFoundException("This user doesn't exist")
+		}
+
 		delete user.hash
 		delete user.twoFactorSecret
+
+		return user
+	}
+
+	async findByName(name: string) {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				name
+			}
+		})
+
+		if (!user) {
+			throw new NotFoundException("This user doesn't exist")
+		}
+
+		delete user.hash
+		delete user.twoFactorSecret
+
+		return user
 	}
 }
