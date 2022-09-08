@@ -13,6 +13,7 @@ import Settings from './pages/Settings'
 import { UserContext } from './context/UserContext'
 import axios from 'axios'
 import { UrlContext } from './context/UrlContext'
+import TwoFactor from './pages/2fa'
 
 
 const App: React.FC = () => {
@@ -35,7 +36,7 @@ const App: React.FC = () => {
 		})
 	}
 
-	useEffect(checkLoginStatus, [])
+	useEffect(checkLoginStatus)
 
 	useEffect(() => {
 		const themeType = localStorage.getItem("dark") || "dark"
@@ -60,6 +61,7 @@ const App: React.FC = () => {
 					<Route path="/account" element={<Account />} />
 					<Route path="/unauthorized" element={<Error401 />} />
 					<Route path="/settings" element={<Settings />} />
+					<Route path="/2fa" element={<TwoFactor /> } />
 					<Route path="*" element={<Error404 />} />
 				</Routes>
 			</UserContext.Provider>

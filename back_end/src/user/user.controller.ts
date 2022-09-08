@@ -1,14 +1,15 @@
-import { Controller, ForbiddenException, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Body, Controller, ForbiddenException, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
 import { GetUser } from '../auth/decorator';
 import { Jwt2faGuard, JwtGuard } from '../auth/guard';
 import { Request } from 'express';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { UserService } from './user.service';
+import { UsernameDto } from './dto/username.dto';
 
 @Controller('users')
 export class UserController {
+
+	constructor(private userService: UserService) {}
 
 	// if get decorator is left with no parameters it will use the one in @controller
 	// something like @Get('test') would work for 'GET /users/test'
@@ -16,6 +17,7 @@ export class UserController {
 	@UseGuards(Jwt2faGuard)
 	@Get('me')
 	getMe(@GetUser() user: User) {
+		delete user.hash
 		return user
 	}
 
@@ -27,31 +29,8 @@ export class UserController {
 
 	@UseGuards(Jwt2faGuard)
 	@Post('me/name')
-	async setMyName(@GetUser() user: User, @Req() req: Request) {
-		const userUpdated = await setName(user, req)
+	async setMyName(@GetUser() user: User, @Body() body: UsernameDto) {
+		const userUpdated = await this.userService.setName(user, body)
 	}
 }
 
-const setName = async (user: User, req: Request) => {
-	const config = new ConfigService()
-	const prisma = new PrismaService(config)
-	try {
-		const userUpdated = await prisma.user.update({
-			where: {
-				id: user.id
-			},
-			data: {
-				name: req.body.name
-			}
-		})
-		return userUpdated
-	}
-	catch (error) {
-		if (error instanceof PrismaClientKnownRequestError) {
-			if (error.code === "P2002") {
-				throw new ForbiddenException("That username is already taken")
-			}
-		}
-		throw error
-	}
-}

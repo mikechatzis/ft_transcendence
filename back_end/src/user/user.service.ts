@@ -1,5 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, ForbiddenException } from "@nestjs/common";
 import { User } from "@prisma/client";
+import { Request } from "express";
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
@@ -26,5 +28,38 @@ export class UserService {
 				twoFactorAuth: true
 			}
 		})
+	}
+
+	async setName(user: User, body: any) {
+		try {
+			const userUpdated = await this.prisma.user.update({
+				where: {
+					id: user.id
+				},
+				data: {
+					name: body.name
+				}
+			})
+			return userUpdated
+		}
+		catch (error) {
+			if (error instanceof PrismaClientKnownRequestError) {
+				if (error.code === "P2002") {
+					throw new ForbiddenException("That username is already taken")
+				}
+			}
+			throw error
+		}
+	}
+
+	async findById(id: number) {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id
+			}
+		})
+
+		delete user.hash
+		delete user.twoFactorSecret
 	}
 }

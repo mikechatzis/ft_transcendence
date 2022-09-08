@@ -60,8 +60,14 @@ const Login: React.FC = () => {
 			name: values.username,
 			password: values.password
 		}, {withCredentials: true}).then((response) => {
-			setContext?.(true)
-			setTimeout(() => navigate("/account"), 500)
+			if (response.data.twoFactorAuth) {
+				console.log("enabled")
+				navigate("/2fa")
+			}
+			else {
+				setContext?.(true)
+				setTimeout(() => navigate("/account"), 500)
+			}
 		}).catch((error) => {
 			setMessage(error.response.data.message)
 			setTimeout(() => {

@@ -6,6 +6,8 @@ CREATE TABLE "users" (
     "name" TEXT NOT NULL,
     "intraName" TEXT,
     "hash" TEXT,
+    "twoFactorAuth" BOOLEAN NOT NULL,
+    "twoFactorSecret" TEXT,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );

@@ -20,6 +20,15 @@ export class AuthController {
 			sameSite: 'strict',
 			maxAge: 15 * 60 * 1000
 		})
+
+		const user = await this.prisma.user.findUnique({
+			where: {
+				name: dto.name
+			}
+		})
+		delete user.hash
+		delete user.twoFactorSecret
+		return user
 	}
 
 	// the HttpCode decorator lets us change the returned status code on success
@@ -34,6 +43,15 @@ export class AuthController {
 			sameSite: 'strict',
 			maxAge: 15 * 60 * 1000
 		})
+
+		const user = await this.prisma.user.findUnique({
+			where: {
+				name: dto.name
+			}
+		})
+		delete user.hash
+		delete user.twoFactorSecret
+		return user
 	}
 
 	@UseGuards(FtGuard)
@@ -45,15 +63,23 @@ export class AuthController {
 		if (!user) {
 			user = await this.authService.singUpIntra(req)
 		}
+
 		const accessToken = await this.authService.signToken({
-			sub: user.id
+			sub: user.id,
+			name: user.name,
+			twoFactorAuthEnabled: !!user.twoFactorAuth,
 		})
 		res.cookie('jwt', accessToken, {
 			httpOnly: true,
 			sameSite: 'strict',
 			maxAge: 15 * 60 * 1000
 		})
-		res.redirect("http://localhost:3000/account")
+		if (user.twoFactorAuth) {
+			res.redirect("http://localhost:3000/2fa")
+		}
+		else {
+			res.redirect("http://localhost:3000/account")
+		}
 	}
 
 	@UseGuards(Jwt2faGuard)
@@ -74,15 +100,14 @@ export class AuthController {
 		}
 	}
 
-	@UseGuards(JwtGuard)
+	@UseGuards(Jwt2faGuard)
 	@Post('2fa/turn-on')
-	async turnOnTwoFactorAuth(@Req() req, @Body() body) {
+	async turnOnTwoFactorAuth(@Req() req, @Body() body, @Res({passthrough: true}) res: Response) {
 		const user = await this.prisma.user.findUnique({
 			where: {
-				id: req.user.sub
+				id: req.user.id
 			}
 		})
-		console.log(user)
 		const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
 			body.twoFactorAuthenticationCode,
 			user
@@ -90,16 +115,44 @@ export class AuthController {
 		if (!isCodeValid) {
 			throw new UnauthorizedException("Wrong authentication code")
 		}
-		await this.userService.turnOnTwoFactorAuthentication(req.user.sub)
+		const logData = await this.authService.login2fa(req.user)
+		res.cookie('jwt', logData.access_token, {
+			httpOnly: true,
+			sameSite: 'strict',
+			maxAge: 15 * 60 * 1000
+		})
+		await this.userService.turnOnTwoFactorAuthentication(user.id)
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post('2fa/turn-off')
+	async turnOffTwoFactorAuth(@Req() req, @Body() body) {
+		let userId = req.user.sub
+		if (!userId) {
+			userId = req.user.id
+		}
+		const user = await this.prisma.user.update({
+			where: {
+				id: userId
+			},
+			data: {
+				twoFactorAuth: false
+			}
+		})
 	}
 
 	@HttpCode(HttpStatus.OK)
-	@UseGuards(Jwt2faGuard)
+	@UseGuards(JwtGuard)
 	@Post('2fa/authenticate')
 	async authenticate(@Req() req, @Body() body, @Res({passthrough: true}) res: Response) {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id: req.user.sub
+			}
+		})
 		const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
 			body.twoFactorAuthenticationCode,
-			req.user
+			user
 		)
 
 		if (!isCodeValid) {
@@ -113,8 +166,6 @@ export class AuthController {
 			sameSite: 'strict',
 			maxAge: 15 * 60 * 1000
 		})
-
-		return logData
 	}
 
 	@UseGuards(JwtGuard)

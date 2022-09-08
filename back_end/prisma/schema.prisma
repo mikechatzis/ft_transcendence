@@ -21,5 +21,8 @@ model User {
 	twoFactorAuth Boolean
 	twoFactorSecret String?
 
+	friends String[]
+	blocked String[]
+
 	@@map("users")
 }

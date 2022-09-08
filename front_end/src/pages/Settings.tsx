@@ -5,10 +5,11 @@ import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import TextField from '@mui/material/TextField'
 import axios from 'axios'
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Notification from '../components/Notification'
 import { UrlContext } from '../context/UrlContext'
+import userEvent from '@testing-library/user-event'
 
 
 const Settings: React.FC = () => {
@@ -16,9 +17,18 @@ const Settings: React.FC = () => {
 	const [message, setMessage] = useState<string | null>(null)
 	const [qrUrl, setQrUrl] = useState('')
 	const [code, setCode] = useState('')
+	const [twoAuthOn, setTwoAuthOn] = useState(false)
 	const [qrDisplayed, setQrDisplayed] = useState(false)
 	const baseUrl = useContext(UrlContext)
 	const navigate = useNavigate()
+
+	useEffect(() => {
+		axios.get(baseUrl + "users/me", {withCredentials: true}).then((response) => {
+			if (response.data.twoFactorAuth) {
+				setTwoAuthOn(true)
+			}
+		})
+	}, [])
 
 	const handleNameChange = () => {
 		axios.post(baseUrl + "users/me/name", {name}, {withCredentials: true}).then(() => {
@@ -58,10 +68,9 @@ const Settings: React.FC = () => {
 										Change username
 									</Button>
 								</Grid>
-								{!qrDisplayed && <Grid item>
+								{(!qrDisplayed && !twoAuthOn) && <Grid item>
 									<Button fullWidth onClick={() => {
 										axios.get(baseUrl + "auth/2fa/generate", {withCredentials: true}).then((response) => {
-											console.log(response.data)
 											setQrUrl(response.data)
 											setQrDisplayed(true)
 										})
@@ -69,25 +78,36 @@ const Settings: React.FC = () => {
 										Enable Google authenticator
 									</Button>
 								</Grid>}
-								{qrDisplayed && <Grid item>
+								{(qrDisplayed && !twoAuthOn) && <Grid item>
 									<Box display="flex" justifyContent="center" alignItems="center" flex={1}>
 										<img src={qrUrl} />
 									</Box>
 								</Grid>}
-								{qrDisplayed && <Grid item>
+								{(qrDisplayed && !twoAuthOn) && <Grid item>
 									<TextField fullWidth
 										label="Google Authenticator code"
-										placeholder="code"
+										placeholder="Code"
 										variant="outlined"
 										required
 										onChange={(e) => {setCode(e.target.value)}}
 									/>
 								</Grid>}
-								{qrDisplayed && <Grid item>
+								{(qrDisplayed && !twoAuthOn) && <Grid item>
 									<Button fullWidth variant="contained" onClick={() => {
-										axios.post(baseUrl + "auth/2fa/turn-on", {twoFactorAuthenticationCode: code}, {withCredentials: true}).then(() => console.log("frorg"))
+										axios.post(baseUrl + "auth/2fa/turn-on", {twoFactorAuthenticationCode: code}, {withCredentials: true}).then(() => {
+											navigate("/account")
+										})
 									}}>
-										Submit code
+										Submit
+									</Button>
+								</Grid>}
+								{twoAuthOn && <Grid item>
+									<Button fullWidth onClick={() => {
+										axios.post(baseUrl + "auth/2fa/turn-off", {}, {withCredentials: true}).then(() => {
+											navigate("/account")
+										})
+									}}>
+										Disable Google authenticator
 									</Button>
 								</Grid>}
 							</Grid>

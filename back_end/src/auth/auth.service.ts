@@ -108,7 +108,6 @@ export class AuthService {
 
 	async generateTwoFactorAuthenticationSecret(user: User) {
 		const secret = authenticator.generateSecret()
-		console.log(secret)
 
 		const otpauthUrl = authenticator.keyuri(user.id.toString(), 'ft_transcendence', secret)
 
@@ -132,17 +131,19 @@ export class AuthService {
 	}
 
 	// Partial makes all elements of User optional here
-	async login2fa(user: User) {
+	async login2fa(user: any) {
+		let id = user.sub
+		if (!user.sub) {
+			id = user.id
+		}
 		const payload = {
-			name: user.name,
-			sub: user.id,
 			// the '!!' is a double negation - making sure twoFactorAuth will be a boolean
 			twoFactorAuthEnabled: !!user.twoFactorAuth,
+			sub: id,
 			isAuthenticated: true
 		}
 
 		return {
-			name: payload.name,
 			access_token: this.jwt.sign(payload)
 		}
 	}
