@@ -22,6 +22,8 @@ const Settings: React.FC = () => {
 	const baseUrl = useContext(UrlContext)
 	const navigate = useNavigate()
 
+	const enterKeyCode = 13
+
 	useEffect(() => {
 		axios.get(baseUrl + "users/me", {withCredentials: true}).then((response) => {
 			if (response.data.twoFactorAuth) {
@@ -39,6 +41,24 @@ const Settings: React.FC = () => {
 				setMessage(null)
 			}, 5000)
 		})
+	}
+
+	const handleNameEnterKey = (event: any) => {
+		if (event.keyCode === enterKeyCode) {
+			handleNameChange()
+		}
+	}
+
+	const handle2fa = () => {
+		axios.post(baseUrl + "auth/2fa/turn-on", {twoFactorAuthenticationCode: code}, {withCredentials: true}).then(() => {
+			navigate("/account")
+		})
+	}
+
+	const handle2faEnterKey = (event: any) => {
+		if (event.keyCode === enterKeyCode) {
+			handle2fa()
+		}
 	}
 
 	return (
@@ -61,6 +81,7 @@ const Settings: React.FC = () => {
 										variant="outlined"
 										required
 										onChange={(e) => {setName(e.target.value)}}
+										onKeyDown={handleNameEnterKey}
 									/>
 								</Grid>
 								<Grid item>
@@ -90,6 +111,7 @@ const Settings: React.FC = () => {
 										variant="outlined"
 										required
 										onChange={(e) => {setCode(e.target.value)}}
+										onKeyDown={handle2faEnterKey}
 									/>
 								</Grid>}
 								{(qrDisplayed && !twoAuthOn) && <Grid item>

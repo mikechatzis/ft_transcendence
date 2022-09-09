@@ -25,6 +25,8 @@ const Login: React.FC = () => {
 		showPassword: false
 	})
 
+	const enterKeyCode = 13
+
 	const baseUrl = useContext(UrlContext)
 
 	const [message, setMessage] = useState<string | null>(null)
@@ -74,7 +76,12 @@ const Login: React.FC = () => {
 				setMessage(null)
 			}, 5000)
 		})
+	}
 
+	const handleEnterKey = (event: any) => {
+		if (event.keyCode === enterKeyCode) {
+			handleSignIn()
+		}
 	}
 
 	return (
@@ -97,7 +104,9 @@ const Login: React.FC = () => {
 										placeholder="Username"
 										variant="outlined"
 										required
-										onChange={(e) => {setValues({...values, username: e.target.value})}} />
+										onChange={(e) => {setValues({...values, username: e.target.value})}}
+										onKeyDown={handleEnterKey}
+									/>
 								</Grid>
 								<Grid item>
 									<TextField type={values.showPassword ? "text" : "password"}
@@ -117,7 +126,8 @@ const Login: React.FC = () => {
 											</InputAdornment>
 										)
 									}}
-									onChange={(e) => {setValues({...values, password: e.target.value})}} />
+									onChange={(e) => {setValues({...values, password: e.target.value})}}
+									onKeyDown={handleEnterKey} />
 								</Grid>
 								<Grid item>
 									<Button fullWidth variant="contained" onClick={handleSignIn}>

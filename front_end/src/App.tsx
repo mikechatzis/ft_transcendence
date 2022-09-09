@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
+import io from "socket.io-client"
 import Home from './pages/Home'
 import MenuBar from './components/Menu'
 import Login from './pages/Login'
@@ -15,6 +16,7 @@ import axios from 'axios'
 import { UrlContext } from './context/UrlContext'
 import TwoFactor from './pages/2fa'
 import Chat from './pages/Chat'
+import { ChatContext, chatSocket } from './context/SocketContext'
 
 
 const App: React.FC = () => {
@@ -52,21 +54,23 @@ const App: React.FC = () => {
 	}
 
 	return (
-		<ThemeProvider theme={theme}>	
-			<UserContext.Provider value={{context, setContext}}>
-				<CssBaseline />
-				<MenuBar handleToggle={handleToggle} />
-				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route path="/login" element={<Login />} />
-					<Route path="/account" element={<Account />} />
-					<Route path="/unauthorized" element={<Error401 />} />
-					<Route path="/settings" element={<Settings />} />
-					<Route path="/2fa" element={<TwoFactor /> } />
-					<Route path="/chat" element={<Chat />} />
-					<Route path="*" element={<Error404 />} />
-				</Routes>
-			</UserContext.Provider>
+		<ThemeProvider theme={theme}>
+			<ChatContext.Provider value={chatSocket}>
+				<UserContext.Provider value={{context, setContext}}>
+					<CssBaseline />
+					<MenuBar handleToggle={handleToggle} />
+					<Routes>
+						<Route path="/" element={<Home />} />
+						<Route path="/login" element={<Login />} />
+						<Route path="/account" element={<Account />} />
+						<Route path="/unauthorized" element={<Error401 />} />
+						<Route path="/settings" element={<Settings />} />
+						<Route path="/2fa" element={<TwoFactor /> } />
+						<Route path="/chat" element={<Chat />} />
+						<Route path="*" element={<Error404 />} />
+					</Routes>
+				</UserContext.Provider>
+			</ChatContext.Provider>
 		</ThemeProvider>
 	)
 }
