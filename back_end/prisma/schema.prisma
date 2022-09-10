@@ -21,6 +21,8 @@ model User {
 	twoFactorAuth Boolean
 	twoFactorSecret String?
 
+	status Int
+
 	friends String[]
 	blocked String[]
 

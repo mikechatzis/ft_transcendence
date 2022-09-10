@@ -1,6 +1,8 @@
 import { JwtService } from '@nestjs/jwt';
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets'
+import { ChatService } from './chat.service';
 import * as cookie from 'cookie'
+import { Status } from '../user/enums/status.enum';
 
 @WebSocketGateway({
 	namespace: "chat",
@@ -10,11 +12,31 @@ import * as cookie from 'cookie'
 	},
 })
 export class ChatGateway {
-	constructor(private jwt: JwtService) {}
+	constructor(private jwt: JwtService, private chatService: ChatService) {}
 
 	// starts a socket server on current api port
 	@WebSocketServer()
 	server;
+
+	@SubscribeMessage('connection')
+	async handleConnection(socket) {
+		console.log("a user connected")
+
+		const payload = await this.chatService.authAndExtract(socket)
+		console.log(payload)
+
+		socket.on('disconnect', () => {
+			console.log("a user disconnected")
+
+			if (payload) {
+				this.chatService.setUserStatus(payload.sub, Status.OFFLINE)
+			}
+		})
+
+		if (payload) {
+			const user = await this.chatService.setUserStatus(payload.sub, Status.ONLINE)
+		}
+	}
 
 	@SubscribeMessage('message')
 	async handleMessage(@MessageBody() message) {

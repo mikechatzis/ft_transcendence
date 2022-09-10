@@ -31,12 +31,10 @@ const Chat: React.FC = () => {
 		socket.on('message', ({data}: any) => {
 			const newArr = messages.concat(data)
 
-			console.log('yep, cock')
 			setMessages(newArr)
 		})
 
 		socket.on('exception', (exception: any) => {
-			console.log(exception)
 
 			if (exception.message === "401") {
 				navigate("/login")
@@ -48,7 +46,7 @@ const Chat: React.FC = () => {
 				}, 5000)
 			}
 		})
-	}, [])
+	}, [messages])
 
 
 

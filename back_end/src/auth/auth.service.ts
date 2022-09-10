@@ -10,6 +10,7 @@ import { User } from "@prisma/client";
 import { authenticator } from "otplib";
 import { toDataURL } from "qrcode";
 import { UserService } from "../user/user.service";
+import { Status } from "../user/enums/status.enum";
 
 @Injectable()
 export class AuthService {
@@ -24,7 +25,8 @@ export class AuthService {
 				data: {
 					name: dto.name,
 					hash: hash,
-					twoFactorAuth: false
+					twoFactorAuth: false,
+					status: Status.OFFLINE
 				}
 			})
 
@@ -87,7 +89,8 @@ export class AuthService {
 			data: {
 				intraName: user.name,
 				name: '',
-				twoFactorAuth: false
+				twoFactorAuth: false,
+				status: Status.OFFLINE
 			}
 		})
 		return newUser

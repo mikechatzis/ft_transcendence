@@ -8,6 +8,9 @@ CREATE TABLE "users" (
     "hash" TEXT,
     "twoFactorAuth" BOOLEAN NOT NULL,
     "twoFactorSecret" TEXT,
+    "status" INTEGER NOT NULL,
+    "friends" TEXT[],
+    "blocked" TEXT[],
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
