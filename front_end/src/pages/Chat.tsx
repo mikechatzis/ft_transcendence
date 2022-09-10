@@ -12,10 +12,11 @@ import Paper from "@mui/material/Paper"
 import SendIcon from "@mui/icons-material/Send"
 import { useContext, useEffect, useRef, useState } from "react"
 import { Typography } from "@mui/material"
-import { ChatContext } from "../context/SocketContext"
+import { ChatContext } from "../context/ChatContext"
 import { io } from "socket.io-client"
 import Notification from "../components/Notification"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
+import { UserContext } from "../context/UserContext"
 
 const Chat: React.FC = () => {
 	const enterKeyCode = 13
@@ -24,7 +25,9 @@ const Chat: React.FC = () => {
 	const [message, setMessage] = useState('')
 	const [error, setError] = useState('')
 	const scrollBottomRef = useRef<any>(null)
+	const {context, setContext} = useContext(UserContext)
 	const socket = useContext(ChatContext)
+	const channel = useParams()
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -48,14 +51,19 @@ const Chat: React.FC = () => {
 		})
 	}, [messages])
 
-
-
 	useEffect(() => {
 			scrollBottomRef.current?.scrollIntoView({behavior: "smooth"})
 	}, [messages])
 
+	useEffect(() => {
+		if (!context) {
+			navigate("/login")
+		}
+	})
+
 	const handleMessageSend = () => {
-		socket.emit('message', {data: message, id: socket.id})
+		console.log(channel)
+		socket.emit('message', {data: message, id: socket.id, room: channel.name})
 
 		setMessage('')
 	}

@@ -30,7 +30,7 @@ const images = [
 	  url: "https://previews.123rf.com/images/shadowalice/shadowalice1504/shadowalice150400221/38321576-message-icons-set-great-for-any-use.jpg",
 	  title: "CHAT",
 	  width: "25%",
-	  path: "/chat"
+	  path: "/chat-list"
 	},
 ];
 

@@ -11,20 +11,32 @@ datasource db {
 }
 
 model User {
-	id Int @id @default(autoincrement())
-	createdAt DateTime @default(now())
-	updatedAt DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-	name String @unique
-	intraName String? @unique
-	hash String?
-	twoFactorAuth Boolean
-	twoFactorSecret String?
+  name            String  @unique
+  intraName       String? @unique
+  hash            String?
+  twoFactorAuth   Boolean
+  twoFactorSecret String?
 
-	status Int
+  status Int
 
-	friends String[]
-	blocked String[]
+  friends Int[]
+  blocked Int[]
 
-	@@map("users")
+  channels String[]
+
+  @@map("users")
+}
+
+model Channel {
+  name   String   @unique
+  admins Int[]
+
+  hash String?
+  isDmChannel Boolean
+
+  @@map("channels")
 }

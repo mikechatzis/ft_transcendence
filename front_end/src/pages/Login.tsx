@@ -63,7 +63,6 @@ const Login: React.FC = () => {
 			password: values.password
 		}, {withCredentials: true}).then((response) => {
 			if (response.data.twoFactorAuth) {
-				console.log("enabled")
 				navigate("/2fa")
 			}
 			else {

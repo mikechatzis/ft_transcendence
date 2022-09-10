@@ -23,7 +23,13 @@ export class ChatGateway {
 		console.log("a user connected")
 
 		const payload = await this.chatService.authAndExtract(socket)
-		console.log(payload)
+		if (!payload) {
+			socket.disconnect()
+		}
+
+		if (payload) {
+			await this.chatService.setUserStatus(payload.sub, Status.ONLINE)
+		}
 
 		socket.on('disconnect', () => {
 			console.log("a user disconnected")
@@ -33,9 +39,6 @@ export class ChatGateway {
 			}
 		})
 
-		if (payload) {
-			const user = await this.chatService.setUserStatus(payload.sub, Status.ONLINE)
-		}
 	}
 
 	@SubscribeMessage('message')
@@ -59,6 +62,11 @@ export class ChatGateway {
 
 		const token_decrypt = this.jwt.decode(cookies.jwt)
 
-		this.server.emit('message', {data: `${token_decrypt['name']}: ${message.data}`})
+		this.server.to(message.room).emit('message', {data: `${token_decrypt['name']}: ${message.data}`})
+	}
+
+	@SubscribeMessage('join')
+	handleJoin(socket, data) {
+		socket.join(data.room)
 	}
 }

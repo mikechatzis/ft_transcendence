@@ -16,7 +16,9 @@ import axios from 'axios'
 import { UrlContext } from './context/UrlContext'
 import TwoFactor from './pages/2fa'
 import Chat from './pages/Chat'
-import { ChatContext, chatSocket } from './context/SocketContext'
+import { ChatContext, chatSocket } from './context/ChatContext'
+import User from './pages/User'
+import ChatList from './pages/ChatList'
 
 
 const App: React.FC = () => {
@@ -39,7 +41,16 @@ const App: React.FC = () => {
 		})
 	}
 
-	useEffect(checkLoginStatus)
+	useEffect(() => {
+		if (!chatSocket.connected) {
+			chatSocket.connect()
+		}
+		else if (!context) {
+			chatSocket.disconnect()
+		}
+	}, [context])
+
+	useEffect(checkLoginStatus, [])
 
 	useEffect(() => {
 		const themeType = localStorage.getItem("dark") || "dark"
@@ -66,7 +77,9 @@ const App: React.FC = () => {
 						<Route path="/unauthorized" element={<Error401 />} />
 						<Route path="/settings" element={<Settings />} />
 						<Route path="/2fa" element={<TwoFactor /> } />
-						<Route path="/chat" element={<Chat />} />
+						<Route path="/chat-list" element={<ChatList />} />
+						<Route path="/chat/:name" element={<Chat />} />
+						<Route path="/users/:name" element={<User />} />
 						<Route path="*" element={<Error404 />} />
 					</Routes>
 				</UserContext.Provider>

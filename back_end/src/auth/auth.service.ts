@@ -26,7 +26,10 @@ export class AuthService {
 					name: dto.name,
 					hash: hash,
 					twoFactorAuth: false,
-					status: Status.OFFLINE
+					status: Status.OFFLINE,
+					friends: [],
+					blocked: [],
+					channels: []
 				}
 			})
 
@@ -90,7 +93,10 @@ export class AuthService {
 				intraName: user.name,
 				name: '',
 				twoFactorAuth: false,
-				status: Status.OFFLINE
+				status: Status.OFFLINE,
+				friends: [],
+				blocked: [],
+				channels: []
 			}
 		})
 		return newUser
