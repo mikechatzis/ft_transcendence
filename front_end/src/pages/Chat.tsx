@@ -31,10 +31,11 @@ const Chat: React.FC = () => {
 	const navigate = useNavigate()
 
 	useEffect(() => {
-		socket.on('message', ({data}: any) => {
-			const newArr = messages.concat(data)
-
-			setMessages(newArr)
+		socket.on('message', ({data, room}: any) => {
+			if (room === channel.name) {
+				const newArr = messages.concat(data)
+				setMessages(newArr)
+			}
 		})
 
 		socket.on('exception', (exception: any) => {
@@ -62,7 +63,6 @@ const Chat: React.FC = () => {
 	})
 
 	const handleMessageSend = () => {
-		console.log(channel)
 		socket.emit('message', {data: message, id: socket.id, room: channel.name})
 
 		setMessage('')

@@ -62,7 +62,7 @@ export class ChatGateway {
 
 		const token_decrypt = this.jwt.decode(cookies.jwt)
 
-		this.server.to(message.room).emit('message', {data: `${token_decrypt['name']}: ${message.data}`})
+		this.server.to(message.room).emit('message', {data: `${token_decrypt['name']}: ${message.data}`, room: message.room})
 	}
 
 	@SubscribeMessage('join')
