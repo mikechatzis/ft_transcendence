@@ -56,12 +56,6 @@ const Chat: React.FC = () => {
 			scrollBottomRef.current?.scrollIntoView({behavior: "smooth"})
 	}, [messages])
 
-	useEffect(() => {
-		if (!context) {
-			navigate("/login")
-		}
-	})
-
 	const handleMessageSend = () => {
 		socket.emit('message', {data: message, id: socket.id, room: channel.name})
 

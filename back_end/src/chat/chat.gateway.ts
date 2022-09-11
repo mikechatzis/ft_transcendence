@@ -3,6 +3,7 @@ import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsExc
 import { ChatService } from './chat.service';
 import * as cookie from 'cookie'
 import { Status } from '../user/enums/status.enum';
+import { Socket } from 'socket.io';
 
 @WebSocketGateway({
 	namespace: "chat",
@@ -42,13 +43,14 @@ export class ChatGateway {
 	}
 
 	@SubscribeMessage('message')
-	async handleMessage(@MessageBody() message) {
+	async handleMessage(socket, data) {
+
 		const sockets = await this.server.fetchSockets()
 
 		let i = 0
 
 		for (i = 0; i < sockets.length; i++) {
-			if (sockets[i].id === message.id) {
+			if (sockets[i].id === data.id) {
 				break
 			}
 		}
@@ -60,13 +62,18 @@ export class ChatGateway {
 		}
 		const cookies = cookie.parse(cookies_raw)
 
-		const token_decrypt = this.jwt.decode(cookies.jwt)
+		const token_decrypt = await this.chatService.authAndExtract(socket)
 
-		this.server.to(message.room).emit('message', {data: `${token_decrypt['name']}: ${message.data}`, room: message.room})
+		this.server.to(data.room).emit('message', {data: `${token_decrypt['name']}: ${data.data}`, room: data.room})
 	}
 
 	@SubscribeMessage('join')
 	handleJoin(socket, data) {
 		socket.join(data.room)
+	}
+
+	@SubscribeMessage('leave')
+	handleLeave(socket, data) {
+		socket.leave(data.room)
 	}
 }

@@ -10,11 +10,9 @@ const User: React.FC = () => {
 	const { name } = useParams()
 	const baseUrl = useContext(UrlContext)
 	const navigate = useNavigate()
-	// let user = null
 
 	useEffect(() => {
 		axios.get(baseUrl + `users/user/${name}`).then((response) => {
-			// user = response
 			setUser(response.data)
 			console.log(response.data)
 		}).catch((error) => {
