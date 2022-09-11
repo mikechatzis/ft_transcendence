@@ -1,5 +1,4 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
 import * as argon from 'argon2'
 import { AuthDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
@@ -14,14 +13,14 @@ import { Status } from "../user/enums/status.enum";
 
 @Injectable()
 export class AuthService {
-	constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService, private userService: UserService) {}
+	constructor(private jwt: JwtService, private config: ConfigService, private userService: UserService) {}
 
 	async signup(dto: AuthDto) {
 		// generate password hash
 		const hash = await argon.hash(dto.password)
 		// save new user in the db
 		try {
-			const user = await this.prisma.user.create({
+			const user = await global.prisma.user.create({
 				data: {
 					name: dto.name,
 					hash: hash,
@@ -52,7 +51,7 @@ export class AuthService {
 
 	async signin(dto: AuthDto) {
 		// find user by name, throw exception if name not found
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				name: dto.name
 			}
@@ -78,7 +77,7 @@ export class AuthService {
 	}
 
 	async getUser(user: any) {
-		const found = await this.prisma.user.findUnique({
+		const found = await global.prisma.user.findUnique({
 			where: {
 				intraName: user.name
 			}
@@ -88,7 +87,7 @@ export class AuthService {
 	}
 
 	async addIntraUser(user: any) {
-		const newUser = await this.prisma.user.create({
+		const newUser = await global.prisma.user.create({
 			data: {
 				intraName: user.name,
 				name: '',
@@ -104,7 +103,7 @@ export class AuthService {
 
 	async singUpIntra(req: Request) {
 		let newUser = await this.addIntraUser(req.user)
-		newUser = await this.prisma.user.update({
+		newUser = await global.prisma.user.update({
 			where: {
 				intraName: newUser.intraName,
 			},

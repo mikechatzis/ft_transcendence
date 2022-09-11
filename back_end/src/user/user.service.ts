@@ -2,14 +2,13 @@ import { Injectable, ForbiddenException, NotFoundException } from "@nestjs/commo
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
-import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class UserService {
-	constructor(private prisma: PrismaService) {}
+	constructor() {}
 
 	async setTwoFactorAuthenticationSecret(secret: string, userId: number) {
-		await this.prisma.user.update({
+		await global.prisma.user.update({
 			where: {
 				id: userId
 			},
@@ -20,7 +19,7 @@ export class UserService {
 	}
 
 	async turnOnTwoFactorAuthentication(userId: number) {
-		await this.prisma.user.update({
+		await global.prisma.user.update({
 			where: {
 				id: userId
 			},
@@ -32,7 +31,7 @@ export class UserService {
 
 	async setName(user: User, body: any) {
 		try {
-			const userUpdated = await this.prisma.user.update({
+			const userUpdated = await global.prisma.user.update({
 				where: {
 					id: user.id
 				},
@@ -53,7 +52,7 @@ export class UserService {
 	}
 
 	async findById(id: number) {
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				id
 			}
@@ -70,7 +69,7 @@ export class UserService {
 	}
 
 	async findByName(name: string) {
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				name
 			}

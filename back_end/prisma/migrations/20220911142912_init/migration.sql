@@ -21,7 +21,10 @@ CREATE TABLE "channels" (
     "name" TEXT NOT NULL,
     "admins" INTEGER[],
     "hash" TEXT,
-    "isDmChannel" BOOLEAN NOT NULL
+    "isDmChannel" BOOLEAN NOT NULL,
+    "isPrivate" BOOLEAN NOT NULL,
+    "muted" INTEGER[],
+    "blocked" INTEGER[]
 );
 
 -- CreateIndex

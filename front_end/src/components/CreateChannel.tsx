@@ -24,6 +24,11 @@ const CreateChannel: React.FC<{handleCreate: (values: any) => void}> = ({handleC
 	}
 
 	const handleClose = () => {
+		setValues({
+			name:'',
+			password: '',
+			showPassword: false
+		})
 		setOpen(false)
 	}
 
@@ -36,7 +41,7 @@ const CreateChannel: React.FC<{handleCreate: (values: any) => void}> = ({handleC
 
 	const handleSubmit = () => {
 		handleCreate(values)
-		setOpen(false)
+		handleClose()
 	}
 
 	return (

@@ -5,11 +5,10 @@ import { AuthDto } from "./dto";
 import { FtGuard, JwtGuard, Jwt2faGuard } from "./guard";
 import { FtFilter } from "./filter";
 import { UserService } from "../user/user.service";
-import { PrismaService } from "../prisma/prisma.service";
 
 @Controller('auth')
 export class AuthController {
-	constructor(private authService: AuthService, private userService: UserService, private prisma: PrismaService) {}
+	constructor(private authService: AuthService, private userService: UserService) {}
 
 	@Post('signup')
 	async signup(@Body() dto: AuthDto, @Res({passthrough: true}) res: Response) {
@@ -21,7 +20,7 @@ export class AuthController {
 			maxAge: 15 * 60 * 1000
 		})
 
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				name: dto.name
 			}
@@ -44,7 +43,7 @@ export class AuthController {
 			maxAge: 15 * 60 * 1000
 		})
 
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				name: dto.name
 			}
@@ -103,7 +102,7 @@ export class AuthController {
 	@UseGuards(Jwt2faGuard)
 	@Post('2fa/turn-on')
 	async turnOnTwoFactorAuth(@Req() req, @Body() body, @Res({passthrough: true}) res: Response) {
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				id: req.user.id
 			}
@@ -131,7 +130,7 @@ export class AuthController {
 		if (!userId) {
 			userId = req.user.id
 		}
-		const user = await this.prisma.user.update({
+		const user = await global.prisma.user.update({
 			where: {
 				id: userId
 			},
@@ -145,7 +144,7 @@ export class AuthController {
 	@UseGuards(JwtGuard)
 	@Post('2fa/authenticate')
 	async authenticate(@Req() req, @Body() body, @Res({passthrough: true}) res: Response) {
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				id: req.user.sub
 			}
@@ -171,7 +170,7 @@ export class AuthController {
 	@UseGuards(JwtGuard)
 	@Get('2fa/generate')
 	async generateQr(@Req() req) {
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				id: req.user.sub
 			}

@@ -3,11 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport'
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt'
-import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-	constructor(config: ConfigService, private prisma: PrismaService) {
+	constructor(config: ConfigService) {
 		super({
 			jwtFromRequest: getToken,
 			secretOrKey: config.get('JWT_SECRET'),
@@ -16,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 	}
 
 	async validate(payload: {sub: number, name: string}) {
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				id: payload.sub
 			}

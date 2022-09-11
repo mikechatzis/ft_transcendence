@@ -3,12 +3,11 @@ import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express";
 import { Strategy } from "passport-jwt";
-import { PrismaService } from "../../prisma/prisma.service";
 import { UserService } from "../../user/user.service";
 
 @Injectable()
 export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
-	constructor(private userService: UserService, private config: ConfigService, private prisma: PrismaService) {
+	constructor(private userService: UserService, private config: ConfigService) {
 		super({
 			jwtFromRequest: getToken,
 			secretOrKey: config.get('JWT_SECRET'),
@@ -18,7 +17,7 @@ export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
 
 	async validate(payload) {
 		try {
-			const user = await this.prisma.user.findUnique({
+			const user = await global.prisma.user.findUnique({
 				where: {
 					id: payload.sub
 				}

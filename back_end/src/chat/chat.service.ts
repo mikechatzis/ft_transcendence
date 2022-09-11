@@ -1,43 +1,62 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as cookie from 'cookie'
+import * as argon from 'argon2'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ChatService {
-	constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService) {}
+	constructor(private jwt: JwtService, private config: ConfigService) {}
 
 	async getAllChannels() {
-		const channels = await this.prisma.channel.findMany()
+		const channels = await global.prisma.channel.findMany()
 
+		for (let i = 0; i < channels.length; i++) {
+			delete channels[0].hash
+		}
 		return channels
 	}
 
 	async createNewChannel(req, body) {
 		try {
 			let userId = req.user.sub
+			let hash = null
 			if (!userId) {
 				userId = req.user.id
 			}
-			const user = await this.prisma.user.findUnique({
+
+			const user = await global.prisma.user.findUnique({
 				where: {
 					id: userId
 				}
 			})
 
-			const channel = await this.prisma.channel.create({
+			const channel = await global.prisma.channel.create({
 				data: {
 					name: body.name,
 					admins: [user.id],
-					isDmChannel: false
+					isDmChannel: false,
+					isPrivate: false
 				}
 			})
 
+			if (body.password) {
+				hash = await argon.hash(body.password)
+
+				await global.prisma.channel.update({
+					where: {
+						name: body.name
+					},
+					data: {
+						hash,
+						isPrivate: true
+					}
+				})
+			}
 			const newArr = [...user.channels, body.name]
 
-			await this.prisma.user.update({
+			await global.prisma.user.update({
 				where: {
 					id: user.id
 				},
@@ -58,20 +77,34 @@ export class ChatService {
 		}
 	}
 
-	async joinChannel(req, channel) {
+	async joinChannel(req, channel, password) {
 		let userId = req.user.sub
 		if (!userId) {
 			userId = req.user.id
 		}
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				id: userId
 			}
 		})
 
+		const channelData = await global.prisma.channel.findUnique({
+			where: {
+				name: channel
+			}
+		})
+
+		if (channelData.isPrivate) {
+			const pwMatches = await argon.verify(channelData.hash, password)
+
+			if (!pwMatches) {
+				throw new ForbiddenException("Invalid password")
+			}
+		}
+
 		if (!user.channels.includes(channel)) {
 			const newArr = [...user.channels, channel]
-			await this.prisma.user.update({
+			await global.prisma.user.update({
 				where: {
 					id: userId
 				},
@@ -87,7 +120,7 @@ export class ChatService {
 		if (!userId) {
 			userId = req.user.id
 		}
-		const user = await this.prisma.user.findUnique({
+		const user = await global.prisma.user.findUnique({
 			where: {
 				id: userId
 			}
@@ -95,35 +128,36 @@ export class ChatService {
 
 		if (user.channels.includes(channel)) {
 			const index = user.channels.indexOf(channel)
-			const newArr = user.channels.splice(index, 1)
-			await this.prisma.user.update({
+			user.channels.splice(index, 1)
+			await global.prisma.user.update({
 				where: {
 					id: userId
 				},
 				data: {
-					channels: newArr
+					channels: user.channels
 				}
 			})
 
-			const currChannel = await this.prisma.channel.findUnique({
+			const currChannel = await global.prisma.channel.findUnique({
 				where: {
 					name: channel
 				}
 			})
+
 			if (currChannel.admins.includes(userId)) {
 				const adminIndex = currChannel.admins.indexOf(userId)
-				const newAdmins = currChannel.admins.splice(adminIndex, 1)
-				const updated = await this.prisma.channel.update({
+				currChannel.admins.splice(adminIndex, 1)
+				const updated = await global.prisma.channel.update({
 					where: {
 						name: channel
 					},
 					data: {
-						admins: newAdmins
+						admins: currChannel.admins
 					}
 				})
 
 				if (updated.admins.length === 0) {
-					this.prisma.channel.delete({
+					await global.prisma.channel.delete({
 						where: {
 							name: channel
 						}
@@ -137,7 +171,7 @@ export class ChatService {
 	}
 
 	async setUserStatus(userId: number, userStatus: number) {
-		const user = await this.prisma.user.update({
+		const user = await global.prisma.user.update({
 			where: {
 				id: userId
 			},

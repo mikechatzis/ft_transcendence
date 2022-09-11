@@ -37,6 +37,10 @@ model Channel {
 
   hash String?
   isDmChannel Boolean
+  isPrivate Boolean
+
+  muted Int[]
+  blocked Int[]
 
   @@map("channels")
 }

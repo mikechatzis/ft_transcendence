@@ -9,6 +9,7 @@ import { ChatContext } from "../context/ChatContext"
 import { UrlContext } from "../context/UrlContext"
 import CreateChannel from "../components/CreateChannel"
 import Notification from "../components/Notification"
+import JoinPrivate from "../components/JoinPrivate"
 
 
 const ChatList: React.FC = () => {
@@ -17,6 +18,7 @@ const ChatList: React.FC = () => {
 	const [chatRooms, setChatRooms] = useState<object[]>([])
 	const [message, setMessage] = useState<string | null>(null)
 	const [rerender, setRerender] = useState(1)
+	const [userData, setUserData] = useState<any>(null)
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -32,72 +34,133 @@ const ChatList: React.FC = () => {
 		})
 	}, [rerender])
 
-	const channelList = chatRooms.map((room: any, index: any) => (
-		<Fragment key={index}>
-		<ListItem>
-			<ListItemText primary={room.name} />
-			<Button onClick={() => {
-				axios.post(baseUrl + `chat/join/${room.name}`, "", {withCredentials: true}).then(() => {
-					socket.emit('join', {room: room.name})
-					navigate(`/chat/${room.name}`)
-				}).catch((error) => {
-					if (error?.response?.status === 401) {
-						navigate("/login")
-					}
-					else {
-						console.log(error)
-					}
-				})
-			}}>
-				Join
-			</Button>
-		</ListItem>
-		<hr/>
-		</Fragment>
-	))
-
-	const handleCreate = (values: any) => {
-		axios.post(baseUrl + "chat/new", {name: values.name}, {withCredentials: true}).then(() => {
-			// disgusting hack to retrieve the rooms without repeating code
-			// setTimeout(() => {
-				setRerender(rerender + 1)
-			// }, 1000)
+	useEffect(() => {
+		axios.get(baseUrl + "users/me", {withCredentials: true}).then((response) => {
+			setUserData(response.data)
 		}).catch((error) => {
 			if (error.response.status === 401) {
 				navigate("/login")
 			}
 			else {
-				setMessage(error.response.data.message)
-				// console.log(error.response)
+				setMessage(error.response.message)
 				setTimeout(() => {
 					setMessage(null)
 				}, 5000)
 			}
 		})
+	}, [rerender])
+
+	const handleError = (error: any) => {
+		if (error?.response?.status === 401) {
+			navigate("/login")
+		}
+		else {
+			setMessage(error.response.data.message)
+			setTimeout(() => {
+				setMessage(null)
+			}, 5000)
+		}
+	}
+	
+	const channelList = chatRooms.map((room: any, index: any) => {
+		const handleJoin = () => {
+			socket.emit('join', {room: room.name})
+			navigate(`/chat/${room.name}`)
+		}
+
+		const handleLeave = () => {
+			axios.post(baseUrl + `chat/leave/${room.name}`, "", {withCredentials: true}).then(() => {
+				socket.emit('leave', {room: room.name})
+			}).catch(handleError)
+		}
+
+		const isUserInRoom = userData?.channels.includes(room.name)
+
+		const isUserAdmin = room.admins.includes(userData?.id)
+
+		if (room.isPrivate) {
+			return (
+				<Fragment key={index}>
+				<ListItem>
+					<ListItemText primary={room.name} />
+					<JoinPrivate handleError={handleError} url={baseUrl + `chat/join/${room.name}`} handleJoin={handleJoin} />
+					{isUserInRoom && <Button style={{
+						backgroundColor: "red",
+						color: "white"
+					}} onClick={handleLeave}>Leave</Button> }
+					{(isUserInRoom && isUserAdmin) && <Button style={{
+						backgroundColor: "red",
+						color: "white"
+					}}>Delete</Button>}
+				</ListItem>
+				<hr/>
+				</Fragment>
+			)
+		}
+		else {
+			return (
+				<Fragment key={index}>
+				<ListItem>
+					<ListItemText primary={room.name} />
+					<Button onClick={() => {
+						axios.post(baseUrl + `chat/join/${room.name}`, "", {withCredentials: true}).then(handleJoin).catch(handleError)
+					}}>
+						Join
+					</Button>
+					{isUserInRoom && <Button style={{
+						backgroundColor: "red",
+						color: "white"
+					}} onClick={handleLeave}>Leave</Button> }
+					{(isUserInRoom && isUserAdmin) && <Button style={{
+						backgroundColor: "red",
+						color: "white"
+					}}>Delete</Button>}
+				</ListItem>
+				<hr/>
+				</Fragment>
+			)
+		}
+	})
+
+	const handleCreate = (values: any) => {
+		console.log(values.password)
+		if (values.password != '') {
+			axios.post(baseUrl + "chat/new", {name: values.name, password: values.password}, {withCredentials: true}).then(() => {
+				// disgusting hack to retrieve the rooms without repeating code
+				setRerender(rerender + 1)
+			}).catch((error) => {
+				if (error.response.status === 401) {
+					navigate("/login")
+				}
+				else {
+					setMessage(error.response.data.message)
+					console.log(error.response)
+					setTimeout(() => {
+						setMessage(null)
+					}, 5000)
+				}
+			})
+		}
+		else {
+			// no password, send only name to avoid server-side error in validation
+			axios.post(baseUrl + "chat/new", {name: values.name}, {withCredentials: true}).then(() => {
+				setRerender(rerender + 1)
+			}).catch((error) => {
+				if (error.response.status === 401) {
+					navigate("/login")
+				}
+				else {
+					setMessage(error.response.data.message)
+					setTimeout(() => {
+						setMessage(null)
+					}, 5000)
+				}
+			})
+		}
 	}
 
 	return (
 		<>
-		{/* <Button style={{
-				margin: "auto",
-				width: "100%",
-			}}
-			onClick={() => {
-			axios.post(baseUrl + "chat/new", {name: "frongus"}, {withCredentials: true}).then(() => {
-				axios.get(baseUrl + "chat/channels", {withCredentials: true}).then((response) => {
-					setChatRooms(response.data)
-				}).catch((error) => {
-					if (error.response.status === 401) {
-						navigate("/login")
-					}
-					else {
-						console.log(error)
-					}
-				})
-			})
-		}}>
-			Create
-		</Button> */}
 		<Notification message={message} />
 		<CreateChannel handleCreate={handleCreate}/>
 		<hr />
