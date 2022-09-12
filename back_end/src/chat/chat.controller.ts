@@ -29,6 +29,12 @@ export class ChatController {
 	@UseGuards(Jwt2faGuard)
 	@Post('leave/:name')
 	async leaveChannel(@Req() req, @Param('name') name) {
-		this.chatService.leaveChannel(req, name)
+		await this.chatService.leaveChannel(req, name)
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post('delete/:name')
+	async deleteChannel(@Req() req, @Param('name') name) {
+		await this.chatService.deleteChannel(req, name)
 	}
 }

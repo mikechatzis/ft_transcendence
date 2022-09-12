@@ -94,6 +94,10 @@ export class ChatService {
 			}
 		})
 
+		if (!channelData) {
+			throw new ForbiddenException("This channel was deleted by an admin")
+		}
+
 		if (channelData.isPrivate) {
 			const pwMatches = await argon.verify(channelData.hash, password)
 
@@ -162,12 +166,76 @@ export class ChatService {
 							name: channel
 						}
 					})
+
+					const users = await global.prisma.user.findMany()
+					const n = users.length
+
+					for (let i = 0; i < n; i++) {
+						if (users[i].channels.includes(channel)) {
+							const index = users[i].channels.indexOf(channel)
+							users[i].channels.splice(index, 1)
+							await global.prisma.user.update({
+								where: {
+									id: users[i].id
+								},
+								data: {
+									channels: users[i].channels
+								}
+							})
+						}
+					}
 				}
 			}
 		}
 	}
 
 	async deleteChannel(req, channel) {
+		let userId = req.user.sub
+		if (!userId) {
+			userId = req.user.id
+		}
+		const user = await global.prisma.user.findUnique({
+			where: {
+				id: userId
+			}
+		})
+
+
+		const channelData = await global.prisma.channel.findUnique({
+			where: {
+				name: channel
+			}
+		})
+
+		if (channelData.admins.includes(userId)) {
+			await global.prisma.channel.delete({
+				where: {
+					name: channel
+				}
+			})
+
+			const users = await global.prisma.user.findMany()
+			const n = users.length
+
+			for (let i = 0; i < n; i++) {
+				if (users[i].channels.includes(channel)) {
+					const index = users[i].channels.indexOf(channel)
+					users[i].channels.splice(index, 1)
+
+					await global.prisma.user.update({
+						where: {
+							id: users[i].id
+						},
+						data: {
+							channels: users[i].channels
+						}
+					})
+				}
+			}
+		}
+		else {
+			throw new ForbiddenException("You are not this channel's administrator")
+		}
 	}
 
 	async setUserStatus(userId: number, userStatus: number) {

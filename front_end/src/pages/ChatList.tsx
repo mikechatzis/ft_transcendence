@@ -10,6 +10,7 @@ import { UrlContext } from "../context/UrlContext"
 import CreateChannel from "../components/CreateChannel"
 import Notification from "../components/Notification"
 import JoinPrivate from "../components/JoinPrivate"
+import ChannelSettings from "../components/ChannelSettings"
 
 
 const ChatList: React.FC = () => {
@@ -32,7 +33,7 @@ const ChatList: React.FC = () => {
 				console.log(error)
 			}
 		})
-	}, [rerender])
+	}, [rerender, baseUrl, navigate])
 
 	useEffect(() => {
 		axios.get(baseUrl + "users/me", {withCredentials: true}).then((response) => {
@@ -48,7 +49,7 @@ const ChatList: React.FC = () => {
 				}, 5000)
 			}
 		})
-	}, [rerender])
+	}, [rerender, baseUrl, navigate])
 
 	const handleError = (error: any) => {
 		if (error?.response?.status === 401) {
@@ -71,7 +72,15 @@ const ChatList: React.FC = () => {
 		const handleLeave = () => {
 			axios.post(baseUrl + `chat/leave/${room.name}`, "", {withCredentials: true}).then(() => {
 				socket.emit('leave', {room: room.name})
+				setRerender(rerender + 1)
 			}).catch(handleError)
+		}
+
+		const handleDelete = () => {
+			axios.post(baseUrl + `chat/delete/${room.name}`, "", {withCredentials: true}).then(() => {
+				socket.emit('delete', {room: room.name})
+				setRerender(rerender + 1)
+			})
 		}
 
 		const isUserInRoom = userData?.channels.includes(room.name)
@@ -84,6 +93,7 @@ const ChatList: React.FC = () => {
 				<ListItem>
 					<ListItemText primary={room.name} />
 					<JoinPrivate handleError={handleError} url={baseUrl + `chat/join/${room.name}`} handleJoin={handleJoin} />
+					{(isUserInRoom && isUserAdmin) && <ChannelSettings handleChange={()=>{}} url={baseUrl} handleError={()=>{}} />}
 					{isUserInRoom && <Button style={{
 						backgroundColor: "red",
 						color: "white"
@@ -91,7 +101,7 @@ const ChatList: React.FC = () => {
 					{(isUserInRoom && isUserAdmin) && <Button style={{
 						backgroundColor: "red",
 						color: "white"
-					}}>Delete</Button>}
+					}} onClick={handleDelete}>Delete</Button>}
 				</ListItem>
 				<hr/>
 				</Fragment>
@@ -107,6 +117,7 @@ const ChatList: React.FC = () => {
 					}}>
 						Join
 					</Button>
+					{(isUserInRoom && isUserAdmin) && <ChannelSettings handleChange={()=>{}} url={baseUrl} handleError={()=>{}} />}
 					{isUserInRoom && <Button style={{
 						backgroundColor: "red",
 						color: "white"
@@ -114,7 +125,7 @@ const ChatList: React.FC = () => {
 					{(isUserInRoom && isUserAdmin) && <Button style={{
 						backgroundColor: "red",
 						color: "white"
-					}}>Delete</Button>}
+					}} onClick={handleDelete}>Delete</Button>}
 				</ListItem>
 				<hr/>
 				</Fragment>
@@ -123,8 +134,7 @@ const ChatList: React.FC = () => {
 	})
 
 	const handleCreate = (values: any) => {
-		console.log(values.password)
-		if (values.password != '') {
+		if (values.password !== '') {
 			axios.post(baseUrl + "chat/new", {name: values.name, password: values.password}, {withCredentials: true}).then(() => {
 				// disgusting hack to retrieve the rooms without repeating code
 				setRerender(rerender + 1)

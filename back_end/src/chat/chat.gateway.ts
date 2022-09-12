@@ -76,4 +76,9 @@ export class ChatGateway {
 	handleLeave(socket, data) {
 		socket.leave(data.room)
 	}
+
+	@SubscribeMessage('delete')
+	handleDelete(socket, data) {
+		this.server.socketsLeave(data.room)
+	}
 }
