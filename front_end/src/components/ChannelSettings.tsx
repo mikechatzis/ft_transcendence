@@ -13,7 +13,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility"
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"
 import { UrlContext } from "../context/UrlContext"
 
-const ChannelSettings: React.FC<{handleChange: () => void, url: string, handleError: (error: any) => void}> = () => {
+const ChannelSettings: React.FC<{handleSubmit: () => void, url: string, handleError: (error: any) => void}> = ({handleSubmit, url, handleError}) => {
 	const [userData, setUserData] = useState<any>(null)
 	const [password, setPassword] = useState<string>('')
 	const [showPassword, setShowPassword] = useState(false)
@@ -39,10 +39,20 @@ const ChannelSettings: React.FC<{handleChange: () => void, url: string, handleEr
 		setShowPassword(!showPassword)
 	}
 
-	const handleSubmit = () => {
+	const handleSubmitLocal = () => {
 		if (password !== '') {
-			// axios.post()
+			axios.post(url, {password}, {withCredentials: true}).then(() => {
+				handleSubmit()
+				handleClose()
+			}).catch(handleError)
 		}
+	}
+
+	const handleRemovePass = () => {
+		axios.post(url, {}, {withCredentials: true}).then(() => {
+			handleSubmit()
+			handleClose()
+		}).catch(handleError)
 	}
 
 	return (
@@ -80,7 +90,8 @@ const ChannelSettings: React.FC<{handleChange: () => void, url: string, handleEr
 				/>
 			</DialogContent>
 			<DialogActions>
-				<Button>Change password</Button>
+				<Button onClick={handleSubmitLocal}>Change password</Button>
+				<Button onClick={handleRemovePass}>Remove password</Button>
 			</DialogActions>
 		</Dialog>
 		</>

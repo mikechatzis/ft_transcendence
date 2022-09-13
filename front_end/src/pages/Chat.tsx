@@ -17,6 +17,7 @@ import { io } from "socket.io-client"
 import Notification from "../components/Notification"
 import { useNavigate, useParams } from "react-router-dom"
 import { UserContext } from "../context/UserContext"
+import UserList from "../components/UserList"
 
 const Chat: React.FC = () => {
 	const enterKeyCode = 13
@@ -25,7 +26,7 @@ const Chat: React.FC = () => {
 	const [message, setMessage] = useState('')
 	const [error, setError] = useState('')
 	const scrollBottomRef = useRef<any>(null)
-	const {context, setContext} = useContext(UserContext)
+	// const {context, setContext} = useContext(UserContext)
 	const socket = useContext(ChatContext)
 	const channel = useParams()
 	const navigate = useNavigate()
@@ -77,6 +78,7 @@ const Chat: React.FC = () => {
 	return (
 		<>
 			<Notification message={error} />
+			<UserList channel={channel.name ? channel.name : ''} />
 			<Container>
 				<Grid container
 					spacing={2}

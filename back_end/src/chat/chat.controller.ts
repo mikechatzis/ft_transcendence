@@ -15,6 +15,12 @@ export class ChatController {
 	}
 
 	@UseGuards(Jwt2faGuard)
+	@Get(':name/users')
+	async getChannelMembers(@Param('name') name) {
+		return await this.chatService.getChannelMembers(name)
+	}
+
+	@UseGuards(Jwt2faGuard)
 	@Post('new')
 	async createNewChannel(@Req() req, @Body() body: ChannelDto) {
 		await this.chatService.createNewChannel(req, body)
@@ -36,5 +42,11 @@ export class ChatController {
 	@Post('delete/:name')
 	async deleteChannel(@Req() req, @Param('name') name) {
 		await this.chatService.deleteChannel(req, name)
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post('change-pass/:name')
+	async changePassword(@Req() req, @Param('name') name, @Body() body) {
+		await this.chatService.changePassword(req, name, body)
 	}
 }

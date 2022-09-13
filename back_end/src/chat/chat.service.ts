@@ -4,6 +4,7 @@ import * as cookie from 'cookie'
 import * as argon from 'argon2'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { ConfigService } from '@nestjs/config';
+import bodyParser from 'body-parser';
 
 @Injectable()
 export class ChatService {
@@ -200,7 +201,6 @@ export class ChatService {
 			}
 		})
 
-
 		const channelData = await global.prisma.channel.findUnique({
 			where: {
 				name: channel
@@ -236,6 +236,78 @@ export class ChatService {
 		else {
 			throw new ForbiddenException("You are not this channel's administrator")
 		}
+	}
+
+	async changePassword(req, channel, body) {
+		let userId = req.user.sub
+		if (!userId) {
+			userId = req.user.id
+		}
+		const user = await global.prisma.user.findUnique({
+			where: {
+				id: userId
+			}
+		})
+
+		const channelData = await global.prisma.channel.findUnique({
+			where: {
+				name: channel
+			}
+		})
+
+		if (channelData.admins.includes(userId)) {
+			if (body.password) {
+				const hash = await argon.hash(body.password)
+
+				await global.prisma.channel.update({
+					where: {
+						name: channel
+					},
+					data: {
+						isPrivate: true,
+						hash
+					}
+				})
+			}
+			else {
+				await global.prisma.channel.update({
+					where: {
+						name: channel
+					},
+					data: {
+						isPrivate: false,
+						hash: null
+					}
+				})
+			}
+		}
+		else {
+			throw new ForbiddenException("You are not this channel's administrator")
+		}
+	}
+
+	async getChannelMembers(channel) {
+		const channelData = await global.prisma.channel.findUnique({
+			where: {
+				name: channel
+			}
+		})
+
+		if (!channel) {
+			throw new ForbiddenException("There's no channel with that name")
+		}
+
+		let members = []
+
+		const users = await global.prisma.user.findMany()
+
+		for (let i = 0; i < users.length; i++) {
+			if (users[i].channels.includes(channel)) {
+				members = [...members, users[i]]
+			}
+		}
+
+		return members
 	}
 
 	async setUserStatus(userId: number, userStatus: number) {

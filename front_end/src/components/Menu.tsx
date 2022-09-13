@@ -37,7 +37,9 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 
 	return (
 		<Box sx={{flexGrow: 1}}>
-			<AppBar position="static">
+			<AppBar position="relative" style={{
+				zIndex: theme.zIndex.drawer + 1
+			}}>
 				<Toolbar>
 					<Box display="flex" justifyContent="center" alignItems="center">
 						<IconButton sx={{mr: 2}} onClick={handleToggle} color="inherit">

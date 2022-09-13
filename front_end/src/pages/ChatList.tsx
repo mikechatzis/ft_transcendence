@@ -83,6 +83,10 @@ const ChatList: React.FC = () => {
 			})
 		}
 
+		const handleChangePass = () => {
+			setRerender(rerender + 1)
+		}
+
 		const isUserInRoom = userData?.channels.includes(room.name)
 
 		const isUserAdmin = room.admins.includes(userData?.id)
@@ -93,7 +97,7 @@ const ChatList: React.FC = () => {
 				<ListItem>
 					<ListItemText primary={room.name} />
 					<JoinPrivate handleError={handleError} url={baseUrl + `chat/join/${room.name}`} handleJoin={handleJoin} />
-					{(isUserInRoom && isUserAdmin) && <ChannelSettings handleChange={()=>{}} url={baseUrl} handleError={()=>{}} />}
+					{(isUserInRoom && isUserAdmin) && <ChannelSettings handleSubmit={handleChangePass} url={baseUrl + `chat/change-pass/${room.name}`} handleError={handleError} />}
 					{isUserInRoom && <Button style={{
 						backgroundColor: "red",
 						color: "white"
@@ -117,7 +121,7 @@ const ChatList: React.FC = () => {
 					}}>
 						Join
 					</Button>
-					{(isUserInRoom && isUserAdmin) && <ChannelSettings handleChange={()=>{}} url={baseUrl} handleError={()=>{}} />}
+					{(isUserInRoom && isUserAdmin) && <ChannelSettings handleSubmit={handleChangePass} url={baseUrl + `chat/change-pass/${room.name}`} handleError={handleError} />}
 					{isUserInRoom && <Button style={{
 						backgroundColor: "red",
 						color: "white"
