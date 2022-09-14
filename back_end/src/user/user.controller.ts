@@ -1,8 +1,7 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Req, Request, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
 import { Jwt2faGuard, JwtGuard } from '../auth/guard';
-import { Request } from 'express';
 import { UserService } from './user.service';
 import { UsernameDto } from './dto/username.dto';
 
@@ -34,6 +33,19 @@ export class UserController {
 		const userUpdated = await this.userService.setName(user, body)
 	}
 
+	// @UseGuards(Jwt2faGuard)
+	@Get('all')
+	async getAllUsers() {
+		const users = await global.prisma.user.findMany()
+
+		for (let i = 0; i < users.length; i++) {
+			delete users[i].hash
+			delete users[i].twoFactorSecret
+		}
+		return users
+	}
+
+	@UseGuards(Jwt2faGuard)
 	@Get(':id')
 	async getById(@Param('id') id) {
 		const user = await this.userService.findById(parseInt(id))
@@ -41,6 +53,7 @@ export class UserController {
 		return user
 	}
 
+	@UseGuards(Jwt2faGuard)
 	@Get('user/:name')
 	async getByName(@Param('name') name) {
 		const user = await this.userService.findByName(name)

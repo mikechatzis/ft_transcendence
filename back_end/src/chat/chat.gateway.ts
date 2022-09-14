@@ -4,6 +4,7 @@ import { ChatService } from './chat.service';
 import * as cookie from 'cookie'
 import { Status } from '../user/enums/status.enum';
 import { Socket } from 'socket.io';
+import { ForbiddenException } from '@nestjs/common';
 
 @WebSocketGateway({
 	namespace: "chat",
@@ -30,6 +31,15 @@ export class ChatGateway {
 
 		if (payload) {
 			await this.chatService.setUserStatus(payload.sub, Status.ONLINE)
+			const userData = await global.prisma.user.findUnique({
+				where: {
+					id: payload.sub
+				}
+			})
+
+			for (let i = 0; i < userData.channels.length; i++) {
+				socket.join(userData.channels[i])
+			}
 		}
 
 		socket.on('disconnect', () => {
@@ -55,16 +65,36 @@ export class ChatGateway {
 			}
 		}
 
-		const cookies_raw = sockets[i].handshake.headers.cookie
+		if (i < sockets.length) {
+			const cookies_raw = sockets[i].handshake.headers.cookie
+	
+			if (!cookies_raw) {
+				throw new WsException("401")
+			}
 
-		if (!cookies_raw) {
-			throw new WsException("401")
+			const cookies = cookie.parse(cookies_raw)
+	
+			const token_decrypt = await this.chatService.authAndExtract(socket)
+
+			const userId = token_decrypt['sub']
+
+			if (!userId) {
+				const userId = token_decrypt['id']
+			}
+
+			const userData = await global.prisma.user.findUnique({
+				where: {
+					id: userId
+				}
+			})
+
+			if (!userData.channels.includes(data.room)) {
+				throw new WsException("User is not part of this room")
+			}
+	
+			this.server.to(data.room).emit('message', {data: `${userData.name}: ${data.data}`, room: data.room})
 		}
-		const cookies = cookie.parse(cookies_raw)
 
-		const token_decrypt = await this.chatService.authAndExtract(socket)
-
-		this.server.to(data.room).emit('message', {data: `${token_decrypt['name']}: ${data.data}`, room: data.room})
 	}
 
 	@SubscribeMessage('join')

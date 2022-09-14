@@ -15,6 +15,7 @@ import { useTheme } from '@mui/material/styles'
 import axios from 'axios'
 import { UserContext } from '../context/UserContext'
 import { UrlContext } from '../context/UrlContext'
+import SearchBar from './SearchBar'
 
 interface MenuProps {
 	handleToggle: React.ButtonHTMLAttributes<HTMLButtonElement> ["onClick"]
@@ -56,6 +57,9 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 						<Button color="inherit" onClick={() => (navigate("/chat-list"))}>Chat</Button>
 					</Box>
 					<Box>
+						<Box display="flex" flex={-1}>
+							<SearchBar />
+						</Box>
 						<IconButton
 							size="large"
 							aria-label="account of current user"
@@ -97,7 +101,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 									withCredentials: true
 								}
 								handleClose()
-								axios.get("http://localhost:3333/auth/signout", config).then(() => {
+								axios.get(baseUrl + "auth/signout", config).then(() => {
 									setContext?.(false)
 									navigate("/")
 								}).catch((error) => {

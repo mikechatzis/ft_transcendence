@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import io from "socket.io-client"
 import Home from './pages/Home'
 import MenuBar from './components/Menu'
 import Login from './pages/Login'
@@ -50,7 +49,7 @@ const App: React.FC = () => {
 		}
 	}, [context])
 
-	useEffect(checkLoginStatus, [])
+	useEffect(checkLoginStatus, [baseUrl])
 
 	useEffect(() => {
 		const themeType = localStorage.getItem("dark") || "dark"

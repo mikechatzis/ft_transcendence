@@ -1,5 +1,5 @@
 import axios from "axios"
-import { useContext, useEffect, useState } from "react"
+import { useState } from "react"
 import Button from '@mui/material/Button'
 import Dialog from "@mui/material/Dialog"
 import DialogActions from "@mui/material/DialogActions"
@@ -11,20 +11,19 @@ import InputAdornment from "@mui/material/InputAdornment"
 import TextField from "@mui/material/TextField"
 import VisibilityIcon from "@mui/icons-material/Visibility"
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"
-import { UrlContext } from "../context/UrlContext"
 
 const ChannelSettings: React.FC<{handleSubmit: () => void, url: string, handleError: (error: any) => void}> = ({handleSubmit, url, handleError}) => {
-	const [userData, setUserData] = useState<any>(null)
+	// const [userData, setUserData] = useState<any>(null)
 	const [password, setPassword] = useState<string>('')
 	const [showPassword, setShowPassword] = useState(false)
 	const [open, setOpen] = useState(false)
-	const baseUrl = useContext(UrlContext)
+	// const baseUrl = useContext(UrlContext)
 
-	useEffect(() => {
-		axios.get(baseUrl + "users/me", {withCredentials: true}).then((response) => {
-			setUserData(response.data)
-		})
-	}, [baseUrl])
+	// useEffect(() => {
+	// 	axios.get(baseUrl + "users/me", {withCredentials: true}).then((response) => {
+	// 		setUserData(response.data)
+	// 	})
+	// }, [baseUrl])
 
 	const handleClickOpen = () => {
 		setOpen(true)

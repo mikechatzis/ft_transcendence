@@ -13,10 +13,8 @@ import SendIcon from "@mui/icons-material/Send"
 import { useContext, useEffect, useRef, useState } from "react"
 import { Typography } from "@mui/material"
 import { ChatContext } from "../context/ChatContext"
-import { io } from "socket.io-client"
 import Notification from "../components/Notification"
 import { useNavigate, useParams } from "react-router-dom"
-import { UserContext } from "../context/UserContext"
 import UserList from "../components/UserList"
 
 const Chat: React.FC = () => {
@@ -26,7 +24,6 @@ const Chat: React.FC = () => {
 	const [message, setMessage] = useState('')
 	const [error, setError] = useState('')
 	const scrollBottomRef = useRef<any>(null)
-	// const {context, setContext} = useContext(UserContext)
 	const socket = useContext(ChatContext)
 	const channel = useParams()
 	const navigate = useNavigate()
@@ -51,7 +48,7 @@ const Chat: React.FC = () => {
 				}, 5000)
 			}
 		})
-	}, [messages])
+	})
 
 	useEffect(() => {
 			scrollBottomRef.current?.scrollIntoView({behavior: "smooth"})
@@ -65,12 +62,13 @@ const Chat: React.FC = () => {
 
 	const listChatMessages = messages.map((msg, index) => (
 		<ListItem key={index}>
-			<ListItemText primary={msg} />
+			<ListItemText primary={msg} primaryTypographyProps={{style: {overflowWrap: "break-word"}}} />
 		</ListItem>
 	))
 
 	const handleEnterKey = (event: any) => {
 		if (event.keyCode === enterKeyCode) {
+			event.preventDefault()
 			handleMessageSend()
 		}
 	}
@@ -86,7 +84,7 @@ const Chat: React.FC = () => {
 					justifyContent="center"
 					style={{minHeight: "80vh"}}
 				>
-					<Paper elevation={5}>
+					<Paper elevation={5} style={{width: "75rem", height: "50rem"}}>
 						<Box p={3}>
 							<Typography variant="h4" gutterBottom>
 								You can discuss frogs here
@@ -94,10 +92,10 @@ const Chat: React.FC = () => {
 							<Divider />
 							<Grid container spacing={4} alignItems="center">
 								<Grid xs={12} item style={{
-									height: "20rem"
-								}}>
+									height: "40rem"
+								}} zeroMinWidth>
 									<List style={{
-										height: "18rem",
+										height: "39rem",
 										overflow: "auto"
 									}}>
 										{listChatMessages}
@@ -111,7 +109,9 @@ const Chat: React.FC = () => {
 										}} onKeyDown={handleEnterKey}
 											value={message}
 											label="Message"
-											variant="outlined" />
+											variant="outlined"
+											multiline={true} 
+										/>
 									</FormControl>
 								</Grid>
 								<Grid xs={1} item>
