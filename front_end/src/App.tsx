@@ -19,7 +19,6 @@ import { ChatContext, chatSocket } from './context/ChatContext'
 import User from './pages/User'
 import ChatList from './pages/ChatList'
 
-
 const App: React.FC = () => {
 	const [darkMode, setDarkMode] = useState(false)
 	const [context, setContext] = useState(false)
@@ -79,6 +78,7 @@ const App: React.FC = () => {
 						<Route path="/chat-list" element={<ChatList />} />
 						<Route path="/chat/:name" element={<Chat />} />
 						<Route path="/users/:name" element={<User />} />
+						<Route path="/401" element={<Error401 />} />
 						<Route path="*" element={<Error404 />} />
 					</Routes>
 				</UserContext.Provider>

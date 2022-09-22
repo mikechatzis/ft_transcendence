@@ -42,7 +42,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 				zIndex: theme.zIndex.drawer + 1
 			}}>
 				<Toolbar>
-					<Box display="flex" justifyContent="center" alignItems="center">
+					<Box display="flex" justifyContent="left" alignItems="center" width="12%">
 						<IconButton sx={{mr: 2}} onClick={handleToggle} color="inherit">
 							{theme.palette.mode === "dark" ? (
 								<Brightness7Icon />
@@ -57,9 +57,9 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 						<Button color="inherit" onClick={() => (navigate("/chat-list"))}>Chat</Button>
 					</Box>
 					<Box>
-						<Box display="flex" flex={-1}>
-							<SearchBar />
-						</Box>
+						<SearchBar />
+					</Box>
+					<Box>
 						<IconButton
 							size="large"
 							aria-label="account of current user"
