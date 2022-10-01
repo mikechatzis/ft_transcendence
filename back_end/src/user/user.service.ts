@@ -51,6 +51,18 @@ export class UserService {
 		}
 	}
 
+	async setAvatar(user: User, avatar: string){
+		const userUpdated = await global.prisma.user.update({
+			where: {
+				id: user.id
+			},
+			data: {
+				avatar: avatar
+			}
+		})
+		return userUpdated
+	}
+
 	async findById(id: number) {
 		const user = await global.prisma.user.findUnique({
 			where: {
