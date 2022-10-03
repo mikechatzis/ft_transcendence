@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
-
 import { Jwt2faGuard } from '../auth/guard';
 import { ChatService } from './chat.service';
 import { ChannelDto } from './dto/channel.dto';
@@ -59,5 +58,22 @@ export class ChatController {
 			}
 		})
 		return channel.messages
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get(':name/admins')
+	async getChannelAdmins(@Param('name') name) {
+		const channel = await global.prisma.channel.findUnique({
+			where: {
+				name
+			}
+		})
+		return channel.admins
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post(':name/ban')
+	async banUser(@Req() req, @Param('name') name, @Body() body) {
+		await this.chatService.handleBan(req, name, body)
 	}
 }

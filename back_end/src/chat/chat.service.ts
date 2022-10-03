@@ -334,4 +334,28 @@ export class ChatService {
 
 		return payload
 	}
+
+	async handleBan(req, name, body) {
+		const channel = await global.prisma.channel.findUnique({
+			where: {
+				name
+			}
+		})
+
+		if (channel.admins.includes(req.user.id)) {
+			await global.prisma.channel.update({
+				where: {
+					name
+				},
+				data: {
+					blocked: [...channel.blocked, body.id]
+				}
+			})
+
+			// console.log()
+		}
+		else {
+			throw new ForbiddenException("Not an admin")
+		}
+	}
 }
