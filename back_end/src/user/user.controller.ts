@@ -33,6 +33,12 @@ export class UserController {
 	}
 
 	@UseGuards(Jwt2faGuard)
+	@Get('me/profileImg')
+	getMyAvatar(@GetUser() user: User) {
+		return user.avatar
+	}
+
+	@UseGuards(Jwt2faGuard)
 	@Post('me/name')
 	async setMyName(@GetUser() user: User, @Body() body: UsernameDto) {
 		const userUpdated = await this.userService.setName(user, body)
