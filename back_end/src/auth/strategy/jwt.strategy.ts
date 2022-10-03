@@ -9,7 +9,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 	constructor(config: ConfigService) {
 		super({
 			jwtFromRequest: getToken,
-			secretOrKey: config.get('JWT_SECRET'),
+			secretOrKey: 'my_secret_key',
 			ignoreExpiration: false
 		})
 	}

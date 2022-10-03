@@ -1,9 +1,14 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post, Req, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Req, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
 import { Jwt2faGuard, JwtGuard } from '../auth/guard';
 import { UserService } from './user.service';
 import { UsernameDto } from './dto/username.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { v4 as uuidv4 } from 'uuid';
+import { of, Observable } from 'rxjs';
+import path = require('path');
 
 @Controller('users')
 export class UserController {
@@ -32,6 +37,30 @@ export class UserController {
 	async setMyName(@GetUser() user: User, @Body() body: UsernameDto) {
 		const userUpdated = await this.userService.setName(user, body)
 	}
+
+	//code 28/9/2022, upload image in "destination" path (create if non existent), then save path as user.avatar: string
+	//needs testing with valid login key
+	@UseGuards(Jwt2faGuard)
+	@Post('me/profileImg')
+	@UseInterceptors(FileInterceptor('file', 
+		{
+			storage: diskStorage({
+				destination: './images/avatars',
+				filename: (req, file, cb) => {
+					const filename: string = path.parse(file.originalname).name.replace(/\s/g, ' ') + uuidv4();
+					const extension: string = path.parse(file.originalname).ext;
+
+					cb(null, `${filename}${extension}`)
+				}
+			})
+		}))
+	uploadFile(@UploadedFile() file, @Request() req): Observable<object> {
+		const user: User = req.user.user;
+		const userUpdated = this.userService.setAvatar(user, file.path);
+		console.log(user);
+		return of({imagePath: file.path});
+	}
+	//end code
 
 	// @UseGuards(Jwt2faGuard)
 	@Get('all')

@@ -17,6 +17,7 @@ model User {
 
   name            String  @unique
   intraName       String? @unique
+  avatar		  String?
   hash            String?
   twoFactorAuth   Boolean
   twoFactorSecret String?
