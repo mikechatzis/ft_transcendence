@@ -2,8 +2,10 @@ import React, { useContext } from 'react'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import Avatar from '@mui/material/Avatar'
+import Button from "@mui/material/Button"
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
+import Input from "@mui/material/Input"
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import { useNavigate } from 'react-router-dom'
@@ -12,10 +14,23 @@ import { UrlContext } from '../context/UrlContext'
 
 const Account: React.FC = () => {
 	const [name, setName] = useState('')
+	const [selectedFile, setSelectedFile] = useState<any>(null)
 	const {context, setContext} = useContext(UserContext)
 	const baseUrl = useContext(UrlContext)
 
 	const navigate = useNavigate()
+
+	const handleSubmit = (event: any) => {
+		event.preventDefault()
+		const formData = new FormData()
+		formData.append("selectedFile", selectedFile)
+		
+		axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: { "Content-Type": "multipart/form-data" }}).catch((error) => {console.log(error)})
+	}
+
+	const handleFileSelect = (event: any) => {
+		setSelectedFile(event.target.files[0])
+	}
 
 	const getName = () => {
 		let config = {
@@ -55,6 +70,14 @@ const Account: React.FC = () => {
 						<Typography variant="h1">
 							{`Your username is ${name}`}
 						</Typography>
+					</Grid>
+					<Grid item>
+						<form onSubmit={handleSubmit}>
+							<Button component="span">
+								<Input type="file" />
+							</Button>
+							<Input type="submit" value="Upload file" />
+						</form>
 					</Grid>
 				</Grid>
 			</Container>}

@@ -60,8 +60,8 @@ export class UserController {
 				}
 			})
 		}))
-	uploadFile(@UploadedFile() file, @Request() req): Observable<object> {
-		const user: User = req.user.user;
+	async uploadFile(@UploadedFile() file, @Request() req) {
+		const user: User = req.user;
 		if (user.avatar){
 			const fs = require('fs')
 			try {
@@ -72,8 +72,8 @@ export class UserController {
 				console.error(err)
 			}
 		}
-		const userUpdated = this.userService.setAvatar(user, file.path);
-		console.log(user);
+		const userUpdated = await this.userService.setAvatar(user, file.path);
+		console.log(userUpdated);
 		return of({imagePath: file.path});
 	}
 	//end code
@@ -96,6 +96,14 @@ export class UserController {
 		const user = await this.userService.findById(parseInt(id))
 
 		return user
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get(':id')
+	async getAvatarById(@Param('id') id) {
+		const user = await this.userService.findById(parseInt(id))
+
+		return user.avatar
 	}
 
 	@UseGuards(Jwt2faGuard)
