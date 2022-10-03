@@ -55,6 +55,7 @@ export class UserController {
 			})
 		}))
 	uploadFile(@UploadedFile() file, @Request() req): Observable<object> {
+		console.log(req)
 		const user: User = req.user.user;
 		const userUpdated = this.userService.setAvatar(user, file.path);
 		console.log(user);
