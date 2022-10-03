@@ -56,6 +56,16 @@ export class UserController {
 		}))
 	uploadFile(@UploadedFile() file, @Request() req): Observable<object> {
 		const user: User = req.user.user;
+		if (user.avatar){
+			const fs = require('fs')
+			try {
+				fs.unlinkSync(user.avatar)
+				console.log("previous profile img: %s, of user: %s removed succesfully", user.avatar, user.name)
+			}
+			catch(err){
+				console.error(err)
+			}
+		}
 		const userUpdated = this.userService.setAvatar(user, file.path);
 		console.log(user);
 		return of({imagePath: file.path});
