@@ -91,7 +91,7 @@ const ChatList: React.FC = () => {
 
 		const isUserAdmin = room.admins.includes(userData?.id)
 
-		if (room.isPrivate) {
+		if (room.isPrivate && !room.isDmChannel) {
 			return (
 				<Fragment key={index}>
 				<ListItem>
@@ -111,7 +111,7 @@ const ChatList: React.FC = () => {
 				</Fragment>
 			)
 		}
-		else {
+		else if (!room.isDmChannel) {
 			return (
 				<Fragment key={index}>
 				<ListItem>
@@ -134,6 +134,9 @@ const ChatList: React.FC = () => {
 				<hr/>
 				</Fragment>
 			)
+		}
+		else {
+			//do stuff for dm channels
 		}
 	})
 

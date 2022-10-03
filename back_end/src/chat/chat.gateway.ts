@@ -91,6 +91,21 @@ export class ChatGateway {
 			if (!userData.channels.includes(data.room)) {
 				throw new WsException("User is not part of this room")
 			}
+
+			const channelData = await global.prisma.channel.findUnique({
+				where: {
+					name: data.room
+				}
+			})
+
+			await global.prisma.channel.update({
+				where: {
+					name: data.room
+				},
+				data: {
+					messages: [...channelData.messages, `${userData.name}: ${data.data}`]
+				}
+			})
 	
 			this.server.to(data.room).emit('message', {data: `${userData.name}: ${data.data}`, room: data.room})
 		}

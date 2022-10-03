@@ -49,4 +49,15 @@ export class ChatController {
 	async changePassword(@Req() req, @Param('name') name, @Body() body) {
 		await this.chatService.changePassword(req, name, body)
 	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get(':name/messages')
+	async getChannelMessages(@Param('name') name) {
+		const channel = await global.prisma.channel.findUnique({
+			where: {
+				name
+			}
+		})
+		return channel.messages
+	}
 }

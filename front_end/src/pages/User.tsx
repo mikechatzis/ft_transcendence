@@ -12,15 +12,17 @@ const User: React.FC = () => {
 	const navigate = useNavigate()
 
 	useEffect(() => {
-		axios.get(baseUrl + `users/user/${name}`).then((response) => {
+		axios.get(baseUrl + `users/user/${name}`, {withCredentials: true}).then((response) => {
 			setUser(response.data)
-			console.log(response.data)
 		}).catch((error) => {
 			if (error.response.status === 404) {
 				navigate("/404")
 			}
+			else if (error.response.status === 401) {
+				navigate("/401")
+			}
 		})
-	}, [])
+	}, [baseUrl, name, navigate])
 
 	const getStatus = () => {
 		if (user?.status === Status.OFFLINE) {

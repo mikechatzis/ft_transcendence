@@ -16,6 +16,8 @@ import { ChatContext } from "../context/ChatContext"
 import Notification from "../components/Notification"
 import { useNavigate, useParams } from "react-router-dom"
 import UserList from "../components/UserList"
+import { UrlContext } from "../context/UrlContext"
+import axios from "axios"
 
 const Chat: React.FC = () => {
 	const enterKeyCode = 13
@@ -25,6 +27,7 @@ const Chat: React.FC = () => {
 	const [error, setError] = useState('')
 	const scrollBottomRef = useRef<any>(null)
 	const socket = useContext(ChatContext)
+	const baseUrl = useContext(UrlContext)
 	const channel = useParams()
 	const navigate = useNavigate()
 
@@ -51,7 +54,15 @@ const Chat: React.FC = () => {
 	})
 
 	useEffect(() => {
-			scrollBottomRef.current?.scrollIntoView({behavior: "smooth"})
+		axios.get(baseUrl + `chat/${channel.name}/messages`, {withCredentials: true}).then((response) => {
+			setMessages(response.data)
+		}).catch((error) => {
+			console.log(error)
+		})
+	}, [baseUrl, channel])
+
+	useEffect(() => {
+		scrollBottomRef.current?.scrollIntoView({behavior: "smooth"})
 	}, [messages])
 
 	const handleMessageSend = () => {
