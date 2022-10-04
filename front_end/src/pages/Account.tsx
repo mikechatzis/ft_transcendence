@@ -23,9 +23,13 @@ const Account: React.FC = () => {
 	const handleSubmit = (event: any) => {
 		event.preventDefault()
 		const formData = new FormData()
-		formData.append("selectedFile", selectedFile)
+		formData.append('file', selectedFile)
+
+		console.log(selectedFile)
 		
-		axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: { "Content-Type": "multipart/form-data" }}).catch((error) => {console.log(error)})
+		axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: {
+			'Content-Type': 'multipart/form-data'
+		  } }).catch((error) => {console.log(error)})
 	}
 
 	const handleFileSelect = (event: any) => {
@@ -74,7 +78,7 @@ const Account: React.FC = () => {
 					<Grid item>
 						<form onSubmit={handleSubmit}>
 							<Button component="span">
-								<Input type="file" />
+								<Input type="file" onChange={handleFileSelect} />
 							</Button>
 							<Input type="submit" value="Upload file" />
 						</form>
