@@ -64,6 +64,7 @@ export class UserService {
 		return userUpdated
 	}
 
+	//04/10/2022, set score and update user's rank
 	async setScoreAndRank(user: User, score: number){
 		if (score < 0)
 			throw NotAcceptableException
@@ -130,7 +131,7 @@ export class UserService {
 			}
 		}
 	}
-
+	//code end
 
 	async findById(id: number) {
 		const user = await global.prisma.user.findUnique({

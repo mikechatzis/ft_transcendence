@@ -50,8 +50,7 @@ export class UserController {
 		const userUpdated = await this.userService.setName(user, body)
 	}
 
-	//code 28/9/2022, upload image in "destination" path (create if non existent), then save path as user.avatar: string
-	//needs testing with valid login key
+	//28/9/2022, upload image in "destination" path (create if non existent), then save path as user.avatar: string
 	@UseGuards(Jwt2faGuard)
 	@Post('me/profileImg')
 	@UseInterceptors(FileInterceptor('file', 
@@ -84,6 +83,7 @@ export class UserController {
 	}
 	//end code
 
+	//04/10/2022, set score and update user's rank
 	@UseGuards(Jwt2faGuard)
 	@Post('user/setScore')
 	async updateScore(@GetUser() user: User, @Body('score') score: number) {
@@ -95,6 +95,7 @@ export class UserController {
 			console.error(err)
 		}
 	}
+	//code end
 
 	// @UseGuards(Jwt2faGuard)
 	@Get('all')
