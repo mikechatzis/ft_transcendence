@@ -10,6 +10,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { of, Observable } from 'rxjs';
 import path = require('path');
 
+//import fileType = require('file-type')
+
 @Controller('users')
 export class UserController {
 
@@ -75,9 +77,17 @@ export class UserController {
 
 					cb(null, `${filename}${extension}`)
 				}
-			})
+			}),
+			fileFilter: (req, file, cb) => {
+				const allowedMimetypes = ['image/jpeg', 'image/jpeg', 'image/png']
+				const allowedExtensions = ['.png', '.jpg', '.jpeg']
+				
+				//console.log(file.mimetype + "\n" + path.parse(file.originalname).ext)
+				allowedMimetypes.includes(file.mimetype) &&
+				allowedExtensions.includes(path.parse(file.originalname).ext) ? cb (null, true) : cb(null, false)
+			}
 		}))
-	async uploadFile(@UploadedFile() file, @Request() req) {
+	async uploadFile(@UploadedFile() image: Express.Multer.File, @Request() req) {
 		const user: User = req.user;
 		if (user.avatar){
 			const fs = require('fs')
@@ -89,9 +99,12 @@ export class UserController {
 				console.error(err)
 			}
 		}
-		const userUpdated = await this.userService.setAvatar(user, file.path);
+		if (!image?.filename)
+			return of ({error: "avatar must be of type: png, jpg or jpeg"})
+		const path = image?.path
+		const userUpdated = await this.userService.setAvatar(user, path);
 		console.log(userUpdated);
-		return of({imagePath: file.path});
+		return of({imagePath: path});
 	}
 	//end code
 
