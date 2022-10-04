@@ -21,7 +21,7 @@ model User {
   rank			  String? @default("hatchling")
   score			  Int @default(1000)
 
-  hash            String?
+  hash            String? 
   twoFactorAuth   Boolean
   twoFactorSecret String?
 

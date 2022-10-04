@@ -67,7 +67,7 @@ export class UserService {
 	//04/10/2022, set score and update user's rank
 	async setScoreAndRank(user: User, score: number){
 		if (score < 0)
-			throw NotAcceptableException
+			throw "score cannot be negative"
 		switch (true) {
 			case score <= 1000: {
 				const userUpdated = await global.prisma.user.update({

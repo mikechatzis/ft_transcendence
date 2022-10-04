@@ -33,7 +33,7 @@ export class UserController {
 	}
 
 	@UseGuards(Jwt2faGuard)
-	@Get('me/name')
+	@Get('me/rank')
 	getMyRank(@GetUser() user: User) {
 		return user.rank
 	}
@@ -41,6 +41,18 @@ export class UserController {
 	@UseGuards(Jwt2faGuard)
 	@Get('me/profileImg')
 	getMyAvatar(@GetUser() user: User) {
+		return user.avatar
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get(':id/profileImg')
+	async getUserAvatar(@Param() id) {
+		const user = await global.prisma.findUnique({
+			where: {
+				id
+			}
+		})
+
 		return user.avatar
 	}
 
@@ -88,7 +100,8 @@ export class UserController {
 	@Post('user/setScore')
 	async updateScore(@GetUser() user: User, @Body('score') score: number) {
 		try {
-			const userUpdated = this.userService.setScoreAndRank(user, score)
+			const userUpdated = await this.userService.setScoreAndRank(user, score)
+			delete userUpdated.hash
 			return userUpdated
 		}
 		catch(err){
@@ -114,6 +127,7 @@ export class UserController {
 	async getById(@Param('id') id) {
 		const user = await this.userService.findById(parseInt(id))
 
+		delete user.hash
 		return user
 	}
 
@@ -130,6 +144,7 @@ export class UserController {
 	async getByName(@Param('name') name) {
 		const user = await this.userService.findByName(name)
 
+		delete user.hash
 		return user
 	}
 }
