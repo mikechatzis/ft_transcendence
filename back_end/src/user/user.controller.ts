@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post, Req, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Req, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
 import { Jwt2faGuard, JwtGuard } from '../auth/guard';
@@ -30,6 +30,12 @@ export class UserController {
 	@Get('me/name')
 	getMyName(@GetUser() user: User) {
 		return user.name
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get('me/name')
+	getMyRank(@GetUser() user: User) {
+		return user.rank
 	}
 
 	@UseGuards(Jwt2faGuard)
@@ -66,7 +72,7 @@ export class UserController {
 			const fs = require('fs')
 			try {
 				fs.unlinkSync(user.avatar)
-				console.log("previous profile img: %s, of user: %s removed succesfully", user.avatar, user.name)
+				console.log("previous profile img: %s, of user: %s, removed succesfully", user.avatar, user.name)
 			}
 			catch(err){
 				console.error(err)
@@ -77,6 +83,18 @@ export class UserController {
 		return of({imagePath: file.path});
 	}
 	//end code
+
+	@UseGuards(Jwt2faGuard)
+	@Post('user/setScore')
+	async updateScore(@GetUser() user: User, @Body('score') score: number) {
+		try {
+			const userUpdated = this.userService.setScoreAndRank(user, score)
+			return userUpdated
+		}
+		catch(err){
+			console.error(err)
+		}
+	}
 
 	// @UseGuards(Jwt2faGuard)
 	@Get('all')

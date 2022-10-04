@@ -1,7 +1,8 @@
-import { Injectable, ForbiddenException, NotFoundException } from "@nestjs/common";
+import { Injectable, ForbiddenException, NotFoundException, BadRequestException, NotAcceptableException } from "@nestjs/common";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { userInfo } from "os";
 
 @Injectable()
 export class UserService {
@@ -63,6 +64,74 @@ export class UserService {
 		return userUpdated
 	}
 
+	async setScoreAndRank(user: User, score: number){
+		if (score < 0)
+			throw NotAcceptableException
+		switch (true) {
+			case score <= 1000: {
+				const userUpdated = await global.prisma.user.update({
+					where: {
+						id: user.id
+					},
+					data: {
+						score: score,
+						rank: "hatchling"
+					}
+				})
+				return userUpdated
+			}
+			case score <= 2000: {
+				const userUpdated = await global.prisma.user.update({
+					where: {
+						id: user.id
+					},
+					data: {
+						score: score,
+						rank: "tadpole"
+					}
+				})
+				return userUpdated
+			}
+			case score <= 3000: {
+				const userUpdated = await global.prisma.user.update({
+					where: {
+						id: user.id
+					},
+					data: {
+						score: score,
+						rank: "lake strider"
+					}
+				})
+				return userUpdated
+			}
+			case score <= 4000: {
+				const userUpdated = await global.prisma.user.update({
+					where: {
+						id: user.id
+					},
+					data: {
+						score: score,
+						rank: "frog"
+					}
+				})
+				return userUpdated
+			}
+			case score > 4000: {
+				const userUpdated = await global.prisma.user.update({
+					where: {
+						id: user.id
+					},
+					data: {
+						score: score,
+						rank: "bull frog"
+					}
+				})
+				return userUpdated
+			}
+		}
+	}
+
+
 	async findById(id: number) {
 		const user = await global.prisma.user.findUnique({
 			where: {
@@ -81,6 +150,8 @@ export class UserService {
 	}
 
 	async findByName(name: string) {
+		if (!name)
+			throw BadRequestException
 		const user = await global.prisma.user.findUnique({
 			where: {
 				name
