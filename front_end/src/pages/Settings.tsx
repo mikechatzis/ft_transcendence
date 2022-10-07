@@ -2,6 +2,7 @@ import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
+import Input from "@mui/material/Input"
 import Paper from '@mui/material/Paper'
 import TextField from '@mui/material/TextField'
 import axios from 'axios'
@@ -19,6 +20,7 @@ const Settings: React.FC = () => {
 	const [code, setCode] = useState('')
 	const [twoAuthOn, setTwoAuthOn] = useState(false)
 	const [qrDisplayed, setQrDisplayed] = useState(false)
+	const [selectedFile, setSelectedFile] = useState<any>(null)
 	const baseUrl = useContext(UrlContext)
 	const navigate = useNavigate()
 
@@ -31,6 +33,22 @@ const Settings: React.FC = () => {
 			}
 		})
 	}, [])
+
+	const handleSubmit = (event: any) => {
+		// event.preventDefault()
+		const formData = new FormData()
+		formData.append('file', selectedFile)
+
+		console.log(selectedFile)
+		
+		axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: {
+			'Content-Type': 'multipart/form-data'
+		  } }).catch((error) => {console.log(error)})
+	}
+
+	const handleFileSelect = (event: any) => {
+		setSelectedFile(event.target.files[0])
+	}
 
 	const handleNameChange = () => {
 		axios.post(baseUrl + "users/me/name", {name}, {withCredentials: true}).then(() => {
@@ -87,6 +105,14 @@ const Settings: React.FC = () => {
 								<Grid item>
 									<Button fullWidth variant="contained" onClick={handleNameChange}>
 										Change username
+									</Button>
+								</Grid>
+								<Grid item>
+									<Input type="file" onChange={handleFileSelect} fullWidth />
+								</Grid>
+								<Grid item>
+									<Button fullWidth variant="contained" onClick={handleSubmit} >
+										Upload new profile picture
 									</Button>
 								</Grid>
 								{(!qrDisplayed && !twoAuthOn) && <Grid item>

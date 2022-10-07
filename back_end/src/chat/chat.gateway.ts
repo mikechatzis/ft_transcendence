@@ -71,15 +71,13 @@ export class ChatGateway {
 			if (!cookies_raw) {
 				throw new WsException("401")
 			}
-
-			const cookies = cookie.parse(cookies_raw)
 	
 			const token_decrypt = await this.chatService.authAndExtract(socket)
 
-			const userId = token_decrypt['sub']
+			let userId = token_decrypt['sub']
 
 			if (!userId) {
-				const userId = token_decrypt['id']
+				userId = token_decrypt['id']
 			}
 
 			const userData = await global.prisma.user.findUnique({
@@ -98,28 +96,106 @@ export class ChatGateway {
 				}
 			})
 
-			await global.prisma.channel.update({
-				where: {
-					name: data.room
-				},
-				data: {
-					messages: [...channelData.messages, `${userData.name}: ${data.data}`]
-				}
-			})
-	
-			this.server.to(data.room).emit('message', {data: `${userData.name}: ${data.data}`, room: data.room})
+			if (!channelData.blocked.includes(userId) && data.data) {
+				await global.prisma.channel.update({
+					where: {
+						name: data.room
+					},
+					data: {
+						messages: [...channelData.messages, `${userData.name}: ${data.data}`]
+					}
+				})
+				this.server.to(data.room).emit('message', {data: `${userData.name}: ${data.data}`, room: data.room})
+			}
+			else if (channelData.blocked.includes(userId)) {
+				throw new WsException("You are banned from this room")
+			}
 		}
-
 	}
 
 	@SubscribeMessage('join')
-	handleJoin(socket, data) {
-		socket.join(data.room)
+	async handleJoin(socket, data) {
+		const channel = await global.prisma.channel.findUnique({
+			where: {
+				name: data.room
+			}
+		})
+
+		const cookies_raw = socket.handshake.headers.cookie
+	
+		if (!cookies_raw) {
+			throw new WsException("401")
+		}
+
+		const token_decrypt = await this.chatService.authAndExtract(socket)
+
+		const userId = token_decrypt['sub']
+
+		if (!userId) {
+			const userId = token_decrypt['id']
+		}
+
+		const userData = await global.prisma.user.findUnique({
+			where: {
+				id: userId
+			}
+		})
+
+		if (!channel.blocked.includes(userData.id)) {
+			socket.join(data.room)
+		}
+		else {
+			throw new WsException("Can't join this room")
+		}
 	}
 
 	@SubscribeMessage('leave')
 	handleLeave(socket, data) {
 		socket.leave(data.room)
+	}
+
+	@SubscribeMessage('kick')
+	async handleKick(socket, data) {
+		const sockets = await this.server.fetchSockets()
+		
+		for (let i = 0; i < sockets.length; i++) {
+			const cookies_raw = sockets[i].handshake.headers.cookie
+	
+			if (!cookies_raw) {
+				continue
+			}
+	
+			const token_decrypt = await this.chatService.authAndExtractRaw(cookies_raw)
+
+			let userId = token_decrypt['sub']
+
+			if (!userId) {
+				userId = token_decrypt['id']
+			}
+			
+			if (userId === data.user.id) {
+				sockets[i].leave(data.room)
+
+				const user = await global.prisma.user.findUnique({
+					where: {
+						id: userId
+					}
+				})
+
+				if (user.channels.includes(data.room)) {
+					const index = user.channels.indexOf(data.room)
+					user.channels.splice(index, 1)
+					await global.prisma.user.update({
+						where: {
+							id: userId
+						},
+						data: {
+							channels: user.channels
+						}
+					})
+				}
+			}
+		}
 	}
 
 	@SubscribeMessage('delete')

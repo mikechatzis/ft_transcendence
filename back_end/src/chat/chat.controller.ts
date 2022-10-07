@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { Jwt2faGuard } from '../auth/guard';
 import { ChatService } from './chat.service';
 import { ChannelDto } from './dto/channel.dto';
@@ -51,13 +51,19 @@ export class ChatController {
 
 	@UseGuards(Jwt2faGuard)
 	@Get(':name/messages')
-	async getChannelMessages(@Param('name') name) {
+	async getChannelMessages(@Param('name') name, @Req() req) {
 		const channel = await global.prisma.channel.findUnique({
 			where: {
 				name
 			}
 		})
-		return channel.messages
+
+		const user = req.user
+
+		if (!channel.blocked.includes(user.id)) {
+			return channel.messages
+		}
+		throw new ForbiddenException("Not allowed")
 	}
 
 	@UseGuards(Jwt2faGuard)
@@ -72,8 +78,72 @@ export class ChatController {
 	}
 
 	@UseGuards(Jwt2faGuard)
+	@Post(':name/permaban')
+	async permabanUser(@Req() req, @Param('name') name, @Body() body) {
+		await this.chatService.handleBan(req, name, body)
+	}
+
+	@UseGuards(Jwt2faGuard)
 	@Post(':name/ban')
 	async banUser(@Req() req, @Param('name') name, @Body() body) {
 		await this.chatService.handleBan(req, name, body)
+		setTimeout(async () => {
+			const channel = await global.prisma.channel.findUnique({
+				where: {
+					name
+				}
+			})
+			
+			const index = channel.blocked.indexOf(body.id)
+			if (index > -1) {
+				channel.blocked.splice(index, 1)
+				await global.prisma.channel.update({
+					where: {
+						name
+					},
+					data: {
+						blocked: channel.blocked
+					}
+				})
+			}
+		}, 900000)
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get(':name/isBanned')
+	async isUserBanned(@Param('name') name, @Req() req) {
+		const user = req.user
+
+		const channel = await global.prisma.channel.findUnique({
+			where: {
+				name
+			}
+		})
+
+		if (channel.blocked.includes(user.id)) {
+			return {banned: true}
+		}
+		return {banned: false}
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get(":name/isBanned/:id")
+	async isUserBannedId(@Param('name') name, @Param('id') id) {
+		const user = await global.prisma.user.findUnique({
+			where: {
+				id
+			}
+		})
+
+		const channel = await global.prisma.channel.findUnique({
+			where: {
+				name
+			}
+		})
+
+		if (channel.blocked.includes(user.id)) {
+			return ({banned: true})
+		}
+		return ({banned: false})
 	}
 }
