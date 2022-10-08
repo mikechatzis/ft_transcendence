@@ -93,7 +93,7 @@ export class UserController {
 		}))
 	async uploadFile(@UploadedFile() image: Express.Multer.File, @Request() req) {
 		const user: User = req.user;
-		if (user.avatar){
+		if (user.avatar && user.avatar !== "./images/avatars/default.jpg") {
 			const fs = require('fs')
 			try {
 				fs.unlinkSync(user.avatar)
