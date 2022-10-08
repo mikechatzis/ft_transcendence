@@ -51,6 +51,15 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		})
 	}, [baseUrl, anchorEl, channel])
 
+	const handleMute = (user: any) => () => {
+		let muteUser = {...user}
+
+		axios.post(baseUrl + `chat/${channel}/mute`, muteUser, {withCredentials: true}).catch((error) => {
+			console.log(error)
+		})
+		handleClose()
+	}
+
 	const handleClick = (elem: any) => (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorEl(event.currentTarget)
 		setOpenEl(elem.name)
@@ -66,6 +75,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		let kickUser = {...user}
 
 		socket.emit('kick', {room: channel, user: kickUser})
+		handleClose()
 	}
 	
 	const handlePermaBan = (user: any) => () => {
@@ -130,12 +140,12 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 											Make admin
 										</Typography>
 									</MenuItem>,
-									<MenuItem key={1}>
+									<MenuItem onClick={handleMute(user)} key={1}>
 										<Typography>
-											Mute
+											Mute for 15 minutes
 										</Typography>
 									</MenuItem>,
-									<MenuItem key={2}>
+									<MenuItem onClick={() => {handleKick(user)}} key={2}>
 										<Typography>
 											Kick
 										</Typography>

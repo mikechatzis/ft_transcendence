@@ -78,6 +78,12 @@ export class ChatController {
 	}
 
 	@UseGuards(Jwt2faGuard)
+	@Post(':name/mute')
+	async muteUser(@Req() req, @Param('name') name, @Body() body) {
+		await this.chatService.handleMute(req, name, body)
+	}
+
+	@UseGuards(Jwt2faGuard)
 	@Post(':name/permaban')
 	async permabanUser(@Req() req, @Param('name') name, @Body() body) {
 		await this.chatService.handleBan(req, name, body)

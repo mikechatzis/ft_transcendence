@@ -17,7 +17,7 @@ model User {
 
   name            String  @unique
   intraName       String? @unique
-  avatar		  String @default("default.jpg")
+  avatar		  String @default("./images/avatars/default.jpg")
   rank			  String? @default("hatchling")
   score			  Int @default(1000)
 
