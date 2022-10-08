@@ -1,3 +1,4 @@
+import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import axios from "axios"
 import { useContext, useEffect, useState } from "react"
@@ -41,6 +42,7 @@ const User: React.FC = () => {
 			<Typography variant="h3">
 				Status: {getStatus()}
 			</Typography>
+			<Box component="img" alt="profile" src={baseUrl + `users/${user?.id}/profileImg`} />
 		</>
 	)
 }
