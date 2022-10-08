@@ -59,7 +59,8 @@ export class UserController {
 					id
 				}
 			})
-			return user.avatar
+			const avatar = createReadStream(user.avatar)
+			return new StreamableFile(avatar)
 		}
 		catch (e) {
 			throw new ForbiddenException("failed to retrieve image")
