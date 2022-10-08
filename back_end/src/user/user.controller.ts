@@ -52,14 +52,19 @@ export class UserController {
 
 	@UseGuards(Jwt2faGuard)
 	@Get(':id/profileImg')
-	async getUserAvatar(@Param() id) {
-		const user = await global.prisma.findUnique({
-			where: {
-				id
-			}
-		})
+	async getUserAvatar(@Param('id') id) {
+		try {
+			const user = await global.prisma.user.findUnique({
+				where: {
+					id
+				}
+			})
+			return user.avatar
+		}
+		catch (e) {
+			throw new ForbiddenException("failed to retrieve image")
+		}
 
-		return user.avatar
 	}
 
 	@UseGuards(Jwt2faGuard)
