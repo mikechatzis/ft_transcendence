@@ -107,7 +107,6 @@ export class UserController {
 			return of ({error: "avatar must be of type: png, jpg or jpeg"})
 		const path = image?.path
 		const userUpdated = await this.userService.setAvatar(user, path);
-		console.log(userUpdated);
 		return of({imagePath: path});
 	}
 	//end code

@@ -96,7 +96,7 @@ export class ChatGateway {
 				}
 			})
 
-			if (!channelData.blocked.includes(userId) && data.data) {
+			if (!(channelData.blocked.includes(userId) || channelData.muted.includes(userId)) && data.data) {
 				await global.prisma.channel.update({
 					where: {
 						name: data.room
@@ -109,6 +109,9 @@ export class ChatGateway {
 			}
 			else if (channelData.blocked.includes(userId)) {
 				throw new WsException("You are banned from this room")
+			}
+			else if (channelData.muted.includes(userId)) {
+				throw new WsException("You are muted from this room")
 			}
 		}
 	}

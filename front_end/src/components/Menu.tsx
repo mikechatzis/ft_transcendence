@@ -2,6 +2,7 @@ import React from 'react'
 import { useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppBar from '@mui/material/AppBar'
+import Avatar from "@mui/material/Avatar"
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import IconButton from "@mui/material/IconButton"
@@ -10,7 +11,6 @@ import MenuItem from '@mui/material/MenuItem'
 import Toolbar from '@mui/material/Toolbar'
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
-import AccountCircle from '@mui/icons-material/AccountCircle'
 import { useTheme } from '@mui/material/styles'
 import axios from 'axios'
 import { UserContext } from '../context/UserContext'
@@ -68,7 +68,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 							color="inherit"
 							onClick={handleMenu}
 						>
-							<AccountCircle />
+							{context ? <Avatar src={baseUrl + "users/me/profileImg"} /> : <Avatar /> }
 						</IconButton>
 						<Menu id="menu-appbar"
 							anchorEl={anchorElem}

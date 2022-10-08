@@ -343,6 +343,49 @@ export class ChatService {
 		return payload
 	}
 
+	async handleMute(req, name, body) {
+		const channel = await global.prisma.channel.findUnique({
+			where: {
+				name
+			}
+		})
+
+		if (channel.admins.includes(req.user.id)) {
+			await global.prisma.channel.update({
+				where: {
+					name
+				},
+				data: {
+					muted: [...channel.muted, body.id]
+				}
+			})
+
+			setTimeout(async () => {
+				const channel = await global.prisma.channel.findUnique({
+					where: {
+						name
+					}
+				})
+
+				const index = channel.muted.indexOf(body.id)
+				if (index > -1) {
+					channel.blocked.splice(index, 1)
+					await global.prisma.channel.update({
+						where: {
+							name
+						},
+						data: {
+							muted: channel.muted
+						}
+					})
+				}
+			}, 900000)
+		}
+		else {
+			throw new ForbiddenException("Not an admin")
+		}
+	}
+
 	async handleBan(req, name, body) {
 		const channel = await global.prisma.channel.findUnique({
 			where: {
