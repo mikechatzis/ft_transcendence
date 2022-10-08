@@ -152,4 +152,10 @@ export class ChatController {
 		}
 		return ({banned: false})
 	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post(":name/makeAdmin")
+	async makeAdmin(@Param('name') name, @Req() req, @Body() body) {
+		await this.chatService.makeAdmin(req, name, body)
+	}
 }

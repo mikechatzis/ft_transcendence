@@ -27,7 +27,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const [isAdmin, setIsAdmin] = useState(false)
 	const [openEl, setOpenEl] = useState<null | string>(null)
 	const navigate = useNavigate()
-	const [open, setOpen] = useState(Boolean(anchorEl))
+	// const [open, setOpen] = useState(Boolean(anchorEl))
 	const baseUrl = useContext(UrlContext)
 	const socket = useContext(ChatContext)
 
@@ -50,6 +50,22 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 			console.log(error)
 		})
 	}, [baseUrl, anchorEl, channel])
+
+	const makeAdmin = (user: any) => () => {
+		let adminUser = {...user}
+
+		axios.post(baseUrl + `chat/${channel}/makeAdmin`, adminUser, {withCredentials: true}).catch((error) => {
+			console.log(error)
+		})
+		handleClose()
+	}
+
+	const handleView = (user: any) => () => {
+		let viewUser = {...user}
+
+		navigate(`/users/${user.id}`)
+		handleClose()
+	}
 
 	const handleMute = (user: any) => () => {
 		let muteUser = {...user}
@@ -135,7 +151,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 									onClose={handleClose}
 								>
 									{isAdmin &&
-									[<MenuItem key={0}>
+									[<MenuItem onClick={makeAdmin(user)} key={0}>
 										<Typography>
 											Make admin
 										</Typography>
@@ -160,7 +176,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 											Ban permanently
 										</Typography>
 									</MenuItem>]}
-									<MenuItem key={5}>
+									<MenuItem onClick={handleView(user)} key={5}>
 										<Typography>
 											View profile
 										</Typography>

@@ -407,4 +407,23 @@ export class ChatService {
 			throw new ForbiddenException("Not an admin")
 		}
 	}
+
+	async makeAdmin(req, name, body) {
+		const channel = await global.prisma.channel.findUnique({
+			where: {
+				name
+			}
+		})
+
+		if (channel.admins.includes(req.user.id)) {
+			await global.prisma.channel.update({
+				where: {
+					name
+				},
+				data: {
+					admins: [...channel.admins, body.id]
+				}
+			})
+		}
+	}
 }

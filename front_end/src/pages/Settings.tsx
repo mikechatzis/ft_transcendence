@@ -10,7 +10,7 @@ import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Notification from '../components/Notification'
 import { UrlContext } from '../context/UrlContext'
-import userEvent from '@testing-library/user-event'
+import { RerenderContext } from '../context/RerenderContext'
 
 
 const Settings: React.FC = () => {
@@ -22,6 +22,7 @@ const Settings: React.FC = () => {
 	const [qrDisplayed, setQrDisplayed] = useState(false)
 	const [selectedFile, setSelectedFile] = useState<any>(null)
 	const baseUrl = useContext(UrlContext)
+	const {rerender, setRerender} = useContext(RerenderContext)
 	const navigate = useNavigate()
 
 	const enterKeyCode = 13
@@ -38,12 +39,12 @@ const Settings: React.FC = () => {
 		// event.preventDefault()
 		const formData = new FormData()
 		formData.append('file', selectedFile)
-
-		console.log(selectedFile)
 		
 		axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: {
 			'Content-Type': 'multipart/form-data'
-		  } }).catch((error) => {console.log(error)})
+		} }).catch((error) => {console.log(error)})
+		setRerender?.(!Boolean(rerender))
+		navigate("/account")
 	}
 
 	const handleFileSelect = (event: any) => {

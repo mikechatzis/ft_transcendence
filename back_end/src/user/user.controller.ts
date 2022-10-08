@@ -56,7 +56,7 @@ export class UserController {
 		try {
 			const user = await global.prisma.user.findUnique({
 				where: {
-					id
+					id: parseInt(id)
 				}
 			})
 			const avatar = createReadStream(user.avatar)

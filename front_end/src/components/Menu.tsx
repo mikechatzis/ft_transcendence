@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState, useContext } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppBar from '@mui/material/AppBar'
 import Avatar from "@mui/material/Avatar"
@@ -16,6 +16,7 @@ import axios from 'axios'
 import { UserContext } from '../context/UserContext'
 import { UrlContext } from '../context/UrlContext'
 import SearchBar from './SearchBar'
+import { RerenderContext } from '../context/RerenderContext'
 
 interface MenuProps {
 	handleToggle: React.ButtonHTMLAttributes<HTMLButtonElement> ["onClick"]
@@ -23,10 +24,17 @@ interface MenuProps {
 
 const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	const [anchorElem, setAnchorElem] = useState<null | HTMLElement>(null)
+	const [avatar, setAvatar] = useState<any>(null)
 	const navigate = useNavigate()
 	const theme = useTheme()
+	const {rerender, setRerender} = useContext(RerenderContext)
 	const {context, setContext} = useContext(UserContext)
 	const baseUrl = useContext(UrlContext)
+
+	//this is stupid and i hate it but at least it works
+	useEffect(() => {
+		setAvatar(<Avatar src={baseUrl + `users/me/profileImg?${Date.now()}`} />)
+	}, [rerender])
 
 	const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorElem(event.currentTarget)
@@ -68,7 +76,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 							color="inherit"
 							onClick={handleMenu}
 						>
-							{context ? <Avatar src={baseUrl + "users/me/profileImg"} /> : <Avatar /> }
+							{context ? avatar : <Avatar /> }
 						</IconButton>
 						<Menu id="menu-appbar"
 							anchorEl={anchorElem}
