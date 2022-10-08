@@ -16,6 +16,8 @@ import { UrlContext } from "../context/UrlContext"
 import { ListItemIcon } from "@mui/material"
 import { Status } from "../enum/status"
 import { useNavigate } from "react-router-dom"
+import { Socket } from "socket.io-client"
+import { ChatContext } from "../context/ChatContext"
 
 const drawerWidth = 360
 
@@ -27,6 +29,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const navigate = useNavigate()
 	const [open, setOpen] = useState(Boolean(anchorEl))
 	const baseUrl = useContext(UrlContext)
+	const socket = useContext(ChatContext)
 
 	useEffect(() => {
 		axios.get(baseUrl + `chat/${channel}/users`, {withCredentials: true}).then((response) => {
@@ -58,14 +61,30 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		setAnchorEl(null)
 		setOpenEl(null)
 	}
+
+	const handleKick = (user: any) => {
+		let kickUser = {...user}
+
+		socket.emit('kick', {room: channel, user: kickUser})
+	}
 	
+	const handlePermaBan = (user: any) => () => {
+		let banUser = {...user}
+
+		axios.post(baseUrl + `chat/${channel}/permaban`, banUser, {withCredentials: true}).catch((error) => {
+			console.log(error)
+		})
+		handleKick(user)
+		handleClose()
+	}
+
 	const handleBan = (user: any) => () => {
 		let banUser = {...user}
 
-		console.log(banUser)
 		axios.post(baseUrl + `chat/${channel}/ban`, banUser, {withCredentials: true}).catch((error) => {
 			console.log(error)
 		})
+		handleKick(user)
 		handleClose()
 	}
 
@@ -94,20 +113,13 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 									{(user.status === Status.ONLINE) ? <CircleIcon style={{color: "green"}} fontSize="small" /> : <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />}
 								</ListItemIcon>
 								<IconButton
-									// aria-label="more"
 									id="long-button"
-									// aria-controls={openEl === user ? 'long-menu' : undefined}
-									// aria-expanded={openEl === user? 'true' : undefined}
-									// aria-haspopup="true"
 									onClick={handleClick(user)}
 								>
 									<MoreVertIcon />
 								</IconButton>
 								<Menu
 									id="long-menu"
-									// MenuListProps={{
-									// 	'aria-labelledby': 'long-button'
-									// }}
 									anchorEl={anchorEl}
 									open={openEl === user.name}
 									onClose={handleClose}
@@ -128,17 +140,22 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 											Kick
 										</Typography>
 									</MenuItem>,
-									<MenuItem onClick={handleBan(user)} key={3}>
+									<MenuItem onClick={handleBan(user)}key={3}>
 										<Typography>
-											Ban
+											Ban for 15 minutes
+										</Typography>
+									</MenuItem>,
+									<MenuItem onClick={handlePermaBan(user)} key={4}>
+										<Typography>
+											Ban permanently
 										</Typography>
 									</MenuItem>]}
-									<MenuItem key={4}>
+									<MenuItem key={5}>
 										<Typography>
 											View profile
 										</Typography>
 									</MenuItem>
-									<MenuItem key={5}>
+									<MenuItem key={6}>
 										<Typography>
 											Invite to play
 										</Typography>

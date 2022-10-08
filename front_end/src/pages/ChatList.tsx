@@ -56,7 +56,7 @@ const ChatList: React.FC = () => {
 			navigate("/login")
 		}
 		else {
-			setMessage(error.response.data.message)
+			setMessage(error.response.message)
 			setTimeout(() => {
 				setMessage(null)
 			}, 5000)
@@ -65,8 +65,23 @@ const ChatList: React.FC = () => {
 	
 	const channelList = chatRooms.map((room: any, index: any) => {
 		const handleJoin = () => {
-			socket.emit('join', {room: room.name})
-			navigate(`/chat/${room.name}`)
+			axios.get(baseUrl + `chat/${room.name}/isBanned`, {withCredentials: true}).then((response) => {
+				if (!response.data.banned) {
+					socket.emit('join', {room: room.name})
+					navigate(`/chat/${room.name}`)
+				}
+				else {
+					setMessage("You are banned motherfucker")
+					setTimeout(() => {
+						setMessage(null)
+					}, 5000)
+				}
+			}).catch((e) => {
+				setMessage(e.response.message)
+				setTimeout(() => {
+					setMessage(null)
+				}, 5000)
+			})
 		}
 
 		const handleLeave = () => {

@@ -335,6 +335,14 @@ export class ChatService {
 		return payload
 	}
 
+	authAndExtractRaw(cookies_raw) {
+		const cookies = cookie.parse(cookies_raw)
+
+		const payload = this.jwt.verify(cookies.jwt, {publicKey: this.config.get('JWT_SECRET')})
+
+		return payload
+	}
+
 	async handleBan(req, name, body) {
 		const channel = await global.prisma.channel.findUnique({
 			where: {
@@ -351,8 +359,6 @@ export class ChatService {
 					blocked: [...channel.blocked, body.id]
 				}
 			})
-
-			// console.log()
 		}
 		else {
 			throw new ForbiddenException("Not an admin")
