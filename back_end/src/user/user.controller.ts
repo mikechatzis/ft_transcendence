@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Req, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Req, Request, UploadedFile, UseGuards, UseInterceptors, StreamableFile } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
 import { Jwt2faGuard, JwtGuard } from '../auth/guard';
@@ -9,6 +9,9 @@ import { diskStorage } from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { of, Observable } from 'rxjs';
 import path = require('path');
+import fs = require("fs");
+import { createReadStream } from 'fs';
+import { join } from 'path';
 
 //import fileType = require('file-type')
 
@@ -42,8 +45,9 @@ export class UserController {
 
 	@UseGuards(Jwt2faGuard)
 	@Get('me/profileImg')
-	getMyAvatar(@GetUser() user: User) {
-		return user.avatar
+	async getMyAvatar(@GetUser() user: User) {
+		const avatar = createReadStream(user.avatar)
+		return new StreamableFile(avatar)
 	}
 
 	@UseGuards(Jwt2faGuard)
