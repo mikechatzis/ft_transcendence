@@ -1,6 +1,7 @@
 import Drawer from "@mui/material/Drawer"
 import axios from "axios"
 import React, { Fragment, useContext, useEffect, useState } from "react"
+import Avatar from "@mui/material/Avatar"
 import IconButton from "@mui/material/IconButton"
 import List from "@mui/material/List"
 import ListItem from "@mui/material/ListItem"
@@ -63,7 +64,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const handleView = (user: any) => () => {
 		let viewUser = {...user}
 
-		navigate(`/users/${user.id}`)
+		navigate(`/users/${user.name}`)
 		handleClose()
 	}
 
@@ -134,6 +135,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 					return (
 						<Fragment key={index}>
 							<ListItem>
+								<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
 								<ListItemText primary={user.name} />
 								<ListItemIcon>
 									{(user.status === Status.ONLINE) ? <CircleIcon style={{color: "green"}} fontSize="small" /> : <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />}

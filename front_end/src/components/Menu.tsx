@@ -5,12 +5,14 @@ import AppBar from '@mui/material/AppBar'
 import Avatar from "@mui/material/Avatar"
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
+import Drawer from "@mui/material/Drawer"
 import IconButton from "@mui/material/IconButton"
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Toolbar from '@mui/material/Toolbar'
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
+import GroupsIcon from "@mui/icons-material/Groups"
 import { useTheme } from '@mui/material/styles'
 import axios from 'axios'
 import { UserContext } from '../context/UserContext'
@@ -25,6 +27,7 @@ interface MenuProps {
 const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	const [anchorElem, setAnchorElem] = useState<null | HTMLElement>(null)
 	const [avatar, setAvatar] = useState<any>(null)
+	const [friendsOpen, setFriendsOpen] = useState(false)
 	const navigate = useNavigate()
 	const theme = useTheme()
 	const {rerender, setRerender} = useContext(RerenderContext)
@@ -67,24 +70,43 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 					<Box>
 						<SearchBar />
 					</Box>
+					{context &&
 					<Box>
 						<IconButton
-							size="large"
-							aria-label="account of current user"
-							aria-controls="menu-appbar"
-							aria-haspopup="true"
-							color="inherit"
+							onClick={() => setFriendsOpen(!friendsOpen)}
+						>
+							<GroupsIcon />
+						</IconButton>
+						<Drawer
+							anchor='right'
+							open={friendsOpen}
+							onClose={() => setFriendsOpen(false)}
+						>
+							{['frog']}
+						</Drawer>
+					</Box>}
+					<Box>
+						<IconButton
 							onClick={handleMenu}
+							size="small"
+							sx={{ ml: 2 }}
+							aria-controls={Boolean(anchorElem) ? 'account-menu' : undefined}
+							aria-haspopup="true"
+							aria-expanded={Boolean(anchorElem) ? 'true' : undefined}
 						>
 							{context ? avatar : <Avatar /> }
 						</IconButton>
-						<Menu id="menu-appbar"
-							anchorEl={anchorElem}
-							anchorOrigin={{vertical: "top", horizontal: "right"}}
-							keepMounted
-							transformOrigin={{vertical: "top", horizontal: "right"}}
+						<Menu anchorEl={anchorElem}
+							id="account-menu"
 							open={Boolean(anchorElem)}
 							onClose={handleClose}
+							PaperProps={{
+								elevation: 0,
+								sx: {
+									backgroundColor: '#333333'
+								},
+							}}
+							anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
 						>
 							{!context && <MenuItem onClick={() => {
 								handleClose()

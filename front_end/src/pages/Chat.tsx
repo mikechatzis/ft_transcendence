@@ -57,7 +57,12 @@ const Chat: React.FC = () => {
 		axios.get(baseUrl + `chat/${channel.name}/messages`, {withCredentials: true}).then((response) => {
 			setMessages(response.data)
 		}).catch((error) => {
-			console.log(error)
+			if (error.response.status === 401) {
+				navigate("/login")
+			}
+			else {
+				console.log(error)
+			}
 		})
 	}, [baseUrl, channel])
 

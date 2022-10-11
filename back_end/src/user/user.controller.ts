@@ -153,13 +153,13 @@ export class UserController {
 		return user
 	}
 
-	@UseGuards(Jwt2faGuard)
-	@Get(':id')
-	async getAvatarById(@Param('id') id) {
-		const user = await this.userService.findById(parseInt(id))
+	// @UseGuards(Jwt2faGuard)
+	// @Get(':id')
+	// async getAvatarById(@Param('id') id) {
+	// 	const user = await this.userService.findById(parseInt(id))
 
-		return user.avatar
-	}
+	// 	return user.avatar
+	// }
 
 	@UseGuards(Jwt2faGuard)
 	@Get('user/:name')
