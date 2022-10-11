@@ -1,3 +1,4 @@
+import Avatar from "@mui/material/Avatar"
 import Box from "@mui/material/Box"
 import Container from "@mui/material/Container"
 import Divider from "@mui/material/Divider"
@@ -6,25 +7,30 @@ import Grid from "@mui/material/Grid"
 import IconButton from "@mui/material/IconButton"
 import List from "@mui/material/List"
 import ListItem from "@mui/material/ListItem"
+import ListItemIcon from "@mui/material/ListItemIcon"
 import ListItemText from "@mui/material/ListItemText"
 import TextField from "@mui/material/TextField"
 import Paper from "@mui/material/Paper"
 import SendIcon from "@mui/icons-material/Send"
 import { useContext, useEffect, useRef, useState } from "react"
-import { Typography } from "@mui/material"
+import { Icon, Typography } from "@mui/material"
 import { ChatContext } from "../context/ChatContext"
 import Notification from "../components/Notification"
 import { useNavigate, useParams } from "react-router-dom"
 import UserList from "../components/UserList"
 import { UrlContext } from "../context/UrlContext"
+import { Status } from "../enum/status"
+import CircleIcon from '@mui/icons-material/Circle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import axios from "axios"
 
-const Chat: React.FC = () => {
+const DmChat: React.FC = () => {
 	const enterKeyCode = 13
 
 	const [messages, setMessages] = useState<string[]>([])
 	const [message, setMessage] = useState('')
 	const [error, setError] = useState('')
+	const [otherUser, setOtherUser] = useState<any>(null)
 	const scrollBottomRef = useRef<any>(null)
 	const socket = useContext(ChatContext)
 	const baseUrl = useContext(UrlContext)
@@ -33,8 +39,7 @@ const Chat: React.FC = () => {
 
 	useEffect(() => {
 		socket.on('message', ({data, room}: any) => {
-			if (room === channel.name) {
-				console.log(channel)
+			if (room === channel.id) {
 				const newArr = messages.concat(data)
 				setMessages(newArr)
 			}
@@ -55,16 +60,24 @@ const Chat: React.FC = () => {
 	})
 
 	useEffect(() => {
-		axios.get(baseUrl + `chat/${channel.name}/messages`, {withCredentials: true}).then((response) => {
-			setMessages(response.data)
-		}).catch((error) => {
-			if (error.response.status === 401) {
-				navigate("/login")
-			}
-			else {
-				console.log(error)
-			}
+		axios.get(baseUrl + `users/${channel.id}`, {withCredentials: true}).then((response) => {
+			setOtherUser(response.data)
+		}).catch((e) => {
+			console.log(e)
 		})
+	}, [baseUrl, channel])
+
+	useEffect(() => {
+		// axios.get(baseUrl + `chat/${channel.id}/messages`, {withCredentials: true}).then((response) => {
+		// 	setMessages(response.data)
+		// }).catch((error) => {
+		// 	if (error.response.status === 401) {
+		// 		navigate("/login")
+		// 	}
+		// 	else {
+		// 		console.log(error)
+		// 	}
+		// })
 	}, [baseUrl, channel])
 
 	useEffect(() => {
@@ -93,7 +106,6 @@ const Chat: React.FC = () => {
 	return (
 		<>
 			<Notification message={error} />
-			<UserList channel={channel.name ? channel.name : ''} />
 			<Container>
 				<Grid container
 					spacing={2}
@@ -103,9 +115,15 @@ const Chat: React.FC = () => {
 				>
 					<Paper elevation={5} style={{width: "75rem", height: "50rem"}}>
 						<Box p={3}>
-							<Typography variant="h4" gutterBottom>
-								You can discuss frogs here
-							</Typography>
+							<List style={{paddingTop: 0}}>
+								<ListItem>
+									<Avatar src={baseUrl + `users/${otherUser?.id}/profileImg`} />
+									<ListItemText primary={<Typography variant="h5">{otherUser?.name}</Typography>} style={{paddingLeft: 15}} />
+									<ListItemIcon>
+										{(otherUser?.status === Status.ONLINE) ? <CircleIcon style={{color: "green"}} fontSize="small" /> : <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />}
+									</ListItemIcon>
+								</ListItem>
+							</List>
 							<Divider />
 							<Grid container spacing={4} alignItems="center">
 								<Grid xs={12} item style={{
@@ -148,4 +166,4 @@ const Chat: React.FC = () => {
 	)
 }
 
-export default Chat
+export default DmChat

@@ -150,9 +150,6 @@ const ChatList: React.FC = () => {
 				</Fragment>
 			)
 		}
-		else {
-			//do stuff for dm channels
-		}
 	})
 
 	const handleCreate = (values: any) => {

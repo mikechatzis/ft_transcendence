@@ -28,7 +28,6 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const [isAdmin, setIsAdmin] = useState(false)
 	const [openEl, setOpenEl] = useState<null | string>(null)
 	const navigate = useNavigate()
-	// const [open, setOpen] = useState(Boolean(anchorEl))
 	const baseUrl = useContext(UrlContext)
 	const socket = useContext(ChatContext)
 
@@ -80,7 +79,6 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const handleClick = (elem: any) => (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorEl(event.currentTarget)
 		setOpenEl(elem.name)
-		console.log(elem)
 	}
 
 	const handleClose = () => {
@@ -136,7 +134,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 						<Fragment key={index}>
 							<ListItem>
 								<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
-								<ListItemText primary={user.name} />
+								<ListItemText primary={user.name} style={{padding: 10}} />
 								<ListItemIcon>
 									{(user.status === Status.ONLINE) ? <CircleIcon style={{color: "green"}} fontSize="small" /> : <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />}
 								</ListItemIcon>

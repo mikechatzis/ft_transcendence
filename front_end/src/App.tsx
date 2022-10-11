@@ -16,6 +16,7 @@ import { UrlContext } from './context/UrlContext'
 import { RerenderContext } from "./context/RerenderContext"
 import TwoFactor from './pages/2fa'
 import Chat from './pages/Chat'
+import DmChat from './pages/DmChat'
 import { ChatContext, chatSocket } from './context/ChatContext'
 import User from './pages/User'
 import ChatList from './pages/ChatList'
@@ -79,6 +80,7 @@ const App: React.FC = () => {
 							<Route path="/settings" element={<Settings />} />
 							<Route path="/2fa" element={<TwoFactor /> } />
 							<Route path="/chat-list" element={<ChatList />} />
+							<Route path="/dm/:id" element={<DmChat />} />
 							<Route path="/chat/:name" element={<Chat />} />
 							<Route path="/users/:name" element={<User />} />
 							<Route path="/401" element={<Error401 />} />

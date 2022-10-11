@@ -150,6 +150,7 @@ export class UserController {
 		const user = await this.userService.findById(parseInt(id))
 
 		delete user.hash
+		delete user.twoFactorSecret
 		return user
 	}
 
@@ -168,6 +169,34 @@ export class UserController {
 
 		delete user.hash
 		return user
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get('me/friends')
+	async getFriends(@Req() req)
+	{
+		const user = await global.prisma.user.findUnique({
+			where: {
+				id: req.user.id
+			}
+		})
+
+		let friends = []
+
+		for (let i = 0; i < user.friends.length; i++) {
+			const friend = await global.prisma.user.findUnique({
+				where: {
+					id: user.friends[i]
+				}
+			})
+
+			delete friend.hash
+			delete friend.twoFactorSecret
+
+			friends = [...friends, friend]
+		}
+
+		return friends
 	}
 }
 
