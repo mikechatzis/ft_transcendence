@@ -3,47 +3,31 @@ import Container from "@mui/material/Container"
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import {styled} from '@mui/material/styles'
+import { useState } from 'react'
+
+var loc1 = 400
+var loc2 = 400
 
 enum Keys{
-	UP = 'w',
-	DOWN = 's'
+	W = 'w',
+	S = 's',
+	ArrowUp = 'ArrowUp',
+	ArrowDown = 'ArrowDown'
 }
 
 const GameBox = styled("div")(({ theme }) => ({
 	position: "relative",
 	margin: 'auto',
-	marginTop: 30,
-	marginBottom: 30,
-	width: 1420,
-	height: 1000,
+	marginTop: 40,
+	marginBottom: 40,
+	width: "70%",
+	height: 900,
 	left: 0,
 	right: 0,
 	top: 0,
 	bottom: 0,
 	background: 'black',
 	border: "10px solid white",
-}))
-
-export const LeftPaddle = styled('div')(({}) => ({
-	id: 1,
-	position: "absolute",
-	width: 20,
-	height: 100,
-	left: 25,
-	right: 0,
-	top: 400,
-	bottom: 0,
-	background: 'white',
-}))
-
-const RightPaddle = styled('div')(({}) => ({
-	position: "absolute",
-	width: 20,
-	height: 100,
-	left: 1360,
-	top: 400,
-	bottom: 0,
-	background: 'white',
 }))
 
 const DottedLine = styled('div')(({}) => ({
@@ -55,24 +39,60 @@ const DottedLine = styled('div')(({}) => ({
 
 }))
 
+const LeftPaddle = styled('div')(({}) => ({
+	width: 20,
+	height: 100,
+	left: "3%",
+	background:'grey'
+}))
+
+const RightPaddle = styled('div')(({}) => ({
+	width: 20,
+	height: 100,
+	left: '95%',
+	background:'grey'
+}))
+
 
 const Game: React.FC = () => {
+	const [dist1, setTopDist1] = useState(loc1);
+	const [dist2, setTopDist2] = useState(loc2);
 
-	const handleKeyDown = (event: any) => {
-		// let tmp = document.getElementById("LeftPaddle");
-		if (event.key == Keys.UP)
-			// console.log(tmp.)
-		// if (event.key == Keys.DOWN)
-			console.log("down");
-	}
+	function HandleKeyPress(e: any){
+		if (e.key == Keys.W){
+			if(loc1 - 20 <= 0)
+				setTopDist1(5)
+			else
+				setTopDist1(loc1-=20)
+		}
+		else if (e.key == Keys.S){
+			if(loc1 + 20 >= 780)
+				setTopDist1(775)
+			else
+				setTopDist1(loc1+=20)
+		}
+		else if (e.key == Keys.ArrowUp){
+			if(loc2 - 20 <= 0)
+				setTopDist2(5)
+			else
+				setTopDist2(loc2-=20)
+		}
+		else if (e.key == Keys.ArrowDown){
+			if(loc2 + 20 >= 780)
+				setTopDist2(775)
+			else
+				setTopDist2(loc2+=20)
+		}
+}
+	
 
 	return (
 		<Box style={{color: 'white', display: 'flex', flexFlow: 'column noWrap', marginTop: 20}}>
 			<Typography style={{alignSelf: 'center'}} variant='h2'>Ping Pong</Typography>
-		<GameBox tabIndex={0} onKeyDown={handleKeyDown}>
+		<GameBox>
+			<LeftPaddle tabIndex={0} onKeyDown={(e) => HandleKeyPress(e)} style={{position:'absolute', top:dist1}}></LeftPaddle>
+			<RightPaddle tabIndex={0} onKeyDown={(e) => HandleKeyPress(e)} style={{position:'absolute', top:dist2}}></RightPaddle>
 			<DottedLine></DottedLine>
-			<LeftPaddle></LeftPaddle>
-			<RightPaddle></RightPaddle>
 		</GameBox>
 		</Box>
 	)
