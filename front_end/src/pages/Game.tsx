@@ -4,9 +4,15 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import {styled} from '@mui/material/styles'
 import { useState } from 'react'
+import * as ReactDOM from 'react-dom/client'
+import { unmountComponentAtNode, render } from "react-dom";
+
 
 var loc1 = 400
 var loc2 = 400
+
+var startx = 300;
+var starty = 300;
 
 enum Keys{
 	W = 'w',
@@ -53,8 +59,16 @@ const RightPaddle = styled('div')(({}) => ({
 	background:'grey'
 }))
 
+const GameBall = styled('div')(({}) => ({
+	borderRadius: 25,
+	width: 20,
+	height: 20,
+	background:'grey'
+}))
+
 
 const Game: React.FC = () => {
+
 	const [dist1, setTopDist1] = useState(loc1);
 	const [dist2, setTopDist2] = useState(loc2);
 
@@ -83,8 +97,27 @@ const Game: React.FC = () => {
 			else
 				setTopDist2(loc2+=20)
 		}
-}
-	
+	}
+
+	// const [x, setBallX] = useState(startx);Œ
+	// const [y, setBallY] = useState(starty);
+
+	// const root = ReactDOM.createRoot(
+	// 	document.getElementById('ball') as HTMLDivElement
+	// );
+
+	// function MoveBall(){
+	// setBallX(startx += 10);
+	// setBallY(starty += 10);
+
+	// const element = (
+	// 	<div style={{position:'absolute', width:20, height:20, background:'grey', top:y, left:x}}></div>
+	// );
+	// root.render(element)
+	// root.unmount()
+	// }
+	// setInterval(MoveBall, 1000)
+
 
 	return (
 		<Box style={{color: 'white', display: 'flex', flexFlow: 'column noWrap', marginTop: 20}}>
@@ -93,6 +126,7 @@ const Game: React.FC = () => {
 			<LeftPaddle tabIndex={0} onKeyDown={(e) => HandleKeyPress(e)} style={{position:'absolute', top:dist1}}></LeftPaddle>
 			<RightPaddle tabIndex={0} onKeyDown={(e) => HandleKeyPress(e)} style={{position:'absolute', top:dist2}}></RightPaddle>
 			<DottedLine></DottedLine>
+			<div id="ball"></div>
 		</GameBox>
 		</Box>
 	)
