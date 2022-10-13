@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import Pong from './pages/Game'
 import {BrowserRouter} from 'react-router-dom';
 import { UrlContext } from './context/UrlContext';
 
@@ -15,5 +16,6 @@ root.render(
 				<App />
 			</UrlContext.Provider>
 		</BrowserRouter>
+		<Pong />
 	</React.StrictMode>
 );
