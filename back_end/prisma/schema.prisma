@@ -38,7 +38,7 @@ model User {
 model Channel {
   name   String   @unique
   admins Int[]
-  messages String[]
+  messages Json[]
 
   hash String?
   isDmChannel Boolean

@@ -154,14 +154,6 @@ export class UserController {
 		return user
 	}
 
-	// @UseGuards(Jwt2faGuard)
-	// @Get(':id')
-	// async getAvatarById(@Param('id') id) {
-	// 	const user = await this.userService.findById(parseInt(id))
-
-	// 	return user.avatar
-	// }
-
 	@UseGuards(Jwt2faGuard)
 	@Get('user/:name')
 	async getByName(@Param('name') name) {
@@ -197,6 +189,18 @@ export class UserController {
 		}
 
 		return friends
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post('block')
+	async blockUser(@Req() req, @Body() body) {
+		await this.userService.blockUser(req, body)
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post('addFriend')
+	async addFriend(@Req() req, @Body() body) {
+		await this.userService.addFriend(req, body)
 	}
 }
 

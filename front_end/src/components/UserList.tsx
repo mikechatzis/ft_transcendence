@@ -24,6 +24,7 @@ const drawerWidth = 360
 
 const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const [channelMembers, setChannelMembers] = useState<any[] | null>(null)
+	const [me, setMe] = useState<any>(null)
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 	const [isAdmin, setIsAdmin] = useState(false)
 	const [openEl, setOpenEl] = useState<null | string>(null)
@@ -39,6 +40,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 	useEffect(() => {
 		axios.get(baseUrl + `users/me`, {withCredentials: true}).then((response) => {
+			setMe(response.data)
 			axios.get(baseUrl + `chat/${channel}/admins`, {withCredentials: true}).then((resp2) => {
 				if (resp2.data.includes(response.data.id)) {
 					setIsAdmin(true)
@@ -113,6 +115,24 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		handleClose()
 	}
 
+	const handleBlock = (user: any) => () => {
+		let blockUser = {...user}
+
+		axios.post(baseUrl + 'users/block', {block: blockUser.id}, {withCredentials: true}).catch((e) => {
+			console.log(e)
+		})
+		handleClose()
+	}
+
+	const handleFriend = (user: any) => () => {
+		let friendUser = {...user}
+
+		axios.post(baseUrl + 'users/addFriend', {friend: friendUser.id}, {withCredentials: true}).then(() => {
+			socket.emit('join', {room: `${me.id} ${friendUser.id}`})
+		})
+		handleClose()
+	}
+
 	return (
 		<>
 		<Drawer
@@ -176,12 +196,22 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 											Ban permanently
 										</Typography>
 									</MenuItem>]}
-									<MenuItem onClick={handleView(user)} key={5}>
+									{!me?.blocked.includes(user.id) && <MenuItem onClick={handleBlock(user)} key={5}>
+										<Typography>
+											Block user
+										</Typography>
+									</MenuItem>}
+									{(!me?.friends.includes(user.id) && !me?.blocked.includes(user.id)) && <MenuItem onClick={handleFriend(user)} key={6}>
+										<Typography>
+											Add friend
+										</Typography>
+									</MenuItem>}
+									<MenuItem onClick={handleView(user)} key={7}>
 										<Typography>
 											View profile
 										</Typography>
 									</MenuItem>
-									<MenuItem key={6}>
+									<MenuItem key={8}>
 										<Typography>
 											Invite to play
 										</Typography>

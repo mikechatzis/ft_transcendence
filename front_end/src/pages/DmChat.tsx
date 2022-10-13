@@ -31,6 +31,7 @@ const DmChat: React.FC = () => {
 	const [message, setMessage] = useState('')
 	const [error, setError] = useState('')
 	const [otherUser, setOtherUser] = useState<any>(null)
+	const [channelName, setChannelName] = useState<string | null>(null)
 	const scrollBottomRef = useRef<any>(null)
 	const socket = useContext(ChatContext)
 	const baseUrl = useContext(UrlContext)
@@ -38,8 +39,20 @@ const DmChat: React.FC = () => {
 	const navigate = useNavigate()
 
 	useEffect(() => {
+		axios.get(baseUrl + `chat/dmChannel/${channel.id}`, {withCredentials: true}).then((response) => {
+			setChannelName(response.data.channel)
+			console.log('channel:', response.data)
+		}).catch((e) => {
+			setError(e.message)
+				setTimeout(() => {
+					setError('')
+				}, 5000)
+		})
+	}, [baseUrl])
+
+	useEffect(() => {
 		socket.on('message', ({data, room}: any) => {
-			if (room === channel.id) {
+			if (room === channelName) {
 				const newArr = messages.concat(data)
 				setMessages(newArr)
 			}
@@ -68,24 +81,30 @@ const DmChat: React.FC = () => {
 	}, [baseUrl, channel])
 
 	useEffect(() => {
-		// axios.get(baseUrl + `chat/${channel.id}/messages`, {withCredentials: true}).then((response) => {
-		// 	setMessages(response.data)
-		// }).catch((error) => {
-		// 	if (error.response.status === 401) {
-		// 		navigate("/login")
-		// 	}
-		// 	else {
-		// 		console.log(error)
-		// 	}
-		// })
-	}, [baseUrl, channel])
+		if (channelName) {
+			axios.get(baseUrl + `chat/${channelName}/messages`, {withCredentials: true}).then((response) => {
+				let newArr: string[] = []
+				for (let i = 0; i < response.data.length; i++) {
+					newArr = [...newArr, response.data[i].message]
+				}
+				setMessages(newArr)
+			}).catch((error) => {
+				if (error.response.status === 401) {
+					navigate("/login")
+				}
+				else {
+					console.log(error)
+				}
+			})
+		}
+	}, [baseUrl, channelName])
 
 	useEffect(() => {
 		scrollBottomRef.current?.scrollIntoView({behavior: "smooth"})
 	}, [messages])
 
 	const handleMessageSend = () => {
-		socket.emit('message', {data: message, id: socket.id, room: channel.name})
+		socket.emit('message', {data: message, id: socket.id, room: channelName})
 
 		setMessage('')
 	}

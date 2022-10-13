@@ -25,6 +25,7 @@ const Chat: React.FC = () => {
 	const [messages, setMessages] = useState<string[]>([])
 	const [message, setMessage] = useState('')
 	const [error, setError] = useState('')
+	const [me, setMe] = useState<any>(null)
 	const scrollBottomRef = useRef<any>(null)
 	const socket = useContext(ChatContext)
 	const baseUrl = useContext(UrlContext)
@@ -32,11 +33,24 @@ const Chat: React.FC = () => {
 	const navigate = useNavigate()
 
 	useEffect(() => {
-		socket.on('message', ({data, room}: any) => {
+		axios.get(baseUrl + "users/me", {withCredentials: true}).then((response) => {
+			setMe(response.data)
+		}).catch((e) => {
+			console.log(e)
+		})
+	}, [baseUrl])
+
+	useEffect(() => {
+		socket.on('message', ({data, room, user}: any) => {
 			if (room === channel.name) {
-				console.log(channel)
-				const newArr = messages.concat(data)
-				setMessages(newArr)
+				if (!me?.blocked.includes(user)) {
+					const newArr = messages.concat(data)
+					setMessages(newArr)
+				}
+				else {
+					//i dont understand why but it breaks without this 'else'
+					setMessages([...messages])
+				}
 			}
 		})
 
@@ -56,7 +70,13 @@ const Chat: React.FC = () => {
 
 	useEffect(() => {
 		axios.get(baseUrl + `chat/${channel.name}/messages`, {withCredentials: true}).then((response) => {
-			setMessages(response.data)
+			let newArr: string[] = []
+			for (let i = 0; i < response.data.length; i++) {
+				if (!me?.blocked.includes(response.data[i].user)) {
+					newArr = [...newArr, response.data[i].message]
+				}
+			}
+			setMessages(newArr)
 		}).catch((error) => {
 			if (error.response.status === 401) {
 				navigate("/login")
@@ -65,7 +85,7 @@ const Chat: React.FC = () => {
 				console.log(error)
 			}
 		})
-	}, [baseUrl, channel])
+	}, [baseUrl, channel, navigate, me])
 
 	useEffect(() => {
 		scrollBottomRef.current?.scrollIntoView({behavior: "smooth"})
