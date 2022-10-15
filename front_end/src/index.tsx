@@ -16,6 +16,5 @@ root.render(
 				<App />
 			</UrlContext.Provider>
 		</BrowserRouter>
-		<Pong />
 	</React.StrictMode>
 );
