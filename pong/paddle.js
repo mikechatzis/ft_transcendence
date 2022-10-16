@@ -1,6 +1,9 @@
 const SPEED = 0.02
 
 export default class Paddle {
+
+	paddleElem;
+
 	constructor(paddleElem){
 		this.paddleElem = paddleElem
 		this.reset

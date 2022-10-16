@@ -2,6 +2,11 @@ const INIT_VELOCITY = 0.025
 const VELOCITY_INCREASE = 0.000001
 
 export default class Ball {
+
+	ballElem;
+	direction;
+	velocity;
+
 	constructor(ballElem){
 		this.ballElem = ballElem
 		this.reset();

@@ -19,21 +19,21 @@ function update(time) {
 		ball.update(delta, [playerPaddle.rect(), computerPaddle.rect()])
 		computerPaddle.update(delta, ball.y)
 		const hue = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hue"))
-		document.documentElement.style.setProperty("--hue", hue + delta * 0.01)
+		document.documentElement.style.setProperty("--hue", (hue + delta * 0.01).toString())
 
 		if (lose()) {
 			handleLose()
 		}
-		if (playerScoreElem.textContent == 3 ) {
+		if (playerScoreElem.textContent == '3' ) {
 
 			playerVictories++
-			buttons.style.visibility = 'visible'
+			//buttons.style.visibility = 'visible'
 			console.log("player 1 won, score: player: %d, computer %d", playerVictories, computerVictories)
 			return
 		}
-		else if (computerScoreElem.textContent == 3){
+		else if (computerScoreElem.textContent == '3'){
 			computerVictories++
-			buttons.style.visibility = 'visible'
+			//buttons.style.visibility = 'visible'
 			console.log("computer won, score: player: %d, computer %d", playerVictories, computerVictories)
 			return
 		}
@@ -46,9 +46,9 @@ function update(time) {
 function handleLose() {
 	const rect = ball.rect()
 	if (rect.right >= window.innerWidth)
-		playerScoreElem.textContent = parseInt(playerScoreElem.textContent) + 1
+		playerScoreElem.textContent = (parseInt(playerScoreElem.textContent) + 1).toString()
 	else
-		computerScoreElem.textContent = parseInt(computerScoreElem.textContent) + 1
+		computerScoreElem.textContent = (parseInt(computerScoreElem.textContent) + 1).toString()
 	ball.reset()
 	computerPaddle.reset()
 }

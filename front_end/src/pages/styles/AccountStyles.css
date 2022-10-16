@@ -1,0 +1,38 @@
+*, *::after, *::before {
+	box-sizing: border-box;
+}
+
+:root {
+	--hue: 200;
+	--saturation: 50%;
+	--foreground-color: hsl(var(--hue), var(--saturation), 75%);
+	--background-color: hsl(var(--hue), var(--saturation), 20%);
+}
+
+.body {
+	margin: 0;
+	background-color: var(--background-color);
+	height: 100%;
+	overflow: hidden;
+}
+
+.container {
+	position: relative;
+}
+
+.profileImg{
+	border-radius: 50%;
+	position: absolute;
+	top: 15vh;
+	left: 3vw;
+	width: 200px;
+	height: 200px;
+}
+
+.grid {
+	position: relative;
+	top: 16vh;
+	left: 18vw;
+	width: 83%;
+	height: 165px;;
+}
