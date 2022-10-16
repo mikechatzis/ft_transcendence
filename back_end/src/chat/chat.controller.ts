@@ -60,6 +60,8 @@ export class ChatController {
 
 		const user = req.user
 
+		console.log('name:', name)
+
 		if (!channel.blocked.includes(user.id)) {
 			return channel.messages
 		}
@@ -151,5 +153,28 @@ export class ChatController {
 			return ({banned: true})
 		}
 		return ({banned: false})
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post(":name/makeAdmin")
+	async makeAdmin(@Param('name') name, @Req() req, @Body() body) {
+		await this.chatService.makeAdmin(req, name, body)
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get("dmChannel/:id")
+	async getDmChannelName(@Req() req, @Param('id') id) {
+		let count = await global.prisma.channel.count({
+			where: {
+				name: `${req.user.id} ${parseInt(id)}`
+			}
+		})
+		if (count === 0) {
+			console.log('id:', parseInt(id))
+			return {channel: `${parseInt(id)} ${req.user.id}`}
+		}
+		else {
+			return {channel: `${req.user.id} ${parseInt(id)}`}
+		}
 	}
 }
