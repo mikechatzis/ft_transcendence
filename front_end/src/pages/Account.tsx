@@ -2,21 +2,23 @@ import React, { useContext } from 'react'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import Avatar from '@mui/material/Avatar'
-import Button from "@mui/material/Button"
-import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
+// import Button from "@mui/material/Button"
+// import Container from '@mui/material/Container'
+// import Grid from '@mui/material/Grid'
+// import Typography from '@mui/material/Typography'
+// import Box from '@mui/material/Box'
 import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/UserContext'
 import { UrlContext } from '../context/UrlContext'
-import {DataGrid, GridRowsProp, GridColDef} from '@mui/x-data-grid'
+import { RerenderContext } from '../context/RerenderContext'
 
 import './styles/AccountStyles.css'
 
 const Account: React.FC = () => {
 	const [user, setUser] = useState<any>(null)
+	const [avatar, setAvatar] = useState<any>(null)
 	const {context, setContext} = useContext(UserContext)
+	const {rerender, setRerender} = useContext(RerenderContext)
 	const baseUrl = useContext(UrlContext)
 
 	const navigate = useNavigate()
@@ -39,44 +41,38 @@ const Account: React.FC = () => {
 		})
 	}
 
-	useEffect(getName, [])
+	useEffect(getName, [baseUrl, navigate])
+	useEffect(() => {
+		setAvatar(<Avatar src={baseUrl + `users/me/profileImg?${Date.now()}`} />)
+	}, [rerender, context])
 
-	const columns: GridColDef[] = [{
-		field: "col1",
-		headerName: "Username",
-		width: 170
-	},
-	{
-		field: "col2",
-		headerName: "Score",
-		width: 170
-	},
-	{
-		field: "col3",
-		headerName: "Rank",
-		width: 170
-	}]
-
-	const rows = [{
-		id: 1,
-		col1: user?.name,
-		col2: user?.score,
-		col3: user?.rank
-	}]
+	//src={baseUrl + "users/me/profileImg"}
+	//navigate("/settings")
 
 	return (
-		<div>
-			{<Container>
-				<Grid className='container' container spacing={10}>
-					<Grid item >
-						<Box className='profileImg' component="img" alt="profile" src={baseUrl + "users/me/profileImg"}/>
-					</Grid>
-				</Grid>
-				<div className='grid'>
-					<DataGrid rows={rows} columns={columns} hideFooter disableColumnSelector/>
+		<section className="profile">
+			<header className="header">
+				<div className="details">
+					<div className="btn btn-one" onClick={() => (navigate("/settings"))}>
+						<span className="btn btn-one">ACCOUNT SETTINGS</span>
+					</div>
+					<div className='emptySpace'></div>
+					<img src={baseUrl + "users/me/profileImg"} alt="" className="profile-pic"></img>
+					<h1 className="heading">Username: {user?.name}</h1>
+					<h1 className="sub">Intra Name: {user?.intraName ? user?.intraName : 'not used'}</h1>
+					<div className="stats">
+						<div className="col-4">
+							<h4>Score</h4>
+							<p>{user?.score}</p>
+						</div>
+						<div className="col-4">
+							<h4>Rank</h4>
+							<p>{user?.rank}</p>
+						</div>
+					</div>
 				</div>
-			</Container>}
-		</div>
+			</header>
+		</section>
 	)
 }
 
