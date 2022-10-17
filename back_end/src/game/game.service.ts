@@ -26,8 +26,9 @@ export class GameService {
 		return payload
 	}
 
+	//175 to 775
 
-	bounceBall = (state) => {
+	bounceBall = (state, interval) => {
 		const nextPosX = state.ballpos.left + state.deltaX
 		const nextPosY = state.ballpos.top + state.deltaY
 		if (nextPosY <= -200 || nextPosY >= 700 - 220) {
@@ -35,21 +36,28 @@ export class GameService {
 			state.ballpos.top -= state.deltaY
 		}
 		if (nextPosX <= 10 || nextPosX >= 1380) {
+			if (state.deltaX === -1) {
+				state.p2score += 1
+			}
+			else {
+				state.p1score += 1
+			}
+			if (state.p1score === 15 || state.p2score === 15) {
+				clearInterval(interval)
+			}
+			state.ballpos = {left: 700, top: 175}
+		}
+		if (nextPosX === 40 && (nextPosY + 385 >= state.p1pos && nextPosY + 255 <= state.p1pos)) {
 			state.deltaX = -state.deltaX
 			state.ballpos.left -= state.deltaX
 		}
-		if (nextPosX === 20 && (nextPosY >= state.p1pos && nextPosY <= state.p1pos)) {
-			console.log('yep')
-			state.deltaX = -state.deltaX
-			state.ballpos.left -= state.deltaX
-		}
-		if (nextPosX === 1340 && (nextPosY >= state.p2pos && nextPosY <= state.p2pos)) {
+		if (nextPosX === 1340 && (nextPosY + 385 >= state.p2pos && nextPosY + 255 <= state.p2pos)) {
 			state.deltaX = -state.deltaX
 			state.ballpos.left -= state.deltaX
 		}
 		
-		// state.ballpos.left += state.deltaX
-		// state.ballpos.top += state.deltaY
+		state.ballpos.left += state.deltaX
+		state.ballpos.top += state.deltaY
 		return state
 	}
 }

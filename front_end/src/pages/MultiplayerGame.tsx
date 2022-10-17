@@ -195,7 +195,7 @@ class MultiPong extends React.Component <any, any>{
 			
 			this.socket?.on('data', ({data}: any) => {
 				this.moveElements(data)
-				this.setState({p1name: data.player1, p2name: data.player2})
+				this.setState({p1name: data.player1, p2name: data.player2, playerScore: data.p1score, opponentScore: data.p2score})
 				// this.bounceBall()
 			}) 
 			

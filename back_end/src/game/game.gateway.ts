@@ -12,11 +12,13 @@ import { GameService } from "./game.service";
 })
 export class GameGateway {
 	constructor(private jwt: JwtService, private gameService: GameService) {
-		setInterval(() => {
-			this.state = this.gameService.bounceBall(this.state)
+		this.interval = setInterval(() => {
+			this.state = this.gameService.bounceBall(this.state, this.interval)
 			this.server.emit('data', {data: this.state})
 		}, 2)
 	}
+
+	interval = null
 
 	state = {
 		player1: null,
@@ -27,6 +29,8 @@ export class GameGateway {
 		deltaX: -1,
 		deltaY: -1,
 		ballSpeed: 2,
+		p1score: 0,
+		p2score: 0
 	}
 
 	@WebSocketServer()
