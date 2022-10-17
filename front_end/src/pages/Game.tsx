@@ -29,7 +29,7 @@ class Pong extends React.Component <any, any>{
 	} as const;
 	
 	opponentStyle = {
-		position: 'relative',
+		position: 'absolute',
 		left: this.canv.width - 40,
 		top: this.canv.height/4,
 		height: 100,
@@ -38,7 +38,7 @@ class Pong extends React.Component <any, any>{
 	} as const;
 	
 	playerStyle = {
-		position: 'relative',
+		position: 'absolute',
 		top: this.canv.height/4,
 		left: 20,
 		height: 100,
@@ -47,9 +47,10 @@ class Pong extends React.Component <any, any>{
 	} as const;
 	
 	ballStyle = {
-		position: 'relative',
+		position: 'absolute',
 		left: this.canv.width/2,
 		top: this.canv.height/4,
+		marginTop: 200,
 		height: 20,
 		width: 20,
 		display: "block",
@@ -78,7 +79,8 @@ class Pong extends React.Component <any, any>{
 	
 			pause: true,
 	
-			opponentSpeed: 2,
+			opponentSpeed: 5,
+			opponentStep: 2,
 			opponentDir: false,
 	
 			playerScore: 0,
@@ -110,9 +112,9 @@ class Pong extends React.Component <any, any>{
 		const nextPosX = this.ballStyle.left + this.state.deltaX;
 		const nextPosY = this.ballStyle.top + this.state.deltaY;
 
-		if((nextPosX === this.playerStyle.left + 20) && (nextPosY >= this.playerStyle.top -125 && nextPosY <= this.playerStyle.top + 25))
+		if((nextPosX === this.playerStyle.left + 20) && (nextPosY >= this.playerStyle.top -225 && nextPosY <= this.playerStyle.top - 115))
 			return true
-		if((nextPosX === this.opponentStyle.left - 20) && (nextPosY >= this.opponentStyle.top - 225 && nextPosY <= this.opponentStyle.top -125))
+		if((nextPosX === this.opponentStyle.left - 20) && (nextPosY >= this.opponentStyle.top - 225 && nextPosY <= this.opponentStyle.top -115))
 			return true
 		return false
 	}
@@ -120,7 +122,7 @@ class Pong extends React.Component <any, any>{
 	moveBoard = (pos: number) => {
 		
 		if(!this.touchingEdge(pos))
-			this.playerStyle = {...this.playerStyle, top: pos - 300}
+			this.playerStyle = {...this.playerStyle, top: pos - 200}
 		return this.playerStyle.top
 	}
 
@@ -167,9 +169,9 @@ class Pong extends React.Component <any, any>{
 	}
 
 	moveOpponent = () => {
-		if((this.opponentStyle.top + this.state.opponentSpeed <= 10) || (this.opponentStyle.top + this.state.opponentSpeed >= this.canv.height - 130))
-			this.setState({opponentSpeed: -this.state.opponentSpeed});
-		this.opponentStyle = {...this.opponentStyle, top: this.opponentStyle.top + this.state.opponentSpeed}
+		if((this.opponentStyle.top + this.state.opponentStep <= 10) || (this.opponentStyle.top + this.state.opponentStep >= this.canv.height - 130))
+			this.setState({opponentStep: -this.state.opponentStep});
+		this.opponentStyle = {...this.opponentStyle, top: this.opponentStyle.top + this.state.opponentStep}
 		this.setState({opponent: this.opponentStyle.top})
     }
 
