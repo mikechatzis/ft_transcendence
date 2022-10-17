@@ -18,6 +18,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import UserList from "../components/UserList"
 import { UrlContext } from "../context/UrlContext"
 import axios from "axios"
+import { UserContext } from "../context/UserContext"
 
 const Chat: React.FC = () => {
 	const enterKeyCode = 13
@@ -29,6 +30,7 @@ const Chat: React.FC = () => {
 	const scrollBottomRef = useRef<any>(null)
 	const socket = useContext(ChatContext)
 	const baseUrl = useContext(UrlContext)
+	const {context, setContext} = useContext(UserContext)
 	const channel = useParams()
 	const navigate = useNavigate()
 
@@ -37,6 +39,10 @@ const Chat: React.FC = () => {
 			setMe(response.data)
 		}).catch((e) => {
 			console.log(e)
+			if (e.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 	}, [baseUrl])
 
@@ -79,6 +85,7 @@ const Chat: React.FC = () => {
 			setMessages(newArr)
 		}).catch((error) => {
 			if (error.response.status === 401) {
+				setContext?.(false)
 				navigate("/login")
 			}
 			else {

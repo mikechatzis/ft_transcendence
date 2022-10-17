@@ -6,6 +6,7 @@ import { FtGuard, JwtGuard, Jwt2faGuard } from "./guard";
 import { FtFilter } from "./filter";
 import { UserService } from "../user/user.service";
 import { RefreshTokenGuard } from "./guard/jwt-refresh.guard";
+import { RefreshFilter } from "./filter/refresh.filter";
 
 @Controller('auth')
 export class AuthController {
@@ -81,8 +82,9 @@ export class AuthController {
 		return user
 	}
 
+	@UseFilters(RefreshFilter)
 	@UseGuards(RefreshTokenGuard)
-	@Post('refresh')
+	@Get('refresh')
 	async refresh(@Req() req, @Res({passthrough: true}) res: Response) {
 		const user = await global.prisma.user.findUnique({
 			where: {

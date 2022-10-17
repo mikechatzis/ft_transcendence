@@ -23,6 +23,7 @@ import { Status } from "../enum/status"
 import CircleIcon from '@mui/icons-material/Circle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import axios from "axios"
+import { UserContext } from "../context/UserContext"
 
 const DmChat: React.FC = () => {
 	const enterKeyCode = 13
@@ -35,6 +36,7 @@ const DmChat: React.FC = () => {
 	const scrollBottomRef = useRef<any>(null)
 	const socket = useContext(ChatContext)
 	const baseUrl = useContext(UrlContext)
+	const {context, setContext} = useContext(UserContext)
 	const channel = useParams()
 	const navigate = useNavigate()
 
@@ -43,6 +45,10 @@ const DmChat: React.FC = () => {
 			setChannelName(response.data.channel)
 			console.log('channel:', response.data)
 		}).catch((e) => {
+			if (e.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 			setError(e.message)
 				setTimeout(() => {
 					setError('')
@@ -76,6 +82,10 @@ const DmChat: React.FC = () => {
 		axios.get(baseUrl + `users/${channel.id}`, {withCredentials: true}).then((response) => {
 			setOtherUser(response.data)
 		}).catch((e) => {
+			if (e.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 			console.log(e)
 		})
 	}, [baseUrl, channel])
@@ -90,6 +100,7 @@ const DmChat: React.FC = () => {
 				setMessages(newArr)
 			}).catch((error) => {
 				if (error.response.status === 401) {
+					setContext?.(false)
 					navigate("/login")
 				}
 				else {
