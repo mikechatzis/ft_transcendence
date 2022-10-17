@@ -13,6 +13,7 @@ import { UrlContext } from '../context/UrlContext'
 import { RerenderContext } from '../context/RerenderContext'
 
 import './styles/SettingsStyles.css'
+import { FormControl, FormLabel, Input, Typography } from '@mui/material'
 
 const Settings: React.FC = () => {
 	const [name, setName] = useState('')
@@ -116,7 +117,7 @@ const Settings: React.FC = () => {
 	}
 
 	return (
-		<div>
+		<Typography>
 			<Notification message={message} />
 			<Container maxWidth="sm">
 				<Grid container
@@ -127,8 +128,8 @@ const Settings: React.FC = () => {
 						// background: "linear-gradient(to right, #37292b, #064870"
 					}}
 				>
-					<Paper elevation={2} sx={{padding: 5}} style={{background: "linear-gradient(to left, #37292b, #064870"}}>
-						<form>
+					<Paper elevation={2} sx={{padding: 5}} /*style={{background: "linear-gradient(to left, #37292b, #064870"}}*/>
+						<FormLabel>
 							<Grid container direction="column" spacing={2}>
 								<Grid item>
 									<TextField fullWidth
@@ -146,11 +147,14 @@ const Settings: React.FC = () => {
 									</Button>
 								</Grid>
 								<Grid item onDragEnter={handleDrag} onSubmit={(e) => e.preventDefault()}>
-								<label htmlFor="uploadBtn" id='drop-container' className={dragActive ? "drag-active" : "" }>
-									<span className="drop-title">Drop an image here</span>
-									or
-									<input type="file" onChange={handleFileSelect} id='uploadBtn' ></input>
-								</label>
+								<Paper id='drop-container' className={dragActive ? "drag-active" : ""}>
+									<FormLabel htmlFor="uploadBtn">
+										<Box className="drop-title">Drop an image here</Box>
+										<Box className="drop-title">or</Box>
+										<Box className="drop-title2">upload a file</Box>
+										<input type="file" onChange={handleFileSelect} id='uploadBtn' ></input>
+									</FormLabel>
+								</Paper>
 								{ dragActive && <div id="drag-file-element" onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}></div> }
 								</Grid>
 								<Grid item>
@@ -202,11 +206,11 @@ const Settings: React.FC = () => {
 									</Button>
 								</Grid>}
 							</Grid>
-						</form>
+						</FormLabel>
 					</Paper>
 				</Grid>
 			</Container>
-		</div>
+		</Typography>
 	)
 }
 

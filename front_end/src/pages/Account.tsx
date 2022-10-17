@@ -6,7 +6,7 @@ import Avatar from '@mui/material/Avatar'
 // import Container from '@mui/material/Container'
 // import Grid from '@mui/material/Grid'
 // import Typography from '@mui/material/Typography'
-// import Box from '@mui/material/Box'
+import Box from '@mui/material/Box'
 import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/UserContext'
 import { UrlContext } from '../context/UrlContext'
@@ -51,13 +51,13 @@ const Account: React.FC = () => {
 
 	return (
 		<section className="profile">
-			<header className="header">
+			<Box className="header">
 				<div className="details">
 					<div className="btn btn-one" onClick={() => (navigate("/settings"))}>
 						<span className="btn btn-one">ACCOUNT SETTINGS</span>
 					</div>
 					<div className='emptySpace'></div>
-					<img src={baseUrl + "users/me/profileImg"} alt="" className="profile-pic"></img>
+					<img src={baseUrl + `users/me/profileImg?${Date.now()}`} alt="" className="profile-pic"></img>
 					<h1 className="heading">Username: {user?.name}</h1>
 					<h1 className="sub">Intra Name: {user?.intraName ? user?.intraName : 'not used'}</h1>
 					<div className="stats">
@@ -71,7 +71,7 @@ const Account: React.FC = () => {
 						</div>
 					</div>
 				</div>
-			</header>
+			</Box>
 		</section>
 	)
 }
