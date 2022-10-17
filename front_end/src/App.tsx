@@ -136,7 +136,7 @@ const App: React.FC = () => {
 					<Route path="*" element={<Error404 />} />
 					<Route path="/game" element={<Pong />} />
 					<Route path="/selectgamemode" element={<SelectGame />} />
-					<Route path="/multdef" element={<MultDef />} />
+					<Route path="/multi-def" element={<MultiPong />} />
 					<Route path="/multmodd" element={<MultModd />} />
 				</Routes>
 			</UserContext.Provider>

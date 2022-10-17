@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
@@ -7,6 +7,8 @@ import {styled} from '@mui/material/styles'
 import DataTable from '../components/DataTable'
 import { useNavigate } from 'react-router-dom';
 import { setSelectionRange } from '@testing-library/user-event/dist/utils';
+import { GameContext } from '../context/GameContext';
+import Queue from '../components/Queue';
 
 const images = [
 	{
@@ -89,16 +91,30 @@ const ImageButton = styled(ButtonBase)(({ theme }) => ({
 }))
 
 const SelectGame: React.FC = () => {
+	const [openQueue, setOpenQueue] = useState(false)
 	const navigate = useNavigate()
-	const OpenPage = (image: any) => {
+	const socket = useContext(GameContext)
+
+	useEffect(() => {
+		socket.on('start-def', () => {
+			setOpenQueue(false)
+			navigate("/multi-def")
+		})
+	}, [])
+
+	const openPage = (image: any) => {
 		if (image === "DEFAULT")
-			navigate("/multdef");
+		{
+			socket.emit('queue-def', {})
+			setOpenQueue(true)
+		}
 		else if (image === "MODDED")
 			navigate("/multmodd");
 	  };
 
 	return (
 		<div>
+			<Queue open={openQueue} />
 			<Container>
 				<Box display="flex" justifyContent="center" alignItems="center" minHeight='15vh'>
 					<Typography variant="h3">Choose Gamemode</Typography>
@@ -106,7 +122,7 @@ const SelectGame: React.FC = () => {
 				<Box display="flex" flexWrap="wrap" minWidth={300} width="100%">
 					{images.map((image) => (
 						<ImageButton focusRipple key={image.title} onClick={() => {
-							OpenPage(image.title)
+							openPage(image.title)
 						}} style={{width: image.width}}
 						>
 							<ImageSrc style={{backgroundImage: `url(${image.url})`}} />

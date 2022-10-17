@@ -26,8 +26,6 @@ export class GameService {
 		return payload
 	}
 
-	//175 to 775
-
 	bounceBall = (state, interval) => {
 		const nextPosX = state.ballpos.left + state.deltaX
 		const nextPosY = state.ballpos.top + state.deltaY

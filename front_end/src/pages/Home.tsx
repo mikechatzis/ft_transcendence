@@ -100,7 +100,7 @@ const ImageButton = styled(ButtonBase)(({ theme }) => ({
 
 const Home: React.FC = () => {
 	const navigate = useNavigate()
-	const OpenPage = (image: any) => {
+	const openPage = (image: any) => {
 		if (image === "ONE PLAYER")
 			navigate("/game");
 		else if (image === "CHAT")
@@ -118,7 +118,7 @@ const Home: React.FC = () => {
 				<Box display="flex" flexWrap="wrap" minWidth={300} width="100%">
 					{images.map((image) => (
 						<ImageButton focusRipple key={image.title} onClick={() => {
-							OpenPage(image.title)
+							openPage(image.title)
 						}} style={{width: image.width}}
 						>
 							<ImageSrc style={{backgroundImage: `url(${image.url})`}} />
