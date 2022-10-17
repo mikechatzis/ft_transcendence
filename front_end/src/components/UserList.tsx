@@ -19,16 +19,18 @@ import { Status } from "../enum/status"
 import { useNavigate } from "react-router-dom"
 import { Socket } from "socket.io-client"
 import { ChatContext } from "../context/ChatContext"
+import { UserContext } from "../context/UserContext"
 
 const drawerWidth = 360
 
 const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const [channelMembers, setChannelMembers] = useState<any[] | null>(null)
+	const [me, setMe] = useState<any>(null)
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 	const [isAdmin, setIsAdmin] = useState(false)
 	const [openEl, setOpenEl] = useState<null | string>(null)
 	const navigate = useNavigate()
-	// const [open, setOpen] = useState(Boolean(anchorEl))
+	const {context, setContext} = useContext(UserContext)
 	const baseUrl = useContext(UrlContext)
 	const socket = useContext(ChatContext)
 
@@ -40,15 +42,24 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 	useEffect(() => {
 		axios.get(baseUrl + `users/me`, {withCredentials: true}).then((response) => {
+			setMe(response.data)
 			axios.get(baseUrl + `chat/${channel}/admins`, {withCredentials: true}).then((resp2) => {
 				if (resp2.data.includes(response.data.id)) {
 					setIsAdmin(true)
 				}
 			}).catch((error) => {
 				console.log(error)
+				if (error.response.status === 401) {
+					setContext?.(false)
+					navigate("/login")
+				}
 			})
 		}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 	}, [baseUrl, anchorEl, channel])
 
@@ -57,6 +68,10 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 		axios.post(baseUrl + `chat/${channel}/makeAdmin`, adminUser, {withCredentials: true}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 		handleClose()
 	}
@@ -73,6 +88,10 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 		axios.post(baseUrl + `chat/${channel}/mute`, muteUser, {withCredentials: true}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 		handleClose()
 	}
@@ -80,7 +99,6 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const handleClick = (elem: any) => (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorEl(event.currentTarget)
 		setOpenEl(elem.name)
-		console.log(elem)
 	}
 
 	const handleClose = () => {
@@ -100,6 +118,10 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 		axios.post(baseUrl + `chat/${channel}/permaban`, banUser, {withCredentials: true}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 		handleKick(user)
 		handleClose()
@@ -110,8 +132,34 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 		axios.post(baseUrl + `chat/${channel}/ban`, banUser, {withCredentials: true}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 		handleKick(user)
+		handleClose()
+	}
+
+	const handleBlock = (user: any) => () => {
+		let blockUser = {...user}
+
+		axios.post(baseUrl + 'users/block', {block: blockUser.id}, {withCredentials: true}).catch((e) => {
+			console.log(e)
+			if (e.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
+		})
+		handleClose()
+	}
+
+	const handleFriend = (user: any) => () => {
+		let friendUser = {...user}
+
+		axios.post(baseUrl + 'users/addFriend', {friend: friendUser.id}, {withCredentials: true}).then(() => {
+			socket.emit('join', {room: `${me.id} ${friendUser.id}`})
+		})
 		handleClose()
 	}
 
@@ -136,7 +184,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 						<Fragment key={index}>
 							<ListItem>
 								<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
-								<ListItemText primary={user.name} />
+								<ListItemText primary={user.name} style={{padding: 10}} />
 								<ListItemIcon>
 									{(user.status === Status.ONLINE) ? <CircleIcon style={{color: "green"}} fontSize="small" /> : <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />}
 								</ListItemIcon>
@@ -178,12 +226,22 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 											Ban permanently
 										</Typography>
 									</MenuItem>]}
-									<MenuItem onClick={handleView(user)} key={5}>
+									{!me?.blocked.includes(user.id) && <MenuItem onClick={handleBlock(user)} key={5}>
+										<Typography>
+											Block user
+										</Typography>
+									</MenuItem>}
+									{(!me?.friends.includes(user.id) && !me?.blocked.includes(user.id)) && <MenuItem onClick={handleFriend(user)} key={6}>
+										<Typography>
+											Add friend
+										</Typography>
+									</MenuItem>}
+									<MenuItem onClick={handleView(user)} key={7}>
 										<Typography>
 											View profile
 										</Typography>
 									</MenuItem>
-									<MenuItem key={6}>
+									<MenuItem key={8}>
 										<Typography>
 											Invite to play
 										</Typography>

@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom'
 import Notification from '../components/Notification'
 import { UrlContext } from '../context/UrlContext'
 import { RerenderContext } from '../context/RerenderContext'
+import { UserContext } from '../context/UserContext'
 
 
 const Settings: React.FC = () => {
@@ -23,6 +24,7 @@ const Settings: React.FC = () => {
 	const [selectedFile, setSelectedFile] = useState<any>(null)
 	const baseUrl = useContext(UrlContext)
 	const {rerender, setRerender} = useContext(RerenderContext)
+	const {context, setContext} = useContext(UserContext)
 	const navigate = useNavigate()
 
 	const enterKeyCode = 13
@@ -42,7 +44,13 @@ const Settings: React.FC = () => {
 		
 		axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: {
 			'Content-Type': 'multipart/form-data'
-		} }).catch((error) => {console.log(error)})
+		} }).catch((error) => {
+			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
+		})
 		setRerender?.(!Boolean(rerender))
 		navigate("/account")
 	}
@@ -55,6 +63,10 @@ const Settings: React.FC = () => {
 		axios.post(baseUrl + "users/me/name", {name}, {withCredentials: true}).then(() => {
 			navigate("/account")
 		}).catch((error) => {
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 			setMessage(error.response.data.message)
 			setTimeout(() => {
 				setMessage(null)

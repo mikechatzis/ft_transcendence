@@ -150,16 +150,9 @@ export class UserController {
 		const user = await this.userService.findById(parseInt(id))
 
 		delete user.hash
+		delete user.twoFactorSecret
 		return user
 	}
-
-	// @UseGuards(Jwt2faGuard)
-	// @Get(':id')
-	// async getAvatarById(@Param('id') id) {
-	// 	const user = await this.userService.findById(parseInt(id))
-
-	// 	return user.avatar
-	// }
 
 	@UseGuards(Jwt2faGuard)
 	@Get('user/:name')
@@ -168,6 +161,46 @@ export class UserController {
 
 		delete user.hash
 		return user
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get('me/friends')
+	async getFriends(@Req() req)
+	{
+		const user = await global.prisma.user.findUnique({
+			where: {
+				id: req.user.id
+			}
+		})
+
+		let friends = []
+
+		for (let i = 0; i < user.friends.length; i++) {
+			const friend = await global.prisma.user.findUnique({
+				where: {
+					id: user.friends[i]
+				}
+			})
+
+			delete friend.hash
+			delete friend.twoFactorSecret
+
+			friends = [...friends, friend]
+		}
+
+		return friends
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post('block')
+	async blockUser(@Req() req, @Body() body) {
+		await this.userService.blockUser(req, body)
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Post('addFriend')
+	async addFriend(@Req() req, @Body() body) {
+		await this.userService.addFriend(req, body)
 	}
 }
 

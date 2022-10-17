@@ -11,6 +11,7 @@ import CreateChannel from "../components/CreateChannel"
 import Notification from "../components/Notification"
 import JoinPrivate from "../components/JoinPrivate"
 import ChannelSettings from "../components/ChannelSettings"
+import { UserContext } from "../context/UserContext"
 
 
 const ChatList: React.FC = () => {
@@ -20,6 +21,7 @@ const ChatList: React.FC = () => {
 	const [message, setMessage] = useState<string | null>(null)
 	const [rerender, setRerender] = useState(1)
 	const [userData, setUserData] = useState<any>(null)
+	const {context, setContext} = useContext(UserContext)
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -27,6 +29,7 @@ const ChatList: React.FC = () => {
 			setChatRooms(response.data)
 		}).catch((error) => {
 			if (error.response.status === 401) {
+				setContext?.(false)
 				navigate("/login")
 			}
 			else {
@@ -40,6 +43,7 @@ const ChatList: React.FC = () => {
 			setUserData(response.data)
 		}).catch((error) => {
 			if (error.response.status === 401) {
+				setContext?.(false)
 				navigate("/login")
 			}
 			else {
@@ -81,6 +85,10 @@ const ChatList: React.FC = () => {
 				setTimeout(() => {
 					setMessage(null)
 				}, 5000)
+				if (e.response.status === 401) {
+					setContext?.(false)
+					navigate("/login")
+				}
 			})
 		}
 
@@ -150,9 +158,6 @@ const ChatList: React.FC = () => {
 				</Fragment>
 			)
 		}
-		else {
-			//do stuff for dm channels
-		}
 	})
 
 	const handleCreate = (values: any) => {
@@ -162,6 +167,7 @@ const ChatList: React.FC = () => {
 				setRerender(rerender + 1)
 			}).catch((error) => {
 				if (error.response.status === 401) {
+					setContext?.(false)
 					navigate("/login")
 				}
 				else {
@@ -179,6 +185,7 @@ const ChatList: React.FC = () => {
 				setRerender(rerender + 1)
 			}).catch((error) => {
 				if (error.response.status === 401) {
+					setContext?.(false)
 					navigate("/login")
 				}
 				else {

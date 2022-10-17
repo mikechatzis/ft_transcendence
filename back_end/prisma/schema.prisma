@@ -24,6 +24,7 @@ model User {
   hash            String? 
   twoFactorAuth   Boolean
   twoFactorSecret String?
+  refreshToken    String? @unique
 
   status Int
 
@@ -38,7 +39,7 @@ model User {
 model Channel {
   name   String   @unique
   admins Int[]
-  messages String[]
+  messages Json[]
 
   hash String?
   isDmChannel Boolean

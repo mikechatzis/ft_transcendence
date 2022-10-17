@@ -4,12 +4,14 @@ import axios from "axios"
 import { useContext, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { UrlContext } from "../context/UrlContext"
+import { UserContext } from "../context/UserContext"
 import { Status } from "../enum/status"
 
 const User: React.FC = () => {
 	const [user, setUser] = useState<any>(null)
 	const { name } = useParams()
 	const baseUrl = useContext(UrlContext)
+	const {context, setContext} = useContext(UserContext)
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -19,8 +21,9 @@ const User: React.FC = () => {
 			if (error.response.status === 404) {
 				navigate("/404")
 			}
-			else if (error.response.status === 401) {
-				navigate("/401")
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
 			}
 		})
 	}, [baseUrl, name, navigate])

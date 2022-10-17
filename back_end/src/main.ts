@@ -5,6 +5,8 @@ import { AppModule } from './app.module';
 import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
+	require('dotenv').config();
+
 	const cookieParser = require('cookie-parser')
 	const app = await NestFactory.create(AppModule);
 

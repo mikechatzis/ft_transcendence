@@ -85,16 +85,20 @@ export class ChatGateway {
 					id: userId
 				}
 			})
-
-			if (!userData.channels.includes(data.room)) {
-				throw new WsException("User is not part of this room")
-			}
-
+			
 			const channelData = await global.prisma.channel.findUnique({
 				where: {
 					name: data.room
 				}
 			})
+			
+			if (channelData === null) {
+				throw new WsException("Channel has been deleted or you are blocked by this user")
+			}
+			
+			if (!userData.channels.includes(data.room)) {
+				throw new WsException("User is not part of this room")
+			}
 
 			if (!(channelData.blocked.includes(userId) || channelData.muted.includes(userId)) && data.data) {
 				await global.prisma.channel.update({
@@ -102,10 +106,10 @@ export class ChatGateway {
 						name: data.room
 					},
 					data: {
-						messages: [...channelData.messages, `${userData.name}: ${data.data}`]
+						messages: [...channelData.messages, {message: `${userData.name}: ${data.data}`, user: userData.id}]
 					}
 				})
-				this.server.to(data.room).emit('message', {data: `${userData.name}: ${data.data}`, room: data.room})
+				this.server.to(data.room).emit('message', {data: `${userData.name}: ${data.data}`, room: data.room, user: userData.id})
 			}
 			else if (channelData.blocked.includes(userId)) {
 				throw new WsException("You are banned from this room")
