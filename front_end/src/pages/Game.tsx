@@ -1,9 +1,5 @@
+import { Switch } from '@mui/material';
 import React from 'react'
-import { useState } from 'react'
-import * as ReactDOM from 'react-dom/client'
-import { unmountComponentAtNode, render } from "react-dom";
-import { CommentsDisabledOutlined, CompressOutlined, ThirtyFpsSelect, ThumbsUpDownOutlined } from '@mui/icons-material';
-import { gridColumnVisibilityModelSelector } from '@mui/x-data-grid';
 
 const OPPONENT = 0;
 const PLAYER = 1;
@@ -13,18 +9,20 @@ const PLAYER_UP   = 38
 const PLAYER_DOWN = 40
 const PAUSE       = 32
 
-const canv = {
+let defaultColor = 'grey'
+
+var canv = {
 	position: 'relative',
-	height: window.innerHeight/2,
-	width: window.innerWidth/2,
-	backgroundColor: "grey",
+	height: 700,
+	width: 1400,
+	backgroundColor: defaultColor,
 	margin: 'auto',
 	marginTop: 50,
 	border: '1px solid white'
 } as const;
 
 var opponentStyle = {
-	position: 'relative',
+	position: 'absolute',
 	left: canv.width - 40,
 	top: canv.height/4,
 	height: 100,
@@ -33,7 +31,7 @@ var opponentStyle = {
 } as const;
 
 var playerStyle = {
-	position: 'relative',
+	position: 'absolute',
 	top: canv.height/4,
 	left: 20,
 	height: 100,
@@ -42,12 +40,12 @@ var playerStyle = {
 } as const;
 
 var ballStyle = {
-	position: 'relative',
+	position: 'absolute',
 	left: canv.width/2,
 	top: canv.height/4,
+	marginTop: 200,
 	height: 20,
 	width: 20,
-	display: "block",
 	backgroundColor: "yellow",
 	borderRadius: "100%",
 	
@@ -67,13 +65,14 @@ const InitState = () =>{
 		opponent: 0,
 
 		ball: canv.width/2 + canv.height/4,
-		ballSpeed: 2,
+		ballSpeed: 3,
 		deltaY: -1,
 		deltaX: -1,
 
 		pause: true,
 
-		opponentSpeed: 2,
+		opponentStep: 1,
+		opponentSpeed: 5,
         opponentDir: false,
 
 		playerScore: 0,
@@ -111,7 +110,7 @@ class Pong extends React.Component <any, any>{
 		const nextPosX = ballStyle.left + this.state.deltaX;
 		const nextPosY = ballStyle.top + this.state.deltaY;
 
-		if((nextPosX === playerStyle.left + 20) && (nextPosY >= playerStyle.top -125 && nextPosY <= playerStyle.top + 25))
+		if((nextPosX === playerStyle.left + 20) && (nextPosY >= playerStyle.top -225 && nextPosY <= playerStyle.top - 125))
 			return true
 		if((nextPosX === opponentStyle.left - 20) && (nextPosY >= opponentStyle.top - 225 && nextPosY <= opponentStyle.top -125))
 			return true
@@ -121,7 +120,7 @@ class Pong extends React.Component <any, any>{
 	moveBoard = (pos: number) => {
 		
 		if(!this.touchingEdge(pos))
-			playerStyle = {...playerStyle, top: pos - 300}
+			playerStyle = {...playerStyle, top: pos - 200}
 		return playerStyle.top
 	}
 
@@ -168,9 +167,9 @@ class Pong extends React.Component <any, any>{
 	}
 
 	moveOpponent = () => {
-		if((opponentStyle.top + this.state.opponentSpeed <= 10) || (opponentStyle.top + this.state.opponentSpeed >= canv.height - 130))
-			this.setState({opponentSpeed: -this.state.opponentSpeed});
-		opponentStyle = {...opponentStyle, top: opponentStyle.top + this.state.opponentSpeed}
+		if((opponentStyle.top + this.state.opponentStep <= 10) || (opponentStyle.top + this.state.opponentStep >= canv.height - 130))
+			this.setState({opponentStep: -this.state.opponentStep});
+		opponentStyle = {...opponentStyle, top: opponentStyle.top + this.state.opponentStep}
 		this.setState({opponent: opponentStyle.top})
     }
 
@@ -184,7 +183,7 @@ class Pong extends React.Component <any, any>{
 		setInterval(() => {
             if (!this.state.pause)
                this.moveOpponent();
-        }, 4);
+        }, this.state.opponentSpeed);
 
 		document.addEventListener("mousemove", (event) => {
 			let mousex = event.clientX;
@@ -196,6 +195,33 @@ class Pong extends React.Component <any, any>{
         document.title = "ping-pong"
     }
 
+	changeColor = (color: string) => () => {
+		switch (color){
+			case "red": {
+				if(canv.backgroundColor === 'red')
+					canv = {...canv, backgroundColor: defaultColor}
+				else
+					canv = {...canv, backgroundColor: 'red'}
+				break;
+			}
+			case 'green': {
+				if(canv.backgroundColor === 'green')
+					canv = {...canv, backgroundColor: defaultColor}
+				else
+					canv = {...canv, backgroundColor: 'green'}
+				break;
+			}
+			case 'blue': {
+				if(canv.backgroundColor === 'blue')
+					canv = {...canv, backgroundColor: defaultColor}
+				else
+					canv = {...canv, backgroundColor: 'blue'}
+			}
+
+		}
+
+	}
+
 	render() {
 		return (
 			<div style={ canv }>
@@ -204,7 +230,9 @@ class Pong extends React.Component <any, any>{
 				<div style={getStyle(OPPONENT)}></div>
 				<div style={getStyle(PLAYER)}></div>
 				<div style={getStyle(BALL)}></div>
-				
+				<button style={{position:'absolute', backgroundColor:'red', marginTop:canv.height + 10, marginLeft:'45%'}} onClick={this.changeColor("red")}>R</button>
+				<button style={{position:'absolute', backgroundColor:'green', marginTop:canv.height + 10, marginLeft:'50%'}} onClick={this.changeColor('green')}>G</button>
+				<button style={{position:'absolute', backgroundColor:'blue', marginTop:canv.height + 10, marginLeft:'55%'}} onClick={this.changeColor('blue')}>B</button>
 			</div>
 			
 		)
