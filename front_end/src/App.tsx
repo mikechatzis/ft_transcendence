@@ -38,6 +38,9 @@ const App: React.FC = () => {
 		axios.get(baseUrl + 'auth/logged_in', {withCredentials: true}).then(() => {
 			setContext?.(true)
 		}).catch((error) => {
+			axios.post(baseUrl + 'auth/refresh', {},{withCredentials: true}).then(() => {
+				console.log('yup')
+			})
 			setContext?.(false)
 		})
 	}
