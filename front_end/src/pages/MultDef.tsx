@@ -11,7 +11,7 @@ const PAUSE       = 32
 let defaultColor = 'grey'
 
 
-class Pong extends React.Component <any, any>{
+class MultDef extends React.Component <any, any>{
 	constructor(props: any){
 		super(props);
 		this.state = this.InitState();
@@ -192,7 +192,6 @@ class Pong extends React.Component <any, any>{
 			this.setState({player: movedPlayer, pause: false})
 		});
         document.onkeydown = this.playerMove;
-        document.title = "ping-pong"
     }
 
 	changeColor = (color: string) => () => {
@@ -240,4 +239,4 @@ class Pong extends React.Component <any, any>{
 	}
 }
 
-export default Pong
+export default MultDef

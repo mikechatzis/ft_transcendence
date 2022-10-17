@@ -6,32 +6,22 @@ import ButtonBase from '@mui/material/ButtonBase'
 import {styled} from '@mui/material/styles'
 import DataTable from '../components/DataTable'
 import { useNavigate } from 'react-router-dom';
+import { setSelectionRange } from '@testing-library/user-event/dist/utils';
 
 const images = [
 	{
-	  url: "https://www.researchgate.net/profile/Niels-Henze/publication/238504468/figure/fig3/AS:298952734855187@1448287294969/PONGs-game-elements.png",
-	  title: "ONE PLAYER",
-	  width: "25%",
-	  path: "/",
-	},
-	{
 	  url: "https://www.esrb.org/wp-content/uploads/2020/04/V1_ESRB_blog_Playing-Multiplayer-Games_Artboard-2-1024x538.jpg",
-	  title: "TWO PLAYERS",
-	  width: "25%",
+	  title: "DEFAULT",
+	  width: "50%",
 	  path: "/",
 	},
+
 	{
-	  url: "https://images.unsplash.com/photo-1474514644473-acc8f56361f1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8N3x8c3BlY3RhdG9yfGVufDB8fDB8fA%3D%3D&w=1000&q=80",
-	  title: "SPECTATOR",
-	  width: "25%",
-	  path: "/",
-	},
-	{
-	  url: "https://previews.123rf.com/images/shadowalice/shadowalice1504/shadowalice150400221/38321576-message-icons-set-great-for-any-use.jpg",
-	  title: "CHAT",
-	  width: "25%",
-	  path: "/chat-list",
-	},
+		url: "https://www.esrb.org/wp-content/uploads/2020/04/V1_ESRB_blog_Playing-Multiplayer-Games_Artboard-2-1024x538.jpg",
+		title: "MODDED",
+		width: "50%",
+		path: "/",
+	  },
 ];
 
 const Image = styled("span")(({ theme }) => ({
@@ -98,22 +88,20 @@ const ImageButton = styled(ButtonBase)(({ theme }) => ({
 	}
 }))
 
-const Home: React.FC = () => {
+const SelectGame: React.FC = () => {
 	const navigate = useNavigate()
 	const OpenPage = (image: any) => {
-		if (image === "ONE PLAYER")
-			navigate("/game");
-		else if (image === "CHAT")
-			navigate("/chat-list");
-		else if (image === "TWO PLAYERS")
-			navigate("/selectgamemode");
+		if (image === "DEFAULT")
+			navigate("/multdef");
+		else if (image === "MODDED")
+			navigate("/multmodd");
 	  };
 
 	return (
 		<div>
 			<Container>
 				<Box display="flex" justifyContent="center" alignItems="center" minHeight='15vh'>
-					<Typography variant="h3">Home</Typography>
+					<Typography variant="h3">Choose Gamemode</Typography>
 				</Box>
 				<Box display="flex" flexWrap="wrap" minWidth={300} width="100%">
 					{images.map((image) => (
@@ -138,15 +126,9 @@ const Home: React.FC = () => {
 						</ImageButton>
 					))}
 				</Box>
-				<Box display="flex" justifyContent="center" alignItems="center" minHeight="12vh" paddingTop="2vh">
-					<Typography variant="h4">Leaderboard</Typography>
-				</Box>
-				<Box display="flex" justifyContent="center" alignItems="center" minHeight='30vh'>
-					<DataTable />
-				</Box>
 			</Container>
 		</div>
 	)
 }
 
-export default Home
+export default SelectGame

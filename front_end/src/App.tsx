@@ -9,6 +9,8 @@ import Login from './pages/Login'
 import Error401 from './pages/Error401'
 import Error404 from './pages/Error404'
 import Pong from './pages/Game'
+import SelectGame from './pages/SelectGame'
+import MultDef from './pages/MultDef'
 import Account from './pages/Account'
 import Settings from './pages/Settings'
 import { UserContext } from './context/UserContext'
@@ -21,6 +23,7 @@ import DmChat from './pages/DmChat'
 import { ChatContext, chatSocket } from './context/ChatContext'
 import User from './pages/User'
 import ChatList from './pages/ChatList'
+import MultModd from './pages/MultModd'
 
 axios.interceptors.response.use(
 	function (response) {
@@ -120,6 +123,9 @@ const App: React.FC = () => {
 							<Route path="/401" element={<Error401 />} />
 							<Route path="*" element={<Error404 />} />
 							<Route path="/game" element={<Pong />} />
+							<Route path="/selectgamemode" element={<SelectGame />} />
+							<Route path="/multdef" element={<MultDef />} />
+							<Route path="/multmodd" element={<MultModd />} />
 						</Routes>
 					</UserContext.Provider>
 				</ChatContext.Provider>

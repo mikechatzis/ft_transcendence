@@ -11,7 +11,7 @@ const PAUSE       = 32
 let defaultColor = 'grey'
 
 
-class Pong extends React.Component <any, any>{
+class MultModd extends React.Component <any, any>{
 	constructor(props: any){
 		super(props);
 		this.state = this.InitState();
@@ -134,13 +134,21 @@ class Pong extends React.Component <any, any>{
 	}
 
 	isScore = () => {
-		if(this.ballStyle.left <= 10 || this.ballStyle.left >= this.canv.width - 20)
+		if(this.ballTouchPaddle())
+			return true
+		return false
+	}
+
+	ballTouchVertEdge = () => {
+		const nextPosX = this.ballStyle.left + this.state.deltaX;
+
+		if(nextPosX <= 0 || nextPosX >= this.canv.width -15)
 			return true
 		return false
 	}
 
 	bounceBall = () => {
-		if(this.ballTouchPaddle())
+		if(this.ballTouchVertEdge())
 		{
 			this.setState({deltaX: -this.state.deltaX});
 			this.ballStyle = {...this.ballStyle, left: this.ballStyle.left - this.state.deltaX}
@@ -150,7 +158,7 @@ class Pong extends React.Component <any, any>{
 			this.setState({deltaY: -this.state.deltaY});
 			this.ballStyle = {...this.ballStyle, top: this.ballStyle.top - this.state.deltaY}
 		}
-		if (!(this.ballTouchPaddle()) && !(this.ballTouchingHorEdge(this.state.deltaY)))
+		if (!(this.ballTouchVertEdge()) && !(this.ballTouchingHorEdge(this.state.deltaY)))
 		{
 			this.ballStyle = {...this.ballStyle, top: this.ballStyle.top + this.state.deltaY}
 			this.ballStyle = {...this.ballStyle, left: this.ballStyle.left + this.state.deltaX}
@@ -181,10 +189,10 @@ class Pong extends React.Component <any, any>{
                 this.bounceBall();
 		}, this.state.ballSpeed);
 
-		setInterval(() => {
-            if (!this.state.pause)
-               this.moveOpponent();
-        }, this.state.opponentSpeed);
+		// setInterval(() => {
+        //     if (!this.state.pause)
+        //        this.moveOpponent();
+        // }, this.state.opponentSpeed);
 
 		document.addEventListener("mousemove", (event) => {
 			let mousey = event.clientY;
@@ -192,7 +200,6 @@ class Pong extends React.Component <any, any>{
 			this.setState({player: movedPlayer, pause: false})
 		});
         document.onkeydown = this.playerMove;
-        document.title = "ping-pong"
     }
 
 	changeColor = (color: string) => () => {
@@ -240,4 +247,4 @@ class Pong extends React.Component <any, any>{
 	}
 }
 
-export default Pong
+export default MultModd
