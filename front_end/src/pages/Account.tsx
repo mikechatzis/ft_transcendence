@@ -43,7 +43,7 @@ const Account: React.FC = () => {
 			{<Container>
 				<Grid container spacing={10}>
 					<Grid item>
-						<Box component="img" alt="profile" src={baseUrl + "users/me/profileImg"} />
+						<Box component="img" alt="profile" src={baseUrl + `users/me/profileImg?${Date.now()}`} />
 					</Grid>
 					<Grid item xs={6}>
 						<Box display="flex" justifyContent="center" alignItems="center">

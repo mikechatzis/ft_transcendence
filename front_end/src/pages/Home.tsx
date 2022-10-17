@@ -105,6 +105,8 @@ const Home: React.FC = () => {
 			navigate("/game");
 		if (image == "CHAT")
 			navigate("/chat-list");
+		if (image === "TWO PLAYERS")
+			navigate("/multi-game")
 	  };
 
 	return (

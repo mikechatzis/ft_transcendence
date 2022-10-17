@@ -22,6 +22,7 @@ import { ChatContext, chatSocket } from './context/ChatContext'
 import { GameContext, gameSocket } from './context/GameContext'
 import User from './pages/User'
 import ChatList from './pages/ChatList'
+import MultiPong from './pages/MultiplayerGame'
 
 axios.interceptors.response.use(
 	function (response) {
@@ -111,29 +112,32 @@ const App: React.FC = () => {
 
 	return (
 		<ThemeProvider theme={theme}>
-			<RerenderContext.Provider value={{rerender, setRerender}}>
-				<ChatContext.Provider value={chatSocket}>
-					<UserContext.Provider value={{context, setContext}}>
-						<CssBaseline />
-						<MenuBar handleToggle={handleToggle} />
-						<Routes>
-							<Route path="/" element={<Home />} />
-							<Route path="/login" element={<Login />} />
-							<Route path="/account" element={<Account />} />
-							<Route path="/unauthorized" element={<Error401 />} />
-							<Route path="/settings" element={<Settings />} />
-							<Route path="/2fa" element={<TwoFactor /> } />
-							<Route path="/chat-list" element={<ChatList />} />
-							<Route path="/dm/:id" element={<DmChat />} />
-							<Route path="/chat/:name" element={<Chat />} />
-							<Route path="/users/:name" element={<User />} />
-							<Route path="/401" element={<Error401 />} />
-							<Route path="*" element={<Error404 />} />
-							<Route path="/game" element={<Pong />} />
-						</Routes>
-					</UserContext.Provider>
-				</ChatContext.Provider>
-			</RerenderContext.Provider>
+			<GameContext.Provider value={gameSocket}>
+				<RerenderContext.Provider value={{rerender, setRerender}}>
+					<ChatContext.Provider value={chatSocket}>
+						<UserContext.Provider value={{context, setContext}}>
+							<CssBaseline />
+							<MenuBar handleToggle={handleToggle} />
+							<Routes>
+								<Route path="/" element={<Home />} />
+								<Route path="/login" element={<Login />} />
+								<Route path="/account" element={<Account />} />
+								<Route path="/unauthorized" element={<Error401 />} />
+								<Route path="/settings" element={<Settings />} />
+								<Route path="/2fa" element={<TwoFactor /> } />
+								<Route path="/chat-list" element={<ChatList />} />
+								<Route path="/dm/:id" element={<DmChat />} />
+								<Route path="/chat/:name" element={<Chat />} />
+								<Route path="/users/:name" element={<User />} />
+								<Route path="/401" element={<Error401 />} />
+								<Route path="*" element={<Error404 />} />
+								<Route path="/game" element={<Pong />} />
+								<Route path="/multi-game" element={<MultiPong />} />
+							</Routes>
+						</UserContext.Provider>
+					</ChatContext.Provider>
+				</RerenderContext.Provider>
+			</GameContext.Provider>
 		</ThemeProvider>
 	)
 }

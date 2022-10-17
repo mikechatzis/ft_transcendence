@@ -194,7 +194,6 @@ class Pong extends React.Component <any, any>{
 			this.setState({player: movedPlayer, pause: false})
 		});
         document.onkeydown = this.playerMove;
-        document.title = "ping-pong"
     }
 
 	changeColor = (color: string) => () => {
