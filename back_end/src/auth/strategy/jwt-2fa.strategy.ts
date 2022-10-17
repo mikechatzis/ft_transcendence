@@ -30,6 +30,7 @@ export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
 			}
 		}
 		catch (error) {
+			console.log(error)
 		}
 	}
 }
@@ -39,5 +40,7 @@ const getToken = (req: Request) => {
 	if (req && req.cookies) {
 		token = req.cookies['jwt']
 	}
+	// console.log('cookies:', req.cookies)
+	// console.log('token:', token)
 	return token
 }

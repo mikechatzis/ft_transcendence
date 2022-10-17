@@ -12,25 +12,25 @@ const images = [
 	  url: "https://www.researchgate.net/profile/Niels-Henze/publication/238504468/figure/fig3/AS:298952734855187@1448287294969/PONGs-game-elements.png",
 	  title: "ONE PLAYER",
 	  width: "25%",
-	  path: "/"
+	  path: "/",
 	},
 	{
 	  url: "https://www.esrb.org/wp-content/uploads/2020/04/V1_ESRB_blog_Playing-Multiplayer-Games_Artboard-2-1024x538.jpg",
 	  title: "TWO PLAYERS",
 	  width: "25%",
-	  path: "/"
+	  path: "/",
 	},
 	{
 	  url: "https://images.unsplash.com/photo-1474514644473-acc8f56361f1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8N3x8c3BlY3RhdG9yfGVufDB8fDB8fA%3D%3D&w=1000&q=80",
 	  title: "SPECTATOR",
 	  width: "25%",
-	  path: "/"
+	  path: "/",
 	},
 	{
 	  url: "https://previews.123rf.com/images/shadowalice/shadowalice1504/shadowalice150400221/38321576-message-icons-set-great-for-any-use.jpg",
 	  title: "CHAT",
 	  width: "25%",
-	  path: "/chat-list"
+	  path: "/chat-list",
 	},
 ];
 
@@ -100,6 +100,14 @@ const ImageButton = styled(ButtonBase)(({ theme }) => ({
 
 const Home: React.FC = () => {
 	const navigate = useNavigate()
+	const OpenPage = (image: any) => {
+		if (image == "ONE PLAYER")
+			navigate("/game");
+		if (image == "CHAT")
+			navigate("/chat-list");
+		if (image === "TWO PLAYERS")
+			navigate("/multi-game")
+	  };
 
 	return (
 		<div>
@@ -110,7 +118,7 @@ const Home: React.FC = () => {
 				<Box display="flex" flexWrap="wrap" minWidth={300} width="100%">
 					{images.map((image) => (
 						<ImageButton focusRipple key={image.title} onClick={() => {
-							navigate(image.path)
+							OpenPage(image.title)
 						}} style={{width: image.width}}
 						>
 							<ImageSrc style={{backgroundImage: `url(${image.url})`}} />

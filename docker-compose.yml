@@ -20,6 +20,7 @@ services:
       - NODE_ENV
       - PORT
       - JWT_SECRET
+      - REFRESH_SECRET
     ports:
       - "3333:3333"
     networks:

@@ -17,7 +17,7 @@ Input[type=file]::file-selector-button:hover {
 	color: white;
 } */
 
-input {
+#uploadBtn {
 	visibility: hidden;
 }
 

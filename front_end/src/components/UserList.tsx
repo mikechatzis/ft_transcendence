@@ -19,6 +19,7 @@ import { Status } from "../enum/status"
 import { useNavigate } from "react-router-dom"
 import { Socket } from "socket.io-client"
 import { ChatContext } from "../context/ChatContext"
+import { UserContext } from "../context/UserContext"
 
 const drawerWidth = 360
 
@@ -29,6 +30,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const [isAdmin, setIsAdmin] = useState(false)
 	const [openEl, setOpenEl] = useState<null | string>(null)
 	const navigate = useNavigate()
+	const {context, setContext} = useContext(UserContext)
 	const baseUrl = useContext(UrlContext)
 	const socket = useContext(ChatContext)
 
@@ -47,9 +49,17 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 				}
 			}).catch((error) => {
 				console.log(error)
+				if (error.response.status === 401) {
+					setContext?.(false)
+					navigate("/login")
+				}
 			})
 		}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 	}, [baseUrl, anchorEl, channel])
 
@@ -58,6 +68,10 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 		axios.post(baseUrl + `chat/${channel}/makeAdmin`, adminUser, {withCredentials: true}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 		handleClose()
 	}
@@ -74,6 +88,10 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 		axios.post(baseUrl + `chat/${channel}/mute`, muteUser, {withCredentials: true}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 		handleClose()
 	}
@@ -100,6 +118,10 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 		axios.post(baseUrl + `chat/${channel}/permaban`, banUser, {withCredentials: true}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 		handleKick(user)
 		handleClose()
@@ -110,6 +132,10 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 		axios.post(baseUrl + `chat/${channel}/ban`, banUser, {withCredentials: true}).catch((error) => {
 			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 		handleKick(user)
 		handleClose()
@@ -120,6 +146,10 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 
 		axios.post(baseUrl + 'users/block', {block: blockUser.id}, {withCredentials: true}).catch((e) => {
 			console.log(e)
+			if (e.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
 		})
 		handleClose()
 	}

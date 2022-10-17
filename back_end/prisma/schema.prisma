@@ -24,6 +24,7 @@ model User {
   hash            String? 
   twoFactorAuth   Boolean
   twoFactorSecret String?
+  refreshToken    String? @unique
 
   status Int
 

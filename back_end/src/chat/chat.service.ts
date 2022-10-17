@@ -330,6 +330,10 @@ export class ChatService {
 
 		const cookies = cookie.parse(cookies_raw)
 
+		if (!cookies.jwt) {
+			return
+		}
+
 		const payload = this.jwt.verify(cookies.jwt, {publicKey: this.config.get('JWT_SECRET')})
 
 		return payload

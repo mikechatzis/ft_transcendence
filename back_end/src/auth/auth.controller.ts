@@ -5,6 +5,8 @@ import { AuthDto } from "./dto";
 import { FtGuard, JwtGuard, Jwt2faGuard } from "./guard";
 import { FtFilter } from "./filter";
 import { UserService } from "../user/user.service";
+import { RefreshTokenGuard } from "./guard/jwt-refresh.guard";
+import { RefreshFilter } from "./filter/refresh.filter";
 
 @Controller('auth')
 export class AuthController {
@@ -13,11 +15,27 @@ export class AuthController {
 	@Post('signup')
 	async signup(@Body() dto: AuthDto, @Res({passthrough: true}) res: Response) {
 		const token = await this.authService.signup(dto)
+		const refreshToken = await this.authService.createRefreshToken(dto)
+
+		await global.prisma.user.update({
+			where: {
+				name: dto.name,
+			},
+			data: {
+				refreshToken
+			}
+		})
 
 		res.cookie('jwt', token, {
 			httpOnly: true,
 			sameSite: 'strict',
 			maxAge: 15 * 60 * 1000
+		})
+
+		res.cookie('jwt-refresh', refreshToken, {
+			httpOnly: true,
+			sameSite: 'strict',
+			secure: false
 		})
 
 		const user = await global.prisma.user.findUnique({
@@ -27,6 +45,7 @@ export class AuthController {
 		})
 		delete user.hash
 		delete user.twoFactorSecret
+		delete user.refreshToken
 		return user
 	}
 
@@ -36,6 +55,7 @@ export class AuthController {
 	@Post('signin')
 	async signin(@Body() dto: AuthDto, @Res({passthrough: true}) res: Response) {
 		const token = await this.authService.signin(dto)
+		const refreshToken = await this.authService.createRefreshToken(dto)
 
 		res.cookie('jwt', token, {
 			httpOnly: true,
@@ -43,14 +63,55 @@ export class AuthController {
 			maxAge: 15 * 60 * 1000
 		})
 
-		const user = await global.prisma.user.findUnique({
+		res.cookie('jwt-refresh', refreshToken, {
+			httpOnly: true,
+			sameSite: 'strict'
+		})
+
+		const user = await global.prisma.user.update({
 			where: {
 				name: dto.name
+			},
+			data: {
+				refreshToken
 			}
 		})
 		delete user.hash
 		delete user.twoFactorSecret
+		delete user.refreshToken
 		return user
+	}
+
+	@UseFilters(RefreshFilter)
+	@UseGuards(RefreshTokenGuard)
+	@Get('refresh')
+	async refresh(@Req() req, @Res({passthrough: true}) res: Response) {
+		const user = await global.prisma.user.findUnique({
+			where: {
+				id: req.user.sub
+			}
+		})
+		if (req.user.refreshToken && req.user.refreshToken === user.refreshToken) {
+			const token = await this.authService.signToken({
+				sub: user.id,
+				name: user.name,
+				twoFactorAuthEnabled: !!user.twoFactorAuth,
+			},
+			{
+				expiresIn: '15m'
+			})
+
+			res.cookie('jwt', token, {
+				httpOnly: true,
+				sameSite: 'strict',
+				maxAge: 15 * 60 * 1000
+			})
+
+			delete user.hash
+			delete user.twoFactorSecret
+			delete user.refreshToken
+			return user
+		}
 	}
 
 	@UseGuards(FtGuard)
@@ -67,11 +128,35 @@ export class AuthController {
 			sub: user.id,
 			name: user.name,
 			twoFactorAuthEnabled: !!user.twoFactorAuth,
+		},
+		{
+			expiresIn: '15m'
 		})
+		const refreshToken = await this.authService.signToken({
+			sub: user.id,
+			name: user.name
+		},
+		{
+			secret: process.env.REFRESH_SECRET
+		})
+
+		await global.prisma.user.update({
+			where: {
+				id: user.id
+			},
+			data: {
+				refreshToken
+			}
+		})
+	
 		res.cookie('jwt', accessToken, {
 			httpOnly: true,
 			sameSite: 'strict',
 			maxAge: 15 * 60 * 1000
+		})
+		res.cookie('jwt-refresh', refreshToken, {
+			httpOnly: true,
+			sameSite: 'strict'
 		})
 		if (user.twoFactorAuth) {
 			res.redirect("http://localhost:3000/2fa")
@@ -83,11 +168,24 @@ export class AuthController {
 
 	@UseGuards(Jwt2faGuard)
 	@Get('signout')
-	signOut(@Res({passthrough: true}) res: Response) {
+	async signOut(@Req() req, @Res({passthrough: true}) res: Response) {
 		res.cookie('jwt', '', {
 			httpOnly: true,
 			sameSite: 'strict',
 			maxAge: 0
+		})
+		res.cookie('jwt-refresh', '', {
+			httpOnly: true,
+			sameSite: 'strict',
+			maxAge: 0
+		})
+		await global.prisma.user.update({
+			where: {
+				id: req.user.id
+			},
+			data: {
+				refreshToken: null
+			}
 		})
 	}
 

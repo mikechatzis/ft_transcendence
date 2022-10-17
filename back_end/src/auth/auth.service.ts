@@ -36,6 +36,9 @@ export class AuthService {
 				sub: user.id,
 				name: user.name,
 				twoFactorAuthEnabled: !!user.twoFactorAuth,
+			},
+			{
+				expiresIn: '15m'
 			})
 		}
 		catch (error) {
@@ -47,6 +50,22 @@ export class AuthService {
 			}
 			throw error
 		}
+	}
+
+	async createRefreshToken(dto: AuthDto) {
+		const user = await global.prisma.user.findUnique({
+			where: {
+				name: dto.name
+			}
+		})
+
+		return this.signToken({
+			sub: user.id,
+			name: user.name
+		},
+		{
+			secret: process.env.REFRESH_SECRET,
+		})
 	}
 
 	async signin(dto: AuthDto) {
@@ -68,7 +87,6 @@ export class AuthService {
 			sub: user.id,
 			name: user.name,
 			twoFactorAuthEnabled: !!user.twoFactorAuth,
-
 		})
 	}
 

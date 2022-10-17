@@ -1,81 +1,85 @@
-import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { JwtService } from '@nestjs/jwt';
-import { GameService } from './game.service';
-import { Status } from '../user/enums/status.enum';
-import { Server } from 'socket.io';
-import { OnModuleInit } from '@nestjs/common';
-import { json } from 'body-parser';
+import { JwtService } from "@nestjs/jwt";
+import { SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
+import { emit } from "process";
+import { GameService } from "./game.service";
 
 @WebSocketGateway({
-		namespace: "game",
-		cors: {
-			origin: "http://localhost:3000",
-			credentials: true
-		},
+	namespace: "game",
+	cors: {
+		origin: "http://localhost:3000",
+		credentials: true
+	}
 })
-export class GameGateway implements OnModuleInit {
-	constructor(private jwt: JwtService, private GameService: GameService) {}
+export class GameGateway {
+	constructor(private jwt: JwtService, private gameService: GameService) {
+		setInterval(() => {
+			this.state = this.gameService.bounceBall(this.state)
+			this.server.emit('data', {data: this.state})
+		}, 2)
+	}
+
+	state = {
+		player1: null,
+		player2: null,
+		p1pos: null,
+		p2pos: null,
+		ballpos: {left: 700, top: 175},
+		deltaX: -1,
+		deltaY: -1,
+		ballSpeed: 2,
+	}
 
 	@WebSocketServer()
-	server: Server;
-
-	onModuleInit() {
-		this.server.on('connection', (socket) => {
-			console.log('socket: %s\nConnected', socket.id)
-		});
-	}
+	server;
 
 	@SubscribeMessage('connection')
 	async handleConnection(socket) {
+		console.log("user connected to game server")
 
-		const payload = await this.GameService.authAndExtract(socket)
-		if (!payload) {
-			console.log("user unauthorized, socket will now disconnect")
+		try {
+			const player = this.gameService.authAndExtract(socket)
+			if (!this.state.player1) {
+				this.state.player1 = player.name
+			}
+			else if (!this.state.player2 && player.name != this.state.player1) {
+				this.state.player2 = player.name
+			}
+		}
+		catch (e) {
 			socket.disconnect()
 		}
-		else {
-			await this.GameService.setUserStatus(payload.sub, Status.ONLINE)
-			const userData = await global.prisma.user.findUnique({
-				where: {
-					id: payload.sub
-				}
-			})
-
-			console.log("user validated, connecting...")
-		}
-
 
 		socket.on('disconnect', () => {
-			console.log("a user disconnected")
-
-			if (payload) {
-				this.GameService.setUserStatus(payload.sub, Status.OFFLINE)
+			const player = this.gameService.authAndExtract(socket)
+			if (this.state.player1 === player.name) {
+				this.state.player1 = null
 			}
+			else if (this.state.player2 === player.name) {
+				this.state.player2 = null
+			}
+			console.log("user disconnected from game socket")
 		})
 	}
 
-	@SubscribeMessage('transmitData')
-	async handleDataTraffic(@MessageBody() body: string /*depending on frontend, this might change to direct JSON*/) {
-
-		//if frontend sends JSON, omit this line
-		const payload = JSON.parse(body)
-
-		try
-		{
-			if (payload.player === 1) {
-				this.server.emit('P1Data', {
-					P2PaddlePosition: payload.P2PaddlePosition
-				})
+	@SubscribeMessage('position')
+	async changePos(socket, data) {
+		try {
+			const player = this.gameService.authAndExtract(socket)
+			if (!player) {
+				throw new WsException("fuck off")
 			}
-			else if (payload.player === 2) {
-				this.server.emit('P2Data', {
-					P1PaddlePosition: payload.P1PaddlePosition
-				})
+
+			if (player.name === this.state.player1) {
+				this.state.p1pos = data.pos
 			}
-			else throw new Error('"player" value missing or is not 1 or 2')
+			else if (player.name === this.state.player2) {
+				this.state.p2pos = data.pos
+			}
+
+			this.server.emit('data', {data: this.state})
 		}
-		catch(e) {
-			console.log('Error: ', e)
+		catch (e) {
+			console.log(e)
 		}
 	}
 }
