@@ -8,6 +8,7 @@ import MenuBar from './components/Menu'
 import Login from './pages/Login'
 import Error401 from './pages/Error401'
 import Error404 from './pages/Error404'
+import Game from './pages/Game'
 import Account from './pages/Account'
 import Settings from './pages/Settings'
 import { UserContext } from './context/UserContext'
@@ -88,6 +89,7 @@ const App: React.FC = () => {
 							<Route path="/users/:name" element={<User />} />
 							<Route path="/401" element={<Error401 />} />
 							<Route path="*" element={<Error404 />} />
+							<Route path="/game" element={<Game />} />
 						</Routes>
 					</UserContext.Provider>
 				</ChatContext.Provider>
