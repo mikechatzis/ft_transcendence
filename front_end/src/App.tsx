@@ -19,6 +19,7 @@ import TwoFactor from './pages/2fa'
 import Chat from './pages/Chat'
 import DmChat from './pages/DmChat'
 import { ChatContext, chatSocket } from './context/ChatContext'
+import { GameContext, gameSocket } from './context/GameContext'
 import User from './pages/User'
 import ChatList from './pages/ChatList'
 
@@ -75,6 +76,15 @@ const App: React.FC = () => {
 			setContext?.(false)
 		})
 	}
+
+	useEffect(() => {
+		if (!gameSocket.connected) {
+			gameSocket.connect()
+		}
+		// else if (!context) {
+		// 	chat
+		// }
+	}, [])
 
 	useEffect(() => {
 		if (!chatSocket.connected) {
