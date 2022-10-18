@@ -180,6 +180,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		}
 	}
 
+	channelMembers?.sort((a,b) => a.id - b.id)
 	const map = channelMembers?.map((user: any, index: number) => {
 		return (
 			<Fragment key={index}>
@@ -257,7 +258,11 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 				<hr />
 			</Fragment>
 		)
-	}).sort((a, b) => a.type.name - b.type.name)
+	}).sort()
+	// useEffect(() => {
+	// 	console.log(map!.at(0)?.key)
+	// }, [map])
+	// map!
 
 	return (
 		<>
