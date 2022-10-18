@@ -60,8 +60,6 @@ export class ChatController {
 
 		const user = req.user
 
-		console.log('name:', name)
-
 		if (!channel.blocked.includes(user.id)) {
 			return channel.messages
 		}
@@ -170,7 +168,6 @@ export class ChatController {
 			}
 		})
 		if (count === 0) {
-			console.log('id:', parseInt(id))
 			return {channel: `${parseInt(id)} ${req.user.id}`}
 		}
 		else {
