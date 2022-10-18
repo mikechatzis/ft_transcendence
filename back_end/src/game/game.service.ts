@@ -19,7 +19,6 @@ export class GameService {
 		if (!cookies.jwt) {
 			return
 		}
-
 		
 		const payload = this.jwt.verify(cookies.jwt, {publicKey: this.config.get('JWT_SECRET'), ignoreExpiration: true})
 		

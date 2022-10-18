@@ -24,7 +24,6 @@ import { ChatContext, chatSocket } from './context/ChatContext'
 import { GameContext, gameSocket } from './context/GameContext'
 import User from './pages/User'
 import ChatList from './pages/ChatList'
-import MultiPong from './pages/MultiplayerGame'
 import MultModd from './pages/MultModd'
 
 axios.interceptors.response.use(
@@ -136,7 +135,7 @@ const App: React.FC = () => {
 					<Route path="*" element={<Error404 />} />
 					<Route path="/game" element={<Pong />} />
 					<Route path="/selectgamemode" element={<SelectGame />} />
-					<Route path="/multi-def" element={<MultiPong />} />
+					<Route path="/multi-def" element={<MultDef />} />
 					<Route path="/multmodd" element={<MultModd />} />
 				</Routes>
 			</UserContext.Provider>
