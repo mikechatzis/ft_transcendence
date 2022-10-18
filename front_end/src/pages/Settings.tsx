@@ -43,24 +43,34 @@ const Settings: React.FC = () => {
 		// event.preventDefault()
 		const formData = new FormData()
 		formData.append('file', selectedFile)
-		console.log(selectedFile)
 
-		axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: {
-			'Content-Type': 'multipart/form-data'
-		} }).catch((error) => {
-			console.log(error)
-			if (error.response.status === 401) {
-				setContext?.(false)
-				navigate("/login")
-			}
-		})
-		setRerender?.(!Boolean(rerender))
-		navigate("/account")
-		
+		if (selectedFile !== null) {
+			axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: {
+				'Content-Type': 'multipart/form-data'
+			} }).catch((error) => {
+				console.log(error)
+				if (error.response.status === 401) {
+					setContext?.(false)
+					navigate("/login")
+				}
+			})
+			setRerender?.(!Boolean(rerender))
+			navigate("/account")
+		}
+		else {
+			setMessage("No file uploaded, or file type is not supported. Supported file types: jpeg, jpg, png")
+		}
 	}
 
 	const handleFileSelect = (event: any) => {
-		setSelectedFile(event.target.files[0])
+		if (event.target.files[0] === null || event.target.files[0] === undefined
+			|| !(['image/jpeg', 'image/jpg', 'image/png'].includes(event.target.files[0].type))) {
+				setSelectedFile(null);
+			}
+		else {
+			setMessage("")
+			setSelectedFile(event.target.files[0])
+		}
 	}
 
 	const handleNameChange = () => {
@@ -121,15 +131,19 @@ const Settings: React.FC = () => {
 		e.preventDefault();
 		e.stopPropagation();
 		setDragActive(false);
-		if (e.dataTransfer.files.length !== 1)
-			return
+		if ((e.dataTransfer.files[0] === null || e.dataTransfer.files[0] === undefined
+			|| !(['image/jpeg', 'image/jpg', 'image/png'].includes(e.dataTransfer.files[0].type)))) {
+				setMessage("No file uploaded, or file type is not supported. Supported file types: jpeg, jpg, png")
+				return
+			}
 		if (e.dataTransfer.files && e.dataTransfer.files[0]) {
 			setSelectedFile(e.dataTransfer.files[0])
+			setMessage("")
 		}
 	}
 
 	return (
-		<Typography>
+		<div>
 			<Notification message={message} />
 			<Container maxWidth="sm">
 				<Grid container
@@ -163,8 +177,9 @@ const Settings: React.FC = () => {
 									<FormLabel htmlFor="uploadBtn">
 										<Box className="drop-title">Drop an image here</Box>
 										<Box className="drop-title">or</Box>
-										<Box className="drop-title2">upload a file</Box>
-										<input type="file" onChange={handleFileSelect} id='uploadBtn' ></input>
+										{selectedFile !== null ? <Box className="drop-title"> use uploaded: {selectedFile.name} </Box>
+										: <Box className="drop-title2">upload a file</Box> }
+										<input type="file"  onChange={handleFileSelect} id='uploadBtn' ></input>
 									</FormLabel>
 								</Paper>
 								{ dragActive && <div id="drag-file-element" onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}></div> }
@@ -222,7 +237,7 @@ const Settings: React.FC = () => {
 					</Paper>
 				</Grid>
 			</Container>
-		</Typography>
+		</div>
 	)
 }
 
