@@ -8,6 +8,9 @@ export const GetUser = createParamDecorator(
 		const user = global.prisma.user.findUnique({
 			where: {
 				id: request.user.id
+			},
+			include: {
+				matchHistory: true
 			}
 		})
 		return user

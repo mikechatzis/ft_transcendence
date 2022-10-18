@@ -56,7 +56,6 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	useEffect(() => {
 		axios.get(baseUrl + 'users/me/friends', {withCredentials: true}).then((response) => {
 			setFriends(response.data)
-			console.log(response.data)
 		}).catch((e) => {
 			console.log(e)
 		})

@@ -11,8 +11,10 @@ import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/UserContext'
 import { UrlContext } from '../context/UrlContext'
 import { RerenderContext } from '../context/RerenderContext'
+import MatchHistory from '../components/MatchHistory'
 
 import './styles/AccountStyles.css'
+import { Typography } from '@mui/material'
 
 const Account: React.FC = () => {
 	const [user, setUser] = useState<any>(null)
@@ -71,6 +73,10 @@ const Account: React.FC = () => {
 						</div>
 					</div>
 				</div>
+			</Box>
+			<Box maxWidth={'90%'} paddingLeft='10vw' paddingBottom={'2vh'} fontWeight='bold' textAlign={'center'} fontSize='4vh'>
+			Match History
+					<MatchHistory />
 			</Box>
 		</section>
 	)

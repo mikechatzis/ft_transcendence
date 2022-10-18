@@ -88,3 +88,18 @@ Input[type=file]::file-selector-button:hover {
 	bottom: 0px;
 	left: 0px;
   }
+
+  .uploaded {
+	padding-top: 1vh;
+	color: rgb(162, 162, 162);
+	padding-bottom: 1vh;
+	font-size: 20px;
+	font-weight: bolder;
+	text-align: center;
+	transition: color .2s ease-in-out;
+	cursor: pointer;
+  }
+
+  .uploaded:hover {
+	color: white;
+  }

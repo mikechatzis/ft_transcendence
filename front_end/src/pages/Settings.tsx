@@ -154,7 +154,7 @@ const Settings: React.FC = () => {
 						// background: "linear-gradient(to right, #37292b, #064870"
 					}}
 				>
-					<Paper elevation={2} sx={{padding: 5}} /*style={{background: "linear-gradient(to left, #37292b, #064870"}}*/>
+					<Paper elevation={2} sx={{padding: 5}}>
 						<FormLabel>
 							<Grid container direction="column" spacing={2}>
 								<Grid item>
@@ -177,8 +177,8 @@ const Settings: React.FC = () => {
 									<FormLabel htmlFor="uploadBtn">
 										<Box className="drop-title">Drop an image here</Box>
 										<Box className="drop-title">or</Box>
-										{selectedFile !== null ? <Box className="drop-title"> use uploaded: {selectedFile.name} </Box>
-										: <Box className="drop-title2">upload a file</Box> }
+										{selectedFile !== null ? <Box className="uploaded"> uploaded: {selectedFile.name} </Box>
+										: <Box className="drop-title2">upload from device</Box> }
 										<input type="file"  onChange={handleFileSelect} id='uploadBtn' ></input>
 									</FormLabel>
 								</Paper>
