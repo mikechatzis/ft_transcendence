@@ -28,7 +28,8 @@ export class AuthService {
 					status: Status.OFFLINE,
 					friends: [],
 					blocked: [],
-					channels: []
+					channels: [],
+					// matchHistory: []
 				}
 			})
 
@@ -113,7 +114,8 @@ export class AuthService {
 				status: Status.OFFLINE,
 				friends: [],
 				blocked: [],
-				channels: []
+				channels: [],
+				// matchHistory: [],
 			}
 		})
 		return newUser

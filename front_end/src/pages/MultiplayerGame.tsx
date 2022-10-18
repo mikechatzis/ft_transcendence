@@ -1,5 +1,6 @@
 import { Switch } from '@mui/material';
 import React, { useContext } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom';
 import { GameContext } from '../context/GameContext';
 
 const OPPONENT = 0;
@@ -11,7 +12,6 @@ const PLAYER_DOWN = 40
 const PAUSE       = 32
 
 let defaultColor = 'grey'
-
 
 class MultiPong extends React.Component <any, any>{
 	constructor(props: any){
@@ -61,6 +61,20 @@ class MultiPong extends React.Component <any, any>{
 		borderRadius: "100%",
 		
 	} as const;
+
+	moveEvent = (event: any) => {
+		let mousey = event.clientY;
+		if (mousey <= 175) {
+			mousey = 175
+		}
+		else if (mousey >= 775) {
+			mousey = 775
+		}
+		this.socket?.emit('position', {pos: mousey, room: this.state.room})
+		// const movedPlayer = this.moveBoard(mousey);
+		// this.setState({player: movedPlayer, pause: false})
+		// this.setState({})
+	}
 	
 	getStyle = (val: number) => {
 		if(val === OPPONENT)
@@ -90,7 +104,9 @@ class MultiPong extends React.Component <any, any>{
 			opponentScore: 0,
 
 			p1name: "",
-			p2name: ""
+			p2name: "",
+			room: "",
+			finished: false
 		}
 	}
 	
@@ -134,128 +150,127 @@ class MultiPong extends React.Component <any, any>{
 	
 	playerMove = ({keyCode}: any) => {
 		switch (keyCode) {
-			case PAUSE:
-				this.setState({pause: true})
-                break;
-			}
+		case PAUSE:
+			this.setState({pause: true})
+			break;
+		}
+	}
+		
+	isScore = () => {
+		if(this.ballStyle.left <= 10 || this.ballStyle.left >= this.canv.width - 20)
+		return true
+		return false
+	}
+	
+	bounceBall = () => {
+		if(this.ballTouchPaddle())
+		{
+			this.setState({deltaX: -this.state.deltaX});
+			this.ballStyle = {...this.ballStyle, left: this.ballStyle.left - this.state.deltaX}
+		}
+		if(this.ballTouchingHorEdge(this.state.deltaY))
+		{
+			this.setState({deltaY: -this.state.deltaY});
+			this.ballStyle = {...this.ballStyle, top: this.ballStyle.top - this.state.deltaY}
+		}
+		if (!(this.ballTouchPaddle()) && !(this.ballTouchingHorEdge(this.state.deltaY)))
+		{
+			this.ballStyle = {...this.ballStyle, top: this.ballStyle.top + this.state.deltaY}
+			this.ballStyle = {...this.ballStyle, left: this.ballStyle.left + this.state.deltaX}
 		}
 		
-		isScore = () => {
-			if(this.ballStyle.left <= 10 || this.ballStyle.left >= this.canv.width - 20)
-			return true
-			return false
-		}
+		this.setState({ball: this.ballStyle})
 		
-		bounceBall = () => {
-			if(this.ballTouchPaddle())
-			{
-				this.setState({deltaX: -this.state.deltaX});
-				this.ballStyle = {...this.ballStyle, left: this.ballStyle.left - this.state.deltaX}
+		if(this.isScore()){
+			if(this.state.deltaX === -1)
+			this.setState({opponentScore: this.state.opponentScore+1})
+			else
+			this.setState({playerScore: this.state.playerScore+1})
+			this.resetGame();
+		}
+	}
+	
+	moveOpponent = () => {
+		if((this.opponentStyle.top + this.state.opponentStep <= 10) || (this.opponentStyle.top + this.state.opponentStep >= this.canv.height - 130))
+		this.setState({opponentStep: -this.state.opponentStep});
+		this.opponentStyle = {...this.opponentStyle, top: this.opponentStyle.top + this.state.opponentStep}
+		this.setState({opponent: this.opponentStyle.top})
+	}
+	
+	moveElements = (data: any) => {
+		
+		this.playerStyle = {...this.playerStyle, top: data.player1Pos - 175}
+		this.opponentStyle = {...this.opponentStyle, top: data.player2Pos - 175}
+		this.ballStyle = {...this.ballStyle, top: data.ballPos.top, left: data.ballPos.left}
+		this.setState({player: this.playerStyle, opponent: this.opponentStyle})
+	}
+	
+	componentDidMount() {
+		
+		this.socket = this.context
+		
+		this.socket?.on('data', ({data}: any) => {
+			this.moveElements(data)
+			this.setState({p1name: data.player1, p2name: data.player2, playerScore: data.p1Score, opponentScore: data.p2Score, room: data.room})
+			// this.bounceBall()
+		})
+
+		this.socket?.on('end', () => {
+			this.setState({finished: true})
+			window.removeEventListener("mousemove", this.moveEvent)
+		})
+
+		this.socket?.on('exception', (data: any) => {
+			console.log('frog')
+			if (data?.message === "???? this room does not exist") {
+				this.setState({finished: true})
+				window.removeEventListener("mousemove", this.moveEvent)
 			}
-			if(this.ballTouchingHorEdge(this.state.deltaY))
-			{
-				this.setState({deltaY: -this.state.deltaY});
-				this.ballStyle = {...this.ballStyle, top: this.ballStyle.top - this.state.deltaY}
-			}
-			if (!(this.ballTouchPaddle()) && !(this.ballTouchingHorEdge(this.state.deltaY)))
-			{
-				this.ballStyle = {...this.ballStyle, top: this.ballStyle.top + this.state.deltaY}
-				this.ballStyle = {...this.ballStyle, left: this.ballStyle.left + this.state.deltaX}
-			}
+		})
+		
+		// setInterval(() => {
+		// 	// console.log('yup')
+		// 		this.bounceBall();
+		// }, this.state.ballSpeed);
+		
+		// setInterval(() => {
+			//     if (!this.state.pause)
+			//        this.moveOpponent();
+			// }, this.state.opponentSpeed);
 			
-			this.setState({ball: this.ballStyle})
-			
-			if(this.isScore()){
-				if(this.state.deltaX === -1)
-				this.setState({opponentScore: this.state.opponentScore+1})
+		setTimeout(() => {window.addEventListener("mousemove", this.moveEvent)}, 500)
+		// document.onkeydown = this.playerMove;
+	}
+		
+	changeColor = (color: string) => () => {
+		switch (color){
+			case "red": {
+				if(this.canv.backgroundColor === 'red')
+				this.canv = {...this.canv, backgroundColor: defaultColor}
 				else
-				this.setState({playerScore: this.state.playerScore+1})
-				this.resetGame();
+				this.canv = {...this.canv, backgroundColor: 'red'}
+				break;
+			}
+			case 'green': {
+				if(this.canv.backgroundColor === 'green')
+				this.canv = {...this.canv, backgroundColor: defaultColor}
+				else
+				this.canv = {...this.canv, backgroundColor: 'green'}
+				break;
+			}
+			case 'blue': {
+				if(this.canv.backgroundColor === 'blue')
+				this.canv = {...this.canv, backgroundColor: defaultColor}
+				else
+				this.canv = {...this.canv, backgroundColor: 'blue'}
 			}
 		}
-		
-		moveOpponent = () => {
-			if((this.opponentStyle.top + this.state.opponentStep <= 10) || (this.opponentStyle.top + this.state.opponentStep >= this.canv.height - 130))
-			this.setState({opponentStep: -this.state.opponentStep});
-			this.opponentStyle = {...this.opponentStyle, top: this.opponentStyle.top + this.state.opponentStep}
-			this.setState({opponent: this.opponentStyle.top})
-		}
-		
-		moveElements = (data: any) => {
+	}
 			
-			this.playerStyle = {...this.playerStyle, top: data.p1pos - 175}
-			this.opponentStyle = {...this.opponentStyle, top: data.p2pos - 175}
-			this.ballStyle = {...this.ballStyle, top: data.ballpos.top, left: data.ballpos.left}
-			this.setState({player: this.playerStyle, opponent: this.opponentStyle})
-		}
-		
-		componentDidMount() {
-			
-			this.socket = this.context
-			
-			this.socket?.on('data', ({data}: any) => {
-				this.moveElements(data)
-				this.setState({p1name: data.player1, p2name: data.player2, playerScore: data.p1score, opponentScore: data.p2score})
-				// this.bounceBall()
-			}) 
-			
-			// setInterval(() => {
-			// 	// console.log('yup')
-			// 		this.bounceBall();
-			// }, this.state.ballSpeed);
-			
-			// setInterval(() => {
-				//     if (!this.state.pause)
-				//        this.moveOpponent();
-				// }, this.state.opponentSpeed);
-				
-				document.addEventListener("mousemove", (event) => {
-					let mousex = event.clientX;
-					let mousey = event.clientY;
-					if (mousey <= 175) {
-						mousey = 175
-					}
-					else if (mousey >= 775) {
-						mousey = 775
-					}
-					this.socket?.emit('position', {pos: mousey})
-					// const movedPlayer = this.moveBoard(mousey);
-					// this.setState({player: movedPlayer, pause: false})
-					this.setState({})
-				});
-				document.onkeydown = this.playerMove;
-			}
-			
-			changeColor = (color: string) => () => {
-				switch (color){
-					case "red": {
-						if(this.canv.backgroundColor === 'red')
-						this.canv = {...this.canv, backgroundColor: defaultColor}
-						else
-						this.canv = {...this.canv, backgroundColor: 'red'}
-						break;
-					}
-					case 'green': {
-						if(this.canv.backgroundColor === 'green')
-						this.canv = {...this.canv, backgroundColor: defaultColor}
-						else
-						this.canv = {...this.canv, backgroundColor: 'green'}
-						break;
-					}
-					case 'blue': {
-						if(this.canv.backgroundColor === 'blue')
-						this.canv = {...this.canv, backgroundColor: defaultColor}
-						else
-						this.canv = {...this.canv, backgroundColor: 'blue'}
-					}
-					
-				}
-				
-			}
-			
-			render() {
-				return (
-					<div style={ this.canv }>
+	render() {
+		return (
+			<div style={ this.canv }>
+				{this.state.finished && <Navigate to="/selectgamemode" replace={true} />}
 				<div style={{position:'absolute'}}>{`${this.state.p1name} Score: ${this.state.playerScore}`}</div>
 				<div style={{position:'absolute', marginTop: 20}}>{`${this.state.p2name} Score: ${this.state.opponentScore}`}</div>
 				<div style={this.getStyle(OPPONENT)}></div>
@@ -265,10 +280,9 @@ class MultiPong extends React.Component <any, any>{
 				<button style={{position:'absolute', backgroundColor:'green', marginTop:this.canv.height + 10, marginLeft:'50%'}} onClick={this.changeColor('green')}>G</button>
 				<button style={{position:'absolute', backgroundColor:'blue', marginTop:this.canv.height + 10, marginLeft:'55%'}} onClick={this.changeColor('blue')}>B</button>
 			</div>
-			
-			)
-		}
+		)
 	}
+}
 
 	MultiPong.contextType = GameContext
 	

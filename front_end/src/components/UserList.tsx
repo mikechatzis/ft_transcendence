@@ -11,8 +11,10 @@ import MenuItem from "@mui/material/MenuItem"
 import Toolbar from "@mui/material/Toolbar"
 import Typography from "@mui/material/Typography"
 import CircleIcon from '@mui/icons-material/Circle';
+import PendingIcon from '@mui/icons-material/Pending';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import MoreVertIcon from "@mui/icons-material/MoreVert"
+import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import { UrlContext } from "../context/UrlContext"
 import { ListItemIcon } from "@mui/material"
 import { Status } from "../enum/status"
@@ -163,6 +165,21 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		handleClose()
 	}
 
+	const chooseIcon = (user: any) => {
+		if (user.status === Status.ONLINE) {
+			return <CircleIcon style={{color: "green"}} fontSize="small" />
+		}
+		else if (user.status === Status.OFFLINE) {
+			return <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />
+		}
+		else if (user.status === Status.GAME) {
+			return <VideogameAssetIcon style={{color: "yellow"}} fontSize="small" />
+		}
+		else if (user.status === Status.QUEUE) {
+			return <PendingIcon style={{color: "yellow"}} fontSize="small" />
+		}
+	}
+
 	return (
 		<>
 		<Drawer
@@ -186,7 +203,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 								<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
 								<ListItemText primary={user.name} style={{padding: 10}} />
 								<ListItemIcon>
-									{(user.status === Status.ONLINE) ? <CircleIcon style={{color: "green"}} fontSize="small" /> : <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />}
+									{chooseIcon(user)}
 								</ListItemIcon>
 								<IconButton
 									id="long-button"
@@ -241,11 +258,16 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 											View profile
 										</Typography>
 									</MenuItem>
-									<MenuItem key={8}>
+									{(user.status === Status.ONLINE) && <MenuItem key={8}>
 										<Typography>
 											Invite to play
 										</Typography>
-									</MenuItem>
+									</MenuItem>}
+									{(user.status === Status.GAME) && <MenuItem key={9}>
+										<Typography>
+											Spectate
+										</Typography>
+									</MenuItem>}
 								</Menu>
 							</ListItem>
 							<hr />

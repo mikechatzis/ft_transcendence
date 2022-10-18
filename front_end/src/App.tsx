@@ -10,7 +10,6 @@ import Error401 from './pages/Error401'
 import Error404 from './pages/Error404'
 import Pong from './pages/Game'
 import SelectGame from './pages/SelectGame'
-import MultDef from './pages/MultDef'
 import Account from './pages/Account'
 import Settings from './pages/Settings'
 import { UserContext } from './context/UserContext'
@@ -85,10 +84,10 @@ const App: React.FC = () => {
 		if (!gameSocket.connected) {
 			gameSocket.connect()
 		}
-		// else if (!context) {
-		// 	chat
-		// }
-	}, [])
+		else if (!context) {
+			gameSocket.disconnect()
+		}
+	}, [context])
 
 	useEffect(() => {
 		if (!chatSocket.connected) {
