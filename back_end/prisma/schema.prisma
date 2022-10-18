@@ -42,6 +42,7 @@ model Match {
 	playerId Int
 	opponentId Int
 	winner Int
+	date DateTime @default(now())
 }
 
 model Channel {
