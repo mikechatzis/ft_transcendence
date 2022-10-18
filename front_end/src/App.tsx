@@ -25,6 +25,7 @@ import User from './pages/User'
 import ChatList from './pages/ChatList'
 import MultiPong from './pages/MultiplayerGame'
 import MultModd from './pages/MultModd'
+import MultiSpectate from './pages/MultiplayerSpectate'
 
 axios.interceptors.response.use(
 	function (response) {
@@ -136,6 +137,7 @@ const App: React.FC = () => {
 					<Route path="/game" element={<Pong />} />
 					<Route path="/selectgamemode" element={<SelectGame />} />
 					<Route path="/multi-def" element={<MultiPong />} />
+					<Route path="/multi-spec" element={<MultiSpectate />} />
 					<Route path="/multmodd" element={<MultModd />} />
 				</Routes>
 			</UserContext.Provider>

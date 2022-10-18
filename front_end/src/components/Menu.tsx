@@ -21,6 +21,8 @@ import MoreVertIcon from "@mui/icons-material/MoreVert"
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
 import GroupsIcon from "@mui/icons-material/Groups"
+import PendingIcon from '@mui/icons-material/Pending';
+import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import { useTheme } from '@mui/material/styles'
 import axios from 'axios'
 import { UserContext } from '../context/UserContext'
@@ -28,6 +30,8 @@ import { UrlContext } from '../context/UrlContext'
 import SearchBar from './SearchBar'
 import { RerenderContext } from '../context/RerenderContext'
 import { Status } from "../enum/status"
+import { GameContext } from '../context/GameContext'
+import GameInvite from './GameInvite'
 
 const drawerWidth = 360
 
@@ -41,12 +45,16 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	const [avatar, setAvatar] = useState<any>(null)
 	const [friends, setFriends] = useState<any[]>([])
 	const [friendsOpen, setFriendsOpen] = useState(false)
+	const [invite, setInvite] = useState(false)
+	const [challenger, setChallenger] = useState('')
+	const [challengerId, setChallengerId] = useState(-1)
 	const [openEl, setOpenEl] = useState<null | string>(null)
 	const navigate = useNavigate()
 	const theme = useTheme()
 	const {rerender, setRerender} = useContext(RerenderContext)
 	const {context, setContext} = useContext(UserContext)
 	const baseUrl = useContext(UrlContext)
+	const gameSocket = useContext(GameContext)
 
 	//this is stupid and i hate it but at least it works
 	useEffect(() => {
@@ -60,7 +68,15 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 		}).catch((e) => {
 			console.log(e)
 		})
-	}, [baseUrl, context])
+	}, [baseUrl, context, friendsOpen, rerender])
+
+	useEffect(() => {
+		gameSocket.on('invite', (data: any) => {
+			setInvite(true)
+			setChallenger(data.user)
+			setChallengerId(data.id)
+		})
+	}, [gameSocket])
 
 	const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorElem(event.currentTarget)
@@ -79,14 +95,44 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 		setSmallAnchorEl(event.currentTarget)
 	}
 
+	const handleBlock = (user: any) => () => {
+		let blockUser = {...user}
+
+		axios.post(baseUrl + 'users/block', {block: blockUser.id}, {withCredentials: true}).catch((e) => {
+			console.log(e)
+			if (e.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
+		})
+		handleSmallClose()
+		setRerender?.(!rerender)
+	}
+
 	const handleDm = (user: any) => () => {
 		navigate(`/dm/${user.id}`)
 		handleSmallClose()
 		setFriendsOpen(false)
 	}
 
+	const chooseIcon = (user: any) => {
+		if (user.status === Status.ONLINE) {
+			return <CircleIcon style={{color: "green"}} fontSize="small" />
+		}
+		else if (user.status === Status.OFFLINE) {
+			return <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />
+		}
+		else if (user.status === Status.GAME) {
+			return <VideogameAssetIcon style={{color: "yellow"}} fontSize="small" />
+		}
+		else if (user.status === Status.QUEUE) {
+			return <PendingIcon style={{color: "yellow"}} fontSize="small" />
+		}
+	}
+
 	return (
 		<Box sx={{flexGrow: 1}}>
+			<GameInvite open={invite} user={challenger} id={challengerId} handleClose={() => setInvite(false)} />
 			<AppBar position="relative" style={{
 				zIndex: theme.zIndex.drawer + 1
 			}}>
@@ -137,7 +183,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 												<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
 												<ListItemText primary={user.name} style={{padding: 10}} />
 												<ListItemIcon>
-													{(user.status === Status.ONLINE) ? <CircleIcon style={{color: "green"}} fontSize="small" /> : <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />}
+													{chooseIcon(user)}
 												</ListItemIcon>
 												<IconButton
 													id="long-button"
@@ -165,16 +211,16 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 															Direct Message
 														</Typography>
 													</MenuItem>
-													<MenuItem>
+													<MenuItem onClick={handleBlock(user)}>
 														<Typography>
 															Block
 														</Typography>
 													</MenuItem>
-													<MenuItem>
+													{user.status === Status.ONLINE && <MenuItem>
 														<Typography>
 															Invite to play
 														</Typography>
-													</MenuItem>
+													</MenuItem>}
 												</Menu>
 											</ListItem>
 											<hr />

@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as cookie from 'cookie'
 import {v4 as uuidv4} from 'uuid'
-import { Socket } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { Room } from "./interfaces/room.interface"
 import { WsException } from "@nestjs/websockets";
 import { Status } from "src/user/enums/status.enum";
@@ -34,6 +34,74 @@ export class GameService {
 		const payload = this.jwt.verify(cookies.jwt, {publicKey: this.config.get('JWT_SECRET'), ignoreExpiration: true})
 		
 		return payload
+	}
+
+	getRoomByUser(user) {
+		for (let i = 0; i < this.rooms.length; i++) {
+			if (this.rooms[i].player1 === user || this.rooms[i].player2 === user) {
+				return this.rooms[i].room
+			}
+		}
+		return null
+	}
+
+	async createCustomRoom(p1: Socket, p2: Socket, server: Server) {
+		const user1 = this.authAndExtract(p1)
+		const user2 = this.authAndExtract(p2)
+		const roomUUID = uuidv4()
+		p1.join(roomUUID)
+		p2.join(roomUUID)
+
+		const room: Room = {
+			room: roomUUID,
+			player1: user1.name,
+			player2: user2.name,
+			ballPos: {left: 700, top: 175},
+			player1Pos: 175,
+			player2Pos: 175,
+			deltaX: DELTA,
+			deltaY: DELTA,
+			p1Score: 0,
+			p2Score: 0,
+			winner: "",
+			interval: null
+		}
+
+		this.rooms.push(room)
+		server.to(room.room).emit('invite-start')
+		await global.prisma.user.update({
+			where: {
+				name: room.player1
+			},
+			data: {
+				status: Status.GAME
+			}
+		})
+
+		await global.prisma.user.update({
+			where: {
+				name: room.player2
+			},
+			data: {
+				status: Status.GAME
+			}
+		})
+
+		room.interval = setInterval(() => {
+			let room_state = null
+			for (let i = 0; i < this.rooms.length; i++) {
+				if (this.rooms[i].room === room.room) {
+					room_state = this.rooms[i]
+				}
+			}
+			this.gameProcess(room.room)
+			server.to(room.room).emit('data', {data: room_state})
+			if (room.p1Score >= 15 || room.p2Score >= 15) {
+				clearInterval(room.interval)
+				this.handleEndGame(room_state, server)
+			}
+		}, BALL_SPEED)
+
 	}
 
 	handleDisconnect = async (player, socket, server) => {
@@ -95,6 +163,7 @@ export class GameService {
 			clearInterval(room.interval)
 
 			server.to(room.room).emit('end')
+			server.socketsLeave(room.room)
 			this.rooms.splice(index, 1)
 		}
 
@@ -114,7 +183,7 @@ export class GameService {
 
 	}
 	
-	handleEndGame = async (room: Room, server: Socket) => {
+	handleEndGame = async (room: Room, server: Server) => {
 		const p1 = await global.prisma.user.findUnique({
 			where: {
 				name: room.player1
@@ -163,7 +232,8 @@ export class GameService {
 		})
 		const index = this.rooms.indexOf(room)
 		server.to(room.room).emit('end')
-			this.rooms.splice(index, 1)
+		server.socketsLeave(room.room)
+		this.rooms.splice(index, 1)
 	}
 
 	bounceBall = (room: Room) => {
@@ -182,11 +252,11 @@ export class GameService {
 			}
 			room.ballPos = {left: 700, top: 175}
 		}
-		if (nextPosX <= 40 && (nextPosY + 385 >= room.player1Pos && nextPosY + 255 <= room.player1Pos)) {
+		if ((nextPosX <= 40 && nextPosX >= 20) && (nextPosY + 385 >= room.player1Pos && nextPosY + 255 <= room.player1Pos)) {
 			room.deltaX = -room.deltaX
 			room.ballPos.left -= room.deltaX
 		}
-		if (nextPosX >= 1340 && (nextPosY + 385 >= room.player2Pos && nextPosY + 255 <= room.player2Pos)) {
+		if ((nextPosX >= 1340 && nextPosX <= 1360) && (nextPosY + 385 >= room.player2Pos && nextPosY + 255 <= room.player2Pos)) {
 			room.deltaX = -room.deltaX
 			room.ballPos.left -= room.deltaX
 		}
@@ -196,7 +266,7 @@ export class GameService {
 		return room
 	}
 	
-	addToQueue = async (socket: Socket, server: Socket) => {
+	addToQueue = async (socket: Socket, server: Server) => {
 		this.queue.push(socket)
 		console.log('add to queue')
 

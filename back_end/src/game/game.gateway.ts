@@ -1,6 +1,8 @@
 import { JwtService } from "@nestjs/jwt";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
+import { throws } from "assert";
 import { emit } from "process";
+import { Status } from "src/user/enums/status.enum";
 import { GameService } from "./game.service";
 
 @WebSocketGateway({
@@ -20,18 +22,18 @@ export class GameGateway {
 
 	// interval = null
 
-	state = {
-		player1: null,
-		player2: null,
-		p1pos: null,
-		p2pos: null,
-		ballpos: {left: 700, top: 175},
-		deltaX: -1,
-		deltaY: -1,
-		ballSpeed: 2,
-		p1score: 0,
-		p2score: 0
-	}
+	// state = {
+	// 	player1: null,
+	// 	player2: null,
+	// 	p1pos: null,
+	// 	p2pos: null,
+	// 	ballpos: {left: 700, top: 175},
+	// 	deltaX: -1,
+	// 	deltaY: -1,
+	// 	ballSpeed: 2,
+	// 	p1score: 0,
+	// 	p2score: 0
+	// }
 
 	@WebSocketServer()
 	server;
@@ -90,6 +92,105 @@ export class GameGateway {
 
 	@SubscribeMessage('queue-def')
 	queuePlayer(socket) {
+		console.log(socket)
 		this.gameService.addToQueue(socket, this.server)
+	}
+
+	@SubscribeMessage('spectate')
+	spectate(socket, data) {
+		const room = this.gameService.getRoomByUser(data.name)
+		if (!room) {
+			throw new WsException("bruh unlucky")
+		}
+		socket.join(room)
+	}
+
+	@SubscribeMessage('invite')
+	async invite(socket, data) {
+		const sockets = await this.server.fetchSockets()
+
+		let i = 0;
+		for (i = 0; i < sockets.length; i++) {
+			const decrypt = await this.gameService.authAndExtract(sockets[i])
+			if (decrypt.id === data.id || decrypt.sub === data.id) {
+				break ;
+			}
+		}
+
+		if (i < sockets.length) {
+			const token_decrypt = await this.gameService.authAndExtract(socket)
+
+			let userId = token_decrypt['sub']
+
+			if (!userId) {
+				userId = token_decrypt['id']
+			}
+
+			const userData = await global.prisma.user.findUnique({
+				where: {
+					id: userId
+				}
+			})
+
+			await global.prisma.user.update({
+				where: {
+					id: userId
+				},
+				data: {
+					status: Status.QUEUE
+				}
+			})
+
+			this.server.to(sockets[i].id).emit('invite', {user: userData.name, id: userData.id})
+		}
+	}
+
+	@SubscribeMessage('invite-response')
+	async inviteResponse(socket, data) {
+		const sockets = await this.server.fetchSockets()
+
+		let i = 0;
+		for (i = 0; i < sockets.length; i++) {
+			const decrypt = await this.gameService.authAndExtract(sockets[i])
+			if (decrypt.id === data.id || decrypt.sub === data.id) {
+				break ;
+			}
+		}
+
+		if (i < sockets.length) {
+			const token_decrypt = await this.gameService.authAndExtract(socket)
+
+			let userId = token_decrypt['sub']
+
+			if (!userId) {
+				userId = token_decrypt['id']
+			}
+
+			const userData = await global.prisma.user.findUnique({
+				where: {
+					id: userId
+				}
+			})
+
+			if (!data.accept) {
+				const other = await this.gameService.authAndExtract(sockets[i])
+				let otherId = other.sub
+				if (!otherId) {
+					otherId = other.id
+				}
+				await global.prisma.user.update({
+					where: {
+						id: otherId
+					},
+					data: {
+						status: Status.ONLINE
+					}
+				})
+				this.server.to(sockets[i].id).emit('refuse')
+			}
+			else {
+				await this.gameService.createCustomRoom(socket, sockets[i], this.server)
+			}
+		}
 	}
 }
