@@ -5,7 +5,7 @@ import { useContext, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { UrlContext } from "../context/UrlContext"
 import { UserContext } from "../context/UserContext"
-import { Status } from "../enum/status"
+// import { Status } from "../enum/status"
 import MatchHistoryUser from "../components/MatchHistoryUser"
 import Notification from '../components/Notification'
 
@@ -68,7 +68,7 @@ const User: React.FC = () => {
 					<div className='emptySpace'></div>
 					<img src={baseUrl + `users/me/profileImg?${Date.now()}`} alt="" className="profile-pic"></img>
 					<h1 className="heading">Username: {user?.name}</h1>
-					<h1 className="sub">Intra Name: {user?.intraName ? user?.intraName : 'not used'}</h1>
+					{user?.intraName && <h1 className="sub">Intra Name: {user?.intraName ? user?.intraName : 'not used'}</h1>} 
 					<div className="stats">
 						<div className="col-4">
 							<h4>Score</h4>
@@ -81,8 +81,8 @@ const User: React.FC = () => {
 					</div>
 				</div>
 			</Box>
-			<Box maxWidth={'90%'} paddingLeft='10vw' paddingBottom={'2vh'} fontWeight='bold' textAlign={'center'} fontSize='4vh'>
-			Match History
+			<Box maxWidth={'90%'} paddingLeft='10vw' paddingBottom={'2vh'} fontWeight='bold' textAlign={'center'} alignContent='center' fontSize='4vh'>
+			{user?.name}'s match history
 					<MatchHistoryUser />
 			</Box>
 		</section>

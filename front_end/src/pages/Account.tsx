@@ -61,7 +61,7 @@ const Account: React.FC = () => {
 					<div className='emptySpace'></div>
 					<img src={baseUrl + `users/me/profileImg?${Date.now()}`} alt="" className="profile-pic"></img>
 					<h1 className="heading">Username: {user?.name}</h1>
-					<h1 className="sub">Intra Name: {user?.intraName ? user?.intraName : 'not used'}</h1>
+					{user?.intraName && <h1 className="sub">Intra Name: {user?.intraName ? user?.intraName : 'not used'}</h1>} 
 					<div className="stats">
 						<div className="col-4">
 							<h4>Score</h4>

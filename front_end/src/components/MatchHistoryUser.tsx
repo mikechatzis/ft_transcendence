@@ -96,7 +96,7 @@ const MatchHistoryUser = () => {
 	}]
 	
 	return (
-		<div style={{"height": (rows.length + 1) * 81, "width": '100%'}}>
+		<div style={{"height": (rows.length + 1) * 81, "width": '100%', "maxHeight": 810}}>
 			<DataGrid rows={rows} columns={columns} />
 		</div>
 	)
