@@ -117,10 +117,15 @@ const Chat: React.FC = () => {
 		}
 	}
 
+	const errorMessage = (message: string) => {
+		setError(message)
+		setTimeout(() => {setError('')}, 5000)
+	}
+
 	return (
 		<>
 			<Notification message={error} />
-			<UserList channel={channel.name ? channel.name : ''} />
+			<UserList channel={channel.name ? channel.name : ''} setErr={errorMessage} />
 			<Container>
 				<Grid container
 					spacing={2}

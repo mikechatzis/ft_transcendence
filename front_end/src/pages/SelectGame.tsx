@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { setSelectionRange } from '@testing-library/user-event/dist/utils';
 import { GameContext } from '../context/GameContext';
 import Queue from '../components/Queue';
+import { UserContext } from '../context/UserContext';
 
 const images = [
 	{
@@ -93,6 +94,7 @@ const ImageButton = styled(ButtonBase)(({ theme }) => ({
 const SelectGame: React.FC = () => {
 	const [openQueue, setOpenQueue] = useState(false)
 	const navigate = useNavigate()
+	const {context, setContext} = useContext(UserContext)
 	const socket = useContext(GameContext)
 
 	useEffect(() => {
@@ -101,6 +103,12 @@ const SelectGame: React.FC = () => {
 			navigate("/multi-def")
 		})
 	}, [])
+
+	useEffect(() => {
+		if (!context) {
+			navigate("/login")
+		}
+	})
 
 	const openPage = (image: any) => {
 		if (image === "DEFAULT")
