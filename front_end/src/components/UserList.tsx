@@ -223,6 +223,89 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 		setInvite(true)
 		handleClose()
 	}
+	channelMembers?.sort((a,b) => a.id - b.id)
+	const map = channelMembers?.map((user: any, index: number) => {
+		return (
+			<Fragment key={index}>
+				<ListItem>
+					<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
+					<ListItemText primary={user.name} style={{padding: 10}} />
+					<ListItemIcon>
+						{chooseIcon(user)}
+					</ListItemIcon>
+					<IconButton
+						id="long-button"
+						onClick={handleClick(user)}
+					>
+						<MoreVertIcon />
+					</IconButton>
+					<Menu
+						id="long-menu"
+						anchorEl={anchorEl}
+						open={openEl === user.name}
+						onClose={handleClose}
+					>
+						{isAdmin &&
+						[<MenuItem onClick={makeAdmin(user)} key={0}>
+							<Typography>
+								Make admin
+							</Typography>
+						</MenuItem>,
+						<MenuItem onClick={handleMute(user)} key={1}>
+							<Typography>
+								Mute for 15 minutes
+							</Typography>
+						</MenuItem>,
+						<MenuItem onClick={() => {handleKick(user)}} key={2}>
+							<Typography>
+								Kick
+							</Typography>
+						</MenuItem>,
+						<MenuItem onClick={handleBan(user)}key={3}>
+							<Typography>
+								Ban for 15 minutes
+							</Typography>
+						</MenuItem>,
+						<MenuItem onClick={handlePermaBan(user)} key={4}>
+							<Typography>
+								Ban permanently
+							</Typography>
+						</MenuItem>]}
+						{!me?.blocked.includes(user.id) && <MenuItem onClick={handleBlock(user)} key={5}>
+							<Typography>
+								Block user
+							</Typography>
+						</MenuItem>}
+						{(!me?.friends.includes(user.id) && !me?.blocked.includes(user.id)) && <MenuItem onClick={handleFriend(user)} key={6}>
+							<Typography>
+								Add friend
+							</Typography>
+						</MenuItem>}
+						<MenuItem onClick={handleView(user)} key={7}>
+							<Typography>
+								View profile
+							</Typography>
+						</MenuItem>
+						{(user.status === Status.ONLINE) && <MenuItem key={8}>
+							<Typography>
+								Invite to play
+							</Typography>
+						</MenuItem>}
+						{(user.status === Status.GAME) && <MenuItem key={9}>
+							<Typography>
+								Spectate
+							</Typography>
+						</MenuItem>}
+					</Menu>
+				</ListItem>
+				<hr />
+			</Fragment>
+		)
+	}).sort()
+	// useEffect(() => {
+	// 	console.log(map!.at(0)?.key)
+	// }, [map])
+	// map!
 
 	return (
 		<>
@@ -241,85 +324,7 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 		>
 			<Toolbar />
 			<List>
-				{channelMembers?.map((user: any, index: number) => {
-					return (
-						<Fragment key={index}>
-							<ListItem>
-								<Avatar src={baseUrl + `users/${user?.id}/profileImg`} />
-								<ListItemText primary={user?.name} style={{padding: 10}} />
-								<ListItemIcon>
-									{chooseIcon(user)}
-								</ListItemIcon>
-								<IconButton
-									id="long-button"
-									onClick={handleClick(user)}
-								>
-									<MoreVertIcon />
-								</IconButton>
-								<Menu
-									id="long-menu"
-									anchorEl={anchorEl}
-									open={openEl === user?.name}
-									onClose={handleClose}
-								>
-									{(isOwner && user?.id != me?.id) &&
-									<MenuItem onClick={makeAdmin(user)} key={0}>
-										<Typography>
-											Make admin
-										</Typography>
-									</MenuItem>}
-									{(isAdmin && user?.id != me?.id) &&
-									[<MenuItem onClick={handleMute(user)} key={1}>
-										<Typography>
-											Mute for 15 minutes
-										</Typography>
-									</MenuItem>,
-									<MenuItem onClick={() => {handleKick(user)}} key={2}>
-										<Typography>
-											Kick
-										</Typography>
-									</MenuItem>,
-									<MenuItem onClick={handleBan(user)}key={3}>
-										<Typography>
-											Ban for 15 minutes
-										</Typography>
-									</MenuItem>,
-									<MenuItem onClick={handlePermaBan(user)} key={4}>
-										<Typography>
-											Ban permanently
-										</Typography>
-									</MenuItem>]}
-									{(!me?.blocked.includes(user?.id) && user?.id != me?.id) && <MenuItem onClick={handleBlock(user)} key={5}>
-										<Typography>
-											Block user
-										</Typography>
-									</MenuItem>}
-									{(!me?.friends.includes(user?.id) && !me?.blocked.includes(user?.id) && user.id != me.id) && <MenuItem onClick={handleFriend(user)} key={6}>
-										<Typography>
-											Add friend
-										</Typography>
-									</MenuItem>}
-									<MenuItem onClick={handleView(user)} key={7}>
-										<Typography>
-											View profile
-										</Typography>
-									</MenuItem>
-									{(user.status === Status.ONLINE && user?.id != me?.id) && <MenuItem key={8} onClick={handleInvite(user)}>
-										<Typography>
-											Invite to play
-										</Typography>
-									</MenuItem>}
-									{(user.status === Status.GAME && user?.id != me?.id) && <MenuItem key={9} onClick={handleSpectate(user)}>
-										<Typography>
-											Spectate
-										</Typography>
-									</MenuItem>}
-								</Menu>
-							</ListItem>
-							<hr />
-						</Fragment>
-					)
-}				)}
+				{map}
 			</List>
 		</Drawer>
 		</>

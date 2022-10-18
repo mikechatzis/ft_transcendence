@@ -25,6 +25,8 @@ CREATE TABLE "Match" (
     "id" SERIAL NOT NULL,
     "playerId" INTEGER NOT NULL,
     "opponentId" INTEGER NOT NULL,
+    "winner" INTEGER NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Match_pkey" PRIMARY KEY ("id")
 );

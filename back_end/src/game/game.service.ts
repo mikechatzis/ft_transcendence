@@ -6,7 +6,7 @@ import {v4 as uuidv4} from 'uuid'
 import { Server, Socket } from "socket.io";
 import { Room } from "./interfaces/room.interface"
 import { WsException } from "@nestjs/websockets";
-import { Status } from "src/user/enums/status.enum";
+import { Status } from "../user/enums/status.enum";
 
 const BALL_SPEED = (1000/60)
 const DELTA = -0.5 * (1000/60)
