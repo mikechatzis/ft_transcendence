@@ -180,6 +180,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		}
 	}
 
+	channelMembers?.sort((a, b) => a.name - b.name)
 	return (
 		<>
 		<Drawer
