@@ -14,7 +14,7 @@ import { RerenderContext } from '../context/RerenderContext'
 import MatchHistory from '../components/MatchHistory'
 
 import './styles/AccountStyles.css'
-import { Typography } from '@mui/material'
+import { Button, Typography } from '@mui/material'
 
 const Account: React.FC = () => {
 	const [user, setUser] = useState<any>(null)
@@ -55,8 +55,8 @@ const Account: React.FC = () => {
 		<section className="profile">
 			<Box className="header">
 				<div className="details">
-					<div className="btn btn-one" onClick={() => (navigate("/settings"))}>
-						<span className="btn btn-one">ACCOUNT SETTINGS</span>
+					<div className="btn btn-one">
+						<Button onClick={() => (navigate("/settings"))} className="btn btn-one">ACCOUNT SETTINGS</Button>
 					</div>
 					<div className='emptySpace'></div>
 					<img src={baseUrl + `users/me/profileImg?${Date.now()}`} alt="" className="profile-pic"></img>
