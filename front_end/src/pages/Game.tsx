@@ -4,12 +4,14 @@ const OPPONENT = 0;
 const PLAYER = 1;
 const BALL = 2;
 
-// const PLAYER_UP   = 38
-// const PLAYER_DOWN = 40
 const PAUSE       = 32
+
 
 let defaultColor = 'grey'
 
+
+let ballDTop = '15vw';
+let ballDLeft = '33vw';
 
 class Pong extends React.Component <any, any>{
 	constructor(props: any){
@@ -19,8 +21,8 @@ class Pong extends React.Component <any, any>{
 
 	canv = {
 		position: 'relative',
-		height: 700,
-		width: 1400,
+		width: '70vw',
+		height: 'calc(100vw * 6 / 19)',
 		backgroundColor: defaultColor,
 		margin: 'auto',
 		marginTop: 50,
@@ -29,29 +31,28 @@ class Pong extends React.Component <any, any>{
 	
 	opponentStyle = {
 		position: 'absolute',
-		left: this.canv.width - 40,
-		top: this.canv.height/4,
-		height: 100,
-		width: 20,
-		backgroundColor : "black",
+		top: '10vw',
+		left: '68vw',
+		height: 'calc(20vw * 6 / 19)',
+		width: '1vw',
+		backgroundColor : "yellow",
 	} as const;
 	
 	playerStyle = {
 		position: 'absolute',
-		top: this.canv.height/4,
-		left: 20,
-		height: 100,
-		width: 20,
-		backgroundColor : "black",
+		top: '10vw',
+		left: '1vw',
+		height: 'calc(20vw * 6 / 19)',
+		width: '1vw',
+		backgroundColor : "yellow",
 	} as const;
 	
 	ballStyle = {
 		position: 'absolute',
-		left: this.canv.width/2,
-		top: this.canv.height/4,
-		marginTop: 200,
-		height: 20,
-		width: 20,
+		left: ballDLeft,
+		top: ballDTop,
+		height: '1vw',
+		width: '1vw',
 		display: "block",
 		backgroundColor: "yellow",
 		borderRadius: "100%",
@@ -71,12 +72,12 @@ class Pong extends React.Component <any, any>{
 			player: 0, 
 			opponent: 0,
 	
-			ball: this.canv.width/2 + this.canv.height/4,
-			ballSpeed: 2,
-			deltaY: -1,
-			deltaX: -1,
+			ball: 0,
+			ballSpeed: 1000/60,
+			deltaY: -0.2,
+			deltaX: -0.2,
 	
-			pause: true,
+			pause: false,
 	
 			opponentSpeed: 5,
 			opponentStep: 2,
@@ -88,74 +89,80 @@ class Pong extends React.Component <any, any>{
 	}
 
 	resetGame = () => {
-		this.ballStyle = {...this.ballStyle, top: this.canv.height/4}
-		this.ballStyle = {...this.ballStyle, left: this.canv.width/2}
+		this.ballStyle = {...this.ballStyle, top: '15vw'}
+		this.ballStyle = {...this.ballStyle, left:  '33vw'}
 		this.setState({ball: this.ballStyle})
 	}
 
 	touchingEdge = (pos: number) => {
-		if(pos <= 200 || pos >= this.canv.height + 100)
-			return true
+		let y = parseFloat(this.ballStyle.top) + this.state.deltaY + 'vw';
+		// if(pos <= 200 || pos >= this.canv.height + 100)
+			// return true
 		return false
 	}
 
 	ballTouchingHorEdge = (pos: number) => {
-		const nextPosY = this.ballStyle.top + pos;
+		// const nextPosY = this.ballStyle.top + pos;
 
-		if((nextPosY <= -200) || (nextPosY >= this.canv.height - 220))
-			return true
+		// if((nextPosY <= -200) || (nextPosY >= this.canv.height - 220))
+			// return true
 		return false
 	}
 
 	ballTouchPaddle = () => {
-		const nextPosX = this.ballStyle.left + this.state.deltaX;
-		const nextPosY = this.ballStyle.top + this.state.deltaY;
+		// const nextPosX = this.ballStyle.left + this.state.deltaX;
+		// const nextPosY = this.ballStyle.top + this.state.deltaY;
 
-		if((nextPosX === this.playerStyle.left + 20) && (nextPosY >= this.playerStyle.top -225 && nextPosY <= this.playerStyle.top - 115))
-			return true
-		if((nextPosX === this.opponentStyle.left - 20) && (nextPosY >= this.opponentStyle.top - 225 && nextPosY <= this.opponentStyle.top -115))
-			return true
+		// if((nextPosX === this.playerStyle.left + 20) && (nextPosY >= this.playerStyle.top -225 && nextPosY <= this.playerStyle.top - 115))
+		// 	return true
+		// if((nextPosX === this.opponentStyle.left - 20) && (nextPosY >= this.opponentStyle.top - 225 && nextPosY <= this.opponentStyle.top -115))
+			// return true
 		return false
 	}
 
 	moveBoard = (pos: number) => {
 		
-		if(!this.touchingEdge(pos))
-			this.playerStyle = {...this.playerStyle, top: pos - 200}
-		return this.playerStyle.top
+		// if(!this.touchingEdge(pos))
+		// 	this.playerStyle = {...this.playerStyle, top: pos - 200}
+		// return this.playerStyle.top
 	}
 
 	playerMove = ({keyCode}: any) => {
 		switch (keyCode) {
             case PAUSE:
-                this.setState({pause: true})
+                this.setState({pause: false})
                 break;
         }
 	}
 
 	isScore = () => {
-		if(this.ballStyle.left <= 10 || this.ballStyle.left >= this.canv.width - 20)
-			return true
+		// if(this.ballStyle.left <= 10 || this.ballStyle.left >= this.canv.width - 20)
+			// return true
 		return false
 	}
 
 	bounceBall = () => {
+		// console.log(parseInt(this.ballStyle.top))
 		if(this.ballTouchPaddle())
 		{
 			this.setState({deltaX: -this.state.deltaX});
-			this.ballStyle = {...this.ballStyle, left: this.ballStyle.left - this.state.deltaX}
+			// this.ballStyle = {...this.ballStyle, left: this.ballStyle.left - this.state.deltaX}
 		}
 		if(this.ballTouchingHorEdge(this.state.deltaY))
 		{
 			this.setState({deltaY: -this.state.deltaY});
-			this.ballStyle = {...this.ballStyle, top: this.ballStyle.top - this.state.deltaY}
+			// this.ballStyle = {...this.ballStyle, top: this.ballStyle.top - this.state.deltaY}
 		}
 		if (!(this.ballTouchPaddle()) && !(this.ballTouchingHorEdge(this.state.deltaY)))
 		{
-			this.ballStyle = {...this.ballStyle, top: this.ballStyle.top + this.state.deltaY}
-			this.ballStyle = {...this.ballStyle, left: this.ballStyle.left + this.state.deltaX}
-		}
 
+			let y = parseFloat(this.ballStyle.top) + this.state.deltaY + 'vw';
+			let x = parseFloat(this.ballStyle.left) + this.state.deltaX + 'vw';
+			
+			this.ballStyle = {...this.ballStyle, top: y}
+			this.ballStyle = {...this.ballStyle, left: x}
+		}
+		
 		this.setState({ball: this.ballStyle})
 
 		if(this.isScore()){
@@ -168,13 +175,15 @@ class Pong extends React.Component <any, any>{
 	}
 
 	moveOpponent = () => {
-		if((this.opponentStyle.top + this.state.opponentStep <= 10) || (this.opponentStyle.top + this.state.opponentStep >= this.canv.height - 130))
-			this.setState({opponentStep: -this.state.opponentStep});
-		this.opponentStyle = {...this.opponentStyle, top: this.opponentStyle.top + this.state.opponentStep}
-		this.setState({opponent: this.opponentStyle.top})
+		// if((this.opponentStyle.top + this.state.opponentStep <= 10) || (this.opponentStyle.top + this.state.opponentStep >= this.canv.height - 130))
+		// 	this.setState({opponentStep: -this.state.opponentStep});
+		// this.opponentStyle = {...this.opponentStyle, top: this.opponentStyle.top + this.state.opponentStep}
+		// this.setState({opponent: this.opponentStyle.top})
     }
 
 	componentDidMount() {
+
+		
 
 		setInterval(() => {
             if (!this.state.pause)
@@ -225,14 +234,14 @@ class Pong extends React.Component <any, any>{
 	render() {
 		return (
 			<div style={ this.canv }>
-				<div style={{position:'absolute'}}>Player Score: {this.state.playerScore}</div>
+				{/* <div style={{position:'absolute'}}>Player Score: {this.state.playerScore}</div>
 				<div style={{position:'absolute', marginTop: 20}}>AI Score: {this.state.opponentScore}</div>
-				<div style={this.getStyle(OPPONENT)}></div>
-				<div style={this.getStyle(PLAYER)}></div>
-				<div style={this.getStyle(BALL)}></div>
 				<button style={{position:'absolute', backgroundColor:'red', marginTop:this.canv.height + 10, marginLeft:'45%'}} onClick={this.changeColor("red")}>R</button>
 				<button style={{position:'absolute', backgroundColor:'green', marginTop:this.canv.height + 10, marginLeft:'50%'}} onClick={this.changeColor('green')}>G</button>
-				<button style={{position:'absolute', backgroundColor:'blue', marginTop:this.canv.height + 10, marginLeft:'55%'}} onClick={this.changeColor('blue')}>B</button>
+				<button style={{position:'absolute', backgroundColor:'blue', marginTop:this.canv.height + 10, marginLeft:'55%'}} onClick={this.changeColor('blue')}>B</button> */}
+				<div style={this.getStyle(PLAYER)}></div>
+				<div style={this.getStyle(OPPONENT)}></div>
+				<div style={this.getStyle(BALL)}></div>
 			</div>
 			
 		)

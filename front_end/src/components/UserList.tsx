@@ -11,8 +11,10 @@ import MenuItem from "@mui/material/MenuItem"
 import Toolbar from "@mui/material/Toolbar"
 import Typography from "@mui/material/Typography"
 import CircleIcon from '@mui/icons-material/Circle';
+import PendingIcon from '@mui/icons-material/Pending';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import MoreVertIcon from "@mui/icons-material/MoreVert"
+import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import { UrlContext } from "../context/UrlContext"
 import { ListItemIcon } from "@mui/material"
 import { Status } from "../enum/status"
@@ -20,6 +22,8 @@ import { useNavigate } from "react-router-dom"
 import { Socket } from "socket.io-client"
 import { ChatContext } from "../context/ChatContext"
 import { UserContext } from "../context/UserContext"
+import { GameContext } from "../context/GameContext"
+import PendingInvite from "./PendingInvite"
 
 const drawerWidth = 360
 
@@ -28,11 +32,19 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const [me, setMe] = useState<any>(null)
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 	const [isAdmin, setIsAdmin] = useState(false)
+	const [invite, setInvite] = useState(false)
 	const [openEl, setOpenEl] = useState<null | string>(null)
 	const navigate = useNavigate()
 	const {context, setContext} = useContext(UserContext)
 	const baseUrl = useContext(UrlContext)
 	const socket = useContext(ChatContext)
+	const gameSocket = useContext(GameContext)
+
+	useEffect(() => {
+		gameSocket.on('refuse', (data: any) => {
+			setInvite(false)
+		})
+	}, [gameSocket])
 
 	useEffect(() => {
 		axios.get(baseUrl + `chat/${channel}/users`, {withCredentials: true}).then((response) => {
@@ -163,8 +175,36 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		handleClose()
 	}
 
+	const chooseIcon = (user: any) => {
+		if (user.status === Status.ONLINE) {
+			return <CircleIcon style={{color: "green"}} fontSize="small" />
+		}
+		else if (user.status === Status.OFFLINE) {
+			return <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />
+		}
+		else if (user.status === Status.GAME) {
+			return <VideogameAssetIcon style={{color: "yellow"}} fontSize="small" />
+		}
+		else if (user.status === Status.QUEUE) {
+			return <PendingIcon style={{color: "yellow"}} fontSize="small" />
+		}
+	}
+
+	const handleSpectate = (user: any) => () => {
+		gameSocket.emit('spectate', {name: user.name})
+		setTimeout(() => {navigate("/multi-spec")}, 500)
+		handleClose()
+	}
+
+	const handleInvite = (user: any) => () => {
+		gameSocket.emit('invite', {id: user.id})
+		setInvite(true)
+		handleClose()
+	}
+
 	return (
 		<>
+		<PendingInvite open={invite} />
 		<Drawer
 			sx={{
 				width: drawerWidth,
@@ -186,7 +226,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 								<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
 								<ListItemText primary={user.name} style={{padding: 10}} />
 								<ListItemIcon>
-									{(user.status === Status.ONLINE) ? <CircleIcon style={{color: "green"}} fontSize="small" /> : <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />}
+									{chooseIcon(user)}
 								</ListItemIcon>
 								<IconButton
 									id="long-button"
@@ -200,7 +240,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 									open={openEl === user.name}
 									onClose={handleClose}
 								>
-									{isAdmin &&
+									{(isAdmin && user.id != me.id) &&
 									[<MenuItem onClick={makeAdmin(user)} key={0}>
 										<Typography>
 											Make admin
@@ -226,12 +266,12 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 											Ban permanently
 										</Typography>
 									</MenuItem>]}
-									{!me?.blocked.includes(user.id) && <MenuItem onClick={handleBlock(user)} key={5}>
+									{(!me?.blocked.includes(user.id) && user.id != me.id) && <MenuItem onClick={handleBlock(user)} key={5}>
 										<Typography>
 											Block user
 										</Typography>
 									</MenuItem>}
-									{(!me?.friends.includes(user.id) && !me?.blocked.includes(user.id)) && <MenuItem onClick={handleFriend(user)} key={6}>
+									{(!me?.friends.includes(user.id) && !me?.blocked.includes(user.id) && user.id != me.id) && <MenuItem onClick={handleFriend(user)} key={6}>
 										<Typography>
 											Add friend
 										</Typography>
@@ -241,11 +281,16 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 											View profile
 										</Typography>
 									</MenuItem>
-									<MenuItem key={8}>
+									{(user.status === Status.ONLINE && user.id != me.id) && <MenuItem key={8} onClick={handleInvite(user)}>
 										<Typography>
 											Invite to play
 										</Typography>
-									</MenuItem>
+									</MenuItem>}
+									{(user.status === Status.GAME && user.id != me.id) && <MenuItem key={9} onClick={handleSpectate(user)}>
+										<Typography>
+											Spectate
+										</Typography>
+									</MenuItem>}
 								</Menu>
 							</ListItem>
 							<hr />
