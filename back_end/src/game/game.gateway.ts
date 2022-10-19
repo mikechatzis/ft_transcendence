@@ -2,7 +2,7 @@ import { JwtService } from "@nestjs/jwt";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { throws } from "assert";
 import { emit } from "process";
-import { Status } from "src/user/enums/status.enum";
+import { Status } from "../user/enums/status.enum";
 import { GameService } from "./game.service";
 
 @WebSocketGateway({

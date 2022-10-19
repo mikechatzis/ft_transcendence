@@ -7,11 +7,13 @@ const OPPONENT = 0;
 const PLAYER = 1;
 const BALL = 2;
 
-const PLAYER_UP   = 38
-const PLAYER_DOWN = 40
-const PAUSE       = 32
-
 let defaultColor = 'grey'
+
+let ballDTop = '15vw';
+let ballDLeft = '33vw';
+
+let PLAYER_TOP1 = '10vw'
+let PLAYER_TOP2 = '10vw'
 
 class MultiPong extends React.Component <any, any>{
 	constructor(props: any){
@@ -23,8 +25,8 @@ class MultiPong extends React.Component <any, any>{
 
 	canv = {
 		position: 'relative',
-		height: 700,
-		width: 1400,
+		width: '70vw',
+		height: 'calc(100vw * 6 / 19)',
 		backgroundColor: defaultColor,
 		margin: 'auto',
 		marginTop: 50,
@@ -33,29 +35,28 @@ class MultiPong extends React.Component <any, any>{
 	
 	opponentStyle = {
 		position: 'absolute',
-		left: this.canv.width - 40,
-		top: this.canv.height/4,
-		height: 100,
-		width: 20,
+		top: PLAYER_TOP2,
+		left: '68vw',
+		height: 'calc(20vw * 6 / 19)',
+		width: '1vw',
 		backgroundColor : "black",
 	} as const;
 	
 	playerStyle = {
 		position: 'absolute',
-		top: this.canv.height/4,
-		left: 20,
-		height: 100,
-		width: 20,
+		top: PLAYER_TOP1,
+		left: '1vw',
+		height: 'calc(20vw * 6 / 19)',
+		width: '1vw',
 		backgroundColor : "black",
 	} as const;
 	
 	ballStyle = {
 		position: 'absolute',
-		left: this.canv.width/2,
-		top: this.canv.height/4,
-		marginTop: 200,
-		height: 20,
-		width: 20,
+		left: ballDLeft,
+		top: ballDTop,
+		height: '1vw',
+		width: '1vw',
 		display: "block",
 		backgroundColor: "yellow",
 		borderRadius: "100%",
@@ -63,24 +64,23 @@ class MultiPong extends React.Component <any, any>{
 	} as const;
 
 	moveEvent = (event: any) => {
-		let mousey = event.clientY;
-		if (mousey <= 175) {
-			mousey = 175
+		let mousey = event.clientY / window.innerHeight * 100 - 25;
+		console.log(mousey)
+		if (mousey <= 1) {
+			mousey = 1
 		}
-		else if (mousey >= 775) {
-			mousey = 775
+		else if (mousey >= 24) {
+			mousey = 24
 		}
-		this.socket?.emit('position', {pos: mousey, room: this.state.room})
-		// const movedPlayer = this.moveBoard(mousey);
-		// this.setState({player: movedPlayer, pause: false})
-		// this.setState({})
+		let newPos = mousey + 'vw';
+		this.socket?.emit('position', {pos: newPos, room: this.state.room})
 	}
 	
 	getStyle = (val: number) => {
 		if(val === OPPONENT)
-		return this.opponentStyle;
+			return this.opponentStyle;
 		else if (val === PLAYER)
-		return this.playerStyle;
+			return this.playerStyle;
 		return this.ballStyle;
 	}
 	
@@ -89,8 +89,8 @@ class MultiPong extends React.Component <any, any>{
 			player: 0, 
 			opponent: 0,
 			
-			ball: this.canv.width/2 + this.canv.height/4,
-			ballSpeed: 2,
+			ball: 0,
+			ballSpeed: 1000/60,
 			deltaY: -1,
 			deltaX: -1,
 			
@@ -109,98 +109,10 @@ class MultiPong extends React.Component <any, any>{
 			finished: false
 		}
 	}
-	
-	resetGame = () => {
-		this.ballStyle = {...this.ballStyle, top: this.canv.height/4}
-		this.ballStyle = {...this.ballStyle, left: this.canv.width/2}
-		this.setState({ball: this.ballStyle})
-	}
-	
-	touchingEdge = (pos: number) => {
-		if(pos <= 200 || pos >= this.canv.height + 100)
-		return true
-		return false
-	}
-	
-	ballTouchingHorEdge = (pos: number) => {
-		const nextPosY = this.ballStyle.top + pos;
-		
-		if((nextPosY <= -200) || (nextPosY >= this.canv.height - 220))
-		return true
-		return false
-	}
-	
-	ballTouchPaddle = () => {
-		const nextPosX = this.ballStyle.left + this.state.deltaX;
-		const nextPosY = this.ballStyle.top + this.state.deltaY;
-		
-		if((nextPosX === this.playerStyle.left + 20) && (nextPosY >= this.playerStyle.top -225 && nextPosY <= this.playerStyle.top - 115))
-		return true
-		if((nextPosX === this.opponentStyle.left - 20) && (nextPosY >= this.opponentStyle.top - 225 && nextPosY <= this.opponentStyle.top -115))
-		return true
-		return false
-	}
-	
-	moveBoard = (pos: number) => {
-		
-		if(!this.touchingEdge(pos))
-		this.playerStyle = {...this.playerStyle, top: pos - 200}
-		return this.playerStyle.top
-	}
-	
-	playerMove = ({keyCode}: any) => {
-		switch (keyCode) {
-		case PAUSE:
-			this.setState({pause: true})
-			break;
-		}
-	}
-		
-	isScore = () => {
-		if(this.ballStyle.left <= 10 || this.ballStyle.left >= this.canv.width - 20)
-		return true
-		return false
-	}
-	
-	bounceBall = () => {
-		if(this.ballTouchPaddle())
-		{
-			this.setState({deltaX: -this.state.deltaX});
-			this.ballStyle = {...this.ballStyle, left: this.ballStyle.left - this.state.deltaX}
-		}
-		if(this.ballTouchingHorEdge(this.state.deltaY))
-		{
-			this.setState({deltaY: -this.state.deltaY});
-			this.ballStyle = {...this.ballStyle, top: this.ballStyle.top - this.state.deltaY}
-		}
-		if (!(this.ballTouchPaddle()) && !(this.ballTouchingHorEdge(this.state.deltaY)))
-		{
-			this.ballStyle = {...this.ballStyle, top: this.ballStyle.top + this.state.deltaY}
-			this.ballStyle = {...this.ballStyle, left: this.ballStyle.left + this.state.deltaX}
-		}
-		
-		this.setState({ball: this.ballStyle})
-		
-		if(this.isScore()){
-			if(this.state.deltaX === -1)
-			this.setState({opponentScore: this.state.opponentScore+1})
-			else
-			this.setState({playerScore: this.state.playerScore+1})
-			this.resetGame();
-		}
-	}
-	
-	moveOpponent = () => {
-		if((this.opponentStyle.top + this.state.opponentStep <= 10) || (this.opponentStyle.top + this.state.opponentStep >= this.canv.height - 130))
-		this.setState({opponentStep: -this.state.opponentStep});
-		this.opponentStyle = {...this.opponentStyle, top: this.opponentStyle.top + this.state.opponentStep}
-		this.setState({opponent: this.opponentStyle.top})
-	}
-	
+
 	moveElements = (data: any) => {
-		
-		this.playerStyle = {...this.playerStyle, top: data.player1Pos - 175}
-		this.opponentStyle = {...this.opponentStyle, top: data.player2Pos - 175}
+		this.playerStyle = {...this.playerStyle, top: data.player1Pos }
+		this.opponentStyle = {...this.opponentStyle, top: data.player2Pos}
 		this.ballStyle = {...this.ballStyle, top: data.ballPos.top, left: data.ballPos.left}
 		this.setState({player: this.playerStyle, opponent: this.opponentStyle})
 	}
@@ -212,7 +124,6 @@ class MultiPong extends React.Component <any, any>{
 		this.socket?.on('data', ({data}: any) => {
 			this.moveElements(data)
 			this.setState({p1name: data.player1, p2name: data.player2, playerScore: data.p1Score, opponentScore: data.p2Score, room: data.room})
-			// this.bounceBall()
 		})
 
 		this.socket?.on('end', () => {
@@ -226,20 +137,8 @@ class MultiPong extends React.Component <any, any>{
 				this.setState({finished: true})
 				window.removeEventListener("mousemove", this.moveEvent)
 			}
-		})
-		
-		// setInterval(() => {
-		// 	// console.log('yup')
-		// 		this.bounceBall();
-		// }, this.state.ballSpeed);
-		
-		// setInterval(() => {
-			//     if (!this.state.pause)
-			//        this.moveOpponent();
-			// }, this.state.opponentSpeed);
-			
+		})	
 		setTimeout(() => {window.addEventListener("mousemove", this.moveEvent)}, 500)
-		// document.onkeydown = this.playerMove;
 	}
 		
 	changeColor = (color: string) => () => {
@@ -271,14 +170,14 @@ class MultiPong extends React.Component <any, any>{
 		return (
 			<div style={ this.canv }>
 				{this.state.finished && <Navigate to="/selectgamemode" replace={true} />}
-				<div style={{position:'absolute'}}>{`${this.state.p1name} Score: ${this.state.playerScore}`}</div>
-				<div style={{position:'absolute', marginTop: 20}}>{`${this.state.p2name} Score: ${this.state.opponentScore}`}</div>
+				<div style={{position:'absolute', marginLeft: 10}}>{`${this.state.p1name} Score: ${this.state.playerScore}`}</div>
+				<div style={{position:'absolute', marginTop: 20, marginLeft: 10}}>{`${this.state.p2name} Score: ${this.state.opponentScore}`}</div>
 				<div style={this.getStyle(OPPONENT)}></div>
 				<div style={this.getStyle(PLAYER)}></div>
 				<div style={this.getStyle(BALL)}></div>
-				<button style={{position:'absolute', backgroundColor:'red', marginTop:this.canv.height + 10, marginLeft:'45%'}} onClick={this.changeColor("red")}>R</button>
-				<button style={{position:'absolute', backgroundColor:'green', marginTop:this.canv.height + 10, marginLeft:'50%'}} onClick={this.changeColor('green')}>G</button>
-				<button style={{position:'absolute', backgroundColor:'blue', marginTop:this.canv.height + 10, marginLeft:'55%'}} onClick={this.changeColor('blue')}>B</button>
+				<button style={{position:'absolute', backgroundColor:'red', marginTop:this.canv.height, marginLeft:'45%'}} onClick={this.changeColor("red")}>R</button>
+				<button style={{position:'absolute', backgroundColor:'green', marginTop:this.canv.height, marginLeft:'50%'}} onClick={this.changeColor('green')}>G</button>
+				<button style={{position:'absolute', backgroundColor:'blue', marginTop:this.canv.height, marginLeft:'55%'}} onClick={this.changeColor('blue')}>B</button>
 			</div>
 		)
 	}

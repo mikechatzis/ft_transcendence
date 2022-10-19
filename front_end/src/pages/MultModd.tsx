@@ -4,8 +4,6 @@ const OPPONENT = 0;
 const PLAYER = 1;
 const BALL = 2;
 
-// const PLAYER_UP   = 38
-// const PLAYER_DOWN = 40
 const PAUSE       = 32
 
 let defaultColor = 'grey'
