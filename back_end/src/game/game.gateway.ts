@@ -27,14 +27,22 @@ export class GameGateway {
 			if (!player) {
 				socket.disconnect()
 			}
+			await global.prisma.user.update({
+				where: {
+					id: player.sub
+				},
+				data: {
+					status: Status.ONLINE
+				}
+			})
 		}
 		catch (e) {
 			socket.disconnect()
 		}
 
-		socket.on('disconnect', () => {
+		socket.on('disconnect', async () => {
 			const player = this.gameService.authAndExtract(socket)
-			this.gameService.handleDisconnect(player, socket, this.server)
+			await this.gameService.handleDisconnect(player, socket, this.server)
 			console.log("user disconnected from game socket")
 		})
 	}
@@ -78,6 +86,46 @@ export class GameGateway {
 		socket.join(room)
 	}
 
+	@SubscribeMessage('invite-mod')
+	async inviteMod(socket, data) {
+		const sockets = await this.server.fetchSockets()
+
+		let i = 0;
+		for (i = 0; i < sockets.length; i++) {
+			const decrypt = await this.gameService.authAndExtract(sockets[i])
+			if (decrypt.id === data.id || decrypt.sub === data.id) {
+				break ;
+			}
+		}
+
+		if (i < sockets.length) {
+			const token_decrypt = await this.gameService.authAndExtract(socket)
+
+			let userId = token_decrypt['sub']
+
+			if (!userId) {
+				userId = token_decrypt['id']
+			}
+
+			const userData = await global.prisma.user.findUnique({
+				where: {
+					id: userId
+				}
+			})
+
+			await global.prisma.user.update({
+				where: {
+					id: userId
+				},
+				data: {
+					status: Status.QUEUE
+				}
+			})
+
+			this.server.to(sockets[i].id).emit('invite-mod', {user: userData.name, id: userData.id})
+		}
+	}
+
 	@SubscribeMessage('invite')
 	async invite(socket, data) {
 		const sockets = await this.server.fetchSockets()
@@ -115,6 +163,55 @@ export class GameGateway {
 			})
 
 			this.server.to(sockets[i].id).emit('invite', {user: userData.name, id: userData.id})
+		}
+	}
+
+	@SubscribeMessage('invite-response-mod')
+	async inviteResponseMod(socket, data) {
+		const sockets = await this.server.fetchSockets()
+
+		let i = 0;
+		for (i = 0; i < sockets.length; i++) {
+			const decrypt = await this.gameService.authAndExtract(sockets[i])
+			if (decrypt.id === data.id || decrypt.sub === data.id) {
+				break ;
+			}
+		}
+
+		if (i < sockets.length) {
+			const token_decrypt = await this.gameService.authAndExtract(socket)
+
+			let userId = token_decrypt['sub']
+
+			if (!userId) {
+				userId = token_decrypt['id']
+			}
+
+			const userData = await global.prisma.user.findUnique({
+				where: {
+					id: userId
+				}
+			})
+
+			if (!data.accept) {
+				const other = await this.gameService.authAndExtract(sockets[i])
+				let otherId = other.sub
+				if (!otherId) {
+					otherId = other.id
+				}
+				await global.prisma.user.update({
+					where: {
+						id: otherId
+					},
+					data: {
+						status: Status.ONLINE
+					}
+				})
+				this.server.to(sockets[i].id).emit('refuse-mod')
+			}
+			else {
+				await this.gameService.createCustomRoomMod(socket, sockets[i], this.server)
+			}
 		}
 	}
 

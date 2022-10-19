@@ -33,6 +33,7 @@ import { Status } from "../enum/status"
 import { GameContext } from '../context/GameContext'
 import GameInvite from './GameInvite'
 import PendingInvite from './PendingInvite'
+import GameInviteMod from './GameInviteMod'
 
 const drawerWidth = 360
 
@@ -47,6 +48,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	const [friends, setFriends] = useState<any[]>([])
 	const [friendsOpen, setFriendsOpen] = useState(false)
 	const [invite, setInvite] = useState(false)
+	const [modInvite, setModInvite] = useState(false)
 	const [sentInvite, setSentInvite] = useState(false)
 	const [challenger, setChallenger] = useState('')
 	const [challengerId, setChallengerId] = useState(-1)
@@ -78,11 +80,25 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 			setChallengerId(data.id)
 		})
 
+		gameSocket.on('invite-mod', (data: any) => {
+			setModInvite(true)
+			setChallenger(data.user)
+			setChallengerId(data.id)
+		})
+
 		gameSocket.on('invite-start', () => {
 			setSentInvite(false)
 		})
 
+		gameSocket.on('invite-start-mod', () => {
+			setSentInvite(false)
+		})
+
 		gameSocket.on('refuse', (data: any) => {
+			setSentInvite(false)
+		})
+
+		gameSocket.on('refuse-mod', (data: any) => {
 			setSentInvite(false)
 		})
 	}, [gameSocket])
@@ -133,6 +149,20 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 		setFriendsOpen(false)
 	}
 
+	const handleInviteMod = (user: any) => () => {
+		gameSocket.emit('invite-mod', {id: user?.id})
+		setSentInvite(true)
+		handleSmallClose()
+		setFriendsOpen(false)
+	}
+
+	const handleSpectate = (user: any) => () => {
+		gameSocket.emit('spectate', {name: user.name})
+		setTimeout(() => {navigate("/multi-spec")}, 500)
+		handleSmallClose()
+		setFriendsOpen(false)
+	}
+
 	const chooseIcon = (user: any) => {
 		if (user.status === Status.ONLINE) {
 			return <CircleIcon style={{color: "green"}} fontSize="small" />
@@ -151,6 +181,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	return (
 		<Box sx={{flexGrow: 1}}>
 			<PendingInvite open={sentInvite} />
+			<GameInviteMod open={modInvite} user={challenger} id={challengerId} handleClose={() => setModInvite(false)} />
 			<GameInvite open={invite} user={challenger} id={challengerId} handleClose={() => setInvite(false)} />
 			<AppBar position="relative" style={{
 				zIndex: theme.zIndex.drawer + 1
@@ -252,6 +283,16 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 													{user.status === Status.ONLINE && <MenuItem>
 														<Typography onClick={handleInvite(user)}>
 															Invite to play
+														</Typography>
+													</MenuItem>}
+													{user.status === Status.ONLINE && <MenuItem>
+														<Typography onClick={handleInviteMod(user)}>
+															Invite to play reverse pong
+														</Typography>
+													</MenuItem>}
+													{user.status === Status.GAME && <MenuItem>
+														<Typography onClick={handleSpectate(user)}>
+															Spectate
 														</Typography>
 													</MenuItem>}
 												</Menu>

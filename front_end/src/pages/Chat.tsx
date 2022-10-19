@@ -19,6 +19,7 @@ import UserList from "../components/UserList"
 import { UrlContext } from "../context/UrlContext"
 import axios from "axios"
 import { UserContext } from "../context/UserContext"
+import { RerenderContext } from "../context/RerenderContext"
 
 const Chat: React.FC = () => {
 	const enterKeyCode = 13
@@ -31,6 +32,7 @@ const Chat: React.FC = () => {
 	const socket = useContext(ChatContext)
 	const baseUrl = useContext(UrlContext)
 	const {context, setContext} = useContext(UserContext)
+	const {rerender, setRerender} = useContext(RerenderContext)
 	const channel = useParams()
 	const navigate = useNavigate()
 
@@ -44,7 +46,8 @@ const Chat: React.FC = () => {
 				navigate("/login")
 			}
 		})
-	}, [baseUrl])
+		console.log('rerenders')
+	}, [baseUrl, rerender])
 
 	useEffect(() => {
 		socket.on('message', ({data, room, user}: any) => {

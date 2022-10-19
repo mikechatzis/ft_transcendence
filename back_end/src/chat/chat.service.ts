@@ -312,14 +312,17 @@ export class ChatService {
 	}
 
 	async setUserStatus(userId: number, userStatus: number) {
-		const user = await global.prisma.user.update({
-			where: {
-				id: userId
-			},
-			data: {
-				status: userStatus
-			}
-		})
+		try {
+			const user = await global.prisma.user.update({
+				where: {
+					id: userId
+				},
+				data: {
+					status: userStatus
+				}
+			})
+		}
+		catch (e) {}
 	}
 
 	authAndExtract(socket) {

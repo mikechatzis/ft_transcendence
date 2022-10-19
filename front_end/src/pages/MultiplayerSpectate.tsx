@@ -154,9 +154,9 @@ class MultiSpectate extends React.Component <any, any>{
 				<div style={this.getStyle(OPPONENT)}></div>
 				<div style={this.getStyle(PLAYER)}></div>
 				<div style={this.getStyle(BALL)}></div>
-				<button className='redButton' onClick={this.changeColor("red")}>R</button>
-				<button className='greenButton' onClick={this.changeColor('green')}>G</button>
-				<button className='blueButton' onClick={this.changeColor('blue')}>B</button>
+				<button className='redButton' onClick={this.changeColor("red")} />
+				<button className='greenButton' onClick={this.changeColor('green')} />
+				<button className='blueButton' onClick={this.changeColor('blue')} />
 			</div>
 		)
 	}
