@@ -3,6 +3,8 @@ import React, { useContext } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom';
 import { GameContext } from '../context/GameContext';
 
+import './styles/styles.css'
+
 const OPPONENT = 0;
 const PLAYER = 1;
 const BALL = 2;
@@ -32,7 +34,7 @@ class MultiPong extends React.Component <any, any>{
 		marginTop: 50,
 		border: '1px solid white'
 	} as const;
-	
+
 	opponentStyle = {
 		position: 'absolute',
 		top: PLAYER_TOP2,
@@ -41,7 +43,7 @@ class MultiPong extends React.Component <any, any>{
 		width: '1vw',
 		backgroundColor : "black",
 	} as const;
-	
+
 	playerStyle = {
 		position: 'absolute',
 		top: PLAYER_TOP1,
@@ -50,7 +52,7 @@ class MultiPong extends React.Component <any, any>{
 		width: '1vw',
 		backgroundColor : "black",
 	} as const;
-	
+
 	ballStyle = {
 		position: 'absolute',
 		left: ballDLeft,
@@ -175,14 +177,14 @@ class MultiPong extends React.Component <any, any>{
 				<div style={this.getStyle(OPPONENT)}></div>
 				<div style={this.getStyle(PLAYER)}></div>
 				<div style={this.getStyle(BALL)}></div>
-				<button style={{position:'absolute', backgroundColor:'red', marginTop:this.canv.height, marginLeft:'45%'}} onClick={this.changeColor("red")}>R</button>
-				<button style={{position:'absolute', backgroundColor:'green', marginTop:this.canv.height, marginLeft:'50%'}} onClick={this.changeColor('green')}>G</button>
-				<button style={{position:'absolute', backgroundColor:'blue', marginTop:this.canv.height, marginLeft:'55%'}} onClick={this.changeColor('blue')}>B</button>
+				<button className='redButton' onClick={this.changeColor("red")}></button>
+				<button className='greenButton' onClick={this.changeColor('green')}></button>
+				<button className='blueButton' onClick={this.changeColor('blue')}></button>
 			</div>
 		)
 	}
 }
 
-	MultiPong.contextType = GameContext
-	
-	export default MultiPong
+MultiPong.contextType = GameContext
+
+export default MultiPong
