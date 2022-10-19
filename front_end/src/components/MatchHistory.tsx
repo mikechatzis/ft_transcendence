@@ -62,20 +62,25 @@ const MatchHistory = () => {
 			})
 		}
 	}
+
+	function makeArray() {
+		if (user) {
+			for (let i = 0; i < opponents.length; i++) {
+				if (user?.matchHistory[i]?.date)
+					rows.push(singleRow(rowsId++, opponents[i]?.name, new Date(user?.matchHistory[i]?.date).toLocaleString(), user?.matchHistory[i]?.winner == user?.id ? "victory" : "defeat"))
+			}
+			if (rows.length > 1) {
+				rows.shift()
+			}
+			rows.reverse()
+		}
+	 }
 	
 	useEffect(getName, [baseUrl, navigate])
 	useEffect(getOpponent, [baseUrl, navigate, user])
-	if (user) {
-		for (let i = 0; i < opponents.length; i++) {
-			if (user?.matchHistory[i]?.date)
-				rows.push(singleRow(rowsId++, opponents[i]?.name, new Date(user?.matchHistory[i]?.date).toLocaleString(), user?.matchHistory[i]?.winner == user?.id ? "victory" : "defeat"))
-		}
-		if (rows.length > 1) {
-			rows.shift()
-		}
-		rows.reverse()
-	}
+	makeArray()
 	
+
 
 
 	const columns: GridColDef[] = [{

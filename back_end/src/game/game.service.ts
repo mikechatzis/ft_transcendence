@@ -17,6 +17,28 @@ let BALL_TOP = '15vw'
 let PLAYER_TOP1 = '10vw'
 let PLAYER_TOP2 = '10vw'
 
+function setRank(score: number){
+	if (score < 0)
+		throw "score cannot be negative"
+	switch (true) {
+		case score <= 1000: {
+			return "hatchling"
+		}
+		case score <= 2000: {
+			return "tadpole"
+		}
+		case score <= 3000: {
+			return "lake strider"
+		}
+		case score <= 4000: {
+			return "frog"
+		}
+		case score > 4000: {
+			return "bull frog"
+		}
+	}
+}
+
 @Injectable()
 export class GameService {
 	constructor(private jwt: JwtService, private config: ConfigService) {}
@@ -195,6 +217,7 @@ export class GameService {
 					}
 				})
 				const winnerId = p1.name === room.winner ? p1.id : p2.id
+				console.log(p1.score, p2.score)
 				await global.prisma.user.update({
 					where: {
 						name: room.player1
@@ -205,10 +228,12 @@ export class GameService {
 								{opponentId: p2.id, winner: winnerId}
 							]
 						},
-						status: p1.name === room.winner ? Status.ONLINE : Status.OFFLINE
+						status: p1.name === room.winner ? Status.ONLINE : Status.OFFLINE,
+						score: p1.name === room.winner ? p1.score += 100 : p1.score -= 70,
+						rank: setRank(p1.score)
 					}
 				})
-	
+
 				await global.prisma.user.update({
 					where: {
 						name: room.player2
@@ -219,7 +244,9 @@ export class GameService {
 								{opponentId: p1.id, winner: winnerId}
 							]
 						},
-						status: p2.name === room.winner ? Status.ONLINE : Status.OFFLINE
+						status: p2.name === room.winner ? Status.ONLINE : Status.OFFLINE,
+						score: p2.name === room.winner ? p2.score += 100 : p2.score -= 70,
+						rank: setRank(p2.score)
 					}
 				})
 	
@@ -268,7 +295,7 @@ export class GameService {
 			else if (room.p2Score >= 15) {
 				winnerId = p2.id
 			}
-	
+			
 			await global.prisma.user.update({
 				where: {
 					name: room.player1
@@ -279,7 +306,9 @@ export class GameService {
 							{opponentId: p2.id, winner: winnerId}
 						]
 					},
-					status: Status.ONLINE
+					status: Status.ONLINE,
+					score: p1.name === room.winner ? p1.score += 100 : p1.score -= 70,
+					rank: setRank(p1.score)
 				}
 			})
 	
@@ -293,7 +322,9 @@ export class GameService {
 							{opponentId: p1.id, winner: winnerId}
 						]
 					},
-					status: Status.ONLINE
+					status: Status.ONLINE,
+					score: p2.name === room.winner ? p2.score += 100 : p2.score -= 70,
+					rank: setRank(p2.score)
 				}
 			})
 			const index = this.rooms.indexOf(room)

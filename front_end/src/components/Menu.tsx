@@ -203,7 +203,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 							gameSocket?.connect()
 						}}>Home</Button>
 						<Button color="inherit" onClick={() => {
-							navigate("/play")
+							navigate("/selectgamemode")
 							gameSocket?.disconnect()
 							gameSocket?.connect()
 						}}>Play</Button>
