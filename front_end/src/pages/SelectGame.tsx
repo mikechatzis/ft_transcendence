@@ -10,6 +10,9 @@ import { setSelectionRange } from '@testing-library/user-event/dist/utils';
 import { GameContext } from '../context/GameContext';
 import Queue from '../components/Queue';
 import { UserContext } from '../context/UserContext';
+import axios from 'axios';
+import { UrlContext } from '../context/UrlContext';
+import Notification from '../components/Notification';
 
 const images = [
 	{
@@ -93,21 +96,29 @@ const ImageButton = styled(ButtonBase)(({ theme }) => ({
 
 const SelectGame: React.FC = () => {
 	const [openQueue, setOpenQueue] = useState(false)
+	const [err, setErr] = useState<string | null>(null)
 	const navigate = useNavigate()
 	const {context, setContext} = useContext(UserContext)
 	const socket = useContext(GameContext)
+	const baseUrl = useContext(UrlContext)
 
 	useEffect(() => {
 		socket.on('start-def', () => {
 			setOpenQueue(false)
 			navigate("/multi-def")
 		})
+
+		socket.on('exception', (data) => {
+			setErr(data.message)
+			setTimeout(() => setErr(null), 5000)
+			setOpenQueue(false)
+		})
 	}, [])
 
 	useEffect(() => {
-		if (!context) {
+		axios.get(baseUrl + `auth/logged_in`).then(() => {}).catch(() => {
 			navigate("/login")
-		}
+		})
 	})
 
 	const openPage = (image: any) => {
@@ -122,7 +133,8 @@ const SelectGame: React.FC = () => {
 
 	return (
 		<div>
-			<Queue open={openQueue} />
+			<Notification message={err} />
+			<Queue open={openQueue} handleClose={() => setOpenQueue(false)} />
 			<Container>
 				<Box display="flex" justifyContent="center" alignItems="center" minHeight='15vh'>
 					<Typography variant="h3">Choose Gamemode</Typography>

@@ -286,12 +286,12 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 								View profile
 							</Typography>
 						</MenuItem>
-						{(user.status === Status.ONLINE) && <MenuItem key={8}>
+						{(user.status === Status.ONLINE) && <MenuItem key={8} onClick={handleInvite(user)}>
 							<Typography>
 								Invite to play
 							</Typography>
 						</MenuItem>}
-						{(user.status === Status.GAME) && <MenuItem key={9}>
+						{(user.status === Status.GAME) && <MenuItem key={9} onClick={handleSpectate(user)}>
 							<Typography>
 								Spectate
 							</Typography>
@@ -302,10 +302,6 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 			</Fragment>
 		)
 	}).sort()
-	// useEffect(() => {
-	// 	console.log(map!.at(0)?.key)
-	// }, [map])
-	// map!
 
 	return (
 		<>

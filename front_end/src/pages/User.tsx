@@ -23,7 +23,7 @@ const User: React.FC = () => {
 		axios.post(baseUrl + 'users/addFriend', {friend: friendUser.id}, {withCredentials: true}).then(() => {
 			setMessage(`user ${friendUser.name} added to your friendlist`) 
 		}).catch((error) => {
-				console.log(error) 
+				console.log(error)
 			})
 	}
 

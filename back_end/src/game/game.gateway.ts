@@ -13,27 +13,7 @@ import { GameService } from "./game.service";
 	}
 })
 export class GameGateway {
-	constructor(private jwt: JwtService, private gameService: GameService) {
-		// this.interval = setInterval(() => {
-		// 	this.state = this.gameService.bounceBall(this.state, this.interval)
-		// 	this.server.emit('data', {data: this.state})
-		// }, 2)
-	}
-
-	// interval = null
-
-	// state = {
-	// 	player1: null,
-	// 	player2: null,
-	// 	p1pos: null,
-	// 	p2pos: null,
-	// 	ballpos: {left: 700, top: 175},
-	// 	deltaX: -1,
-	// 	deltaY: -1,
-	// 	ballSpeed: 2,
-	// 	p1score: 0,
-	// 	p2score: 0
-	// }
+	constructor(private jwt: JwtService, private gameService: GameService) {}
 
 	@WebSocketServer()
 	server;
@@ -47,12 +27,6 @@ export class GameGateway {
 			if (!player) {
 				socket.disconnect()
 			}
-			// if (!this.state.player1) {
-			// 	this.state.player1 = player.name
-			// }
-			// else if (!this.state.player2 && player.name != this.state.player1) {
-			// 	this.state.player2 = player.name
-			// }
 		}
 		catch (e) {
 			socket.disconnect()
@@ -60,12 +34,6 @@ export class GameGateway {
 
 		socket.on('disconnect', () => {
 			const player = this.gameService.authAndExtract(socket)
-			// if (this.state.player1 === player.name) {
-			// 	this.state.player1 = null
-			// }
-			// else if (this.state.player2 === player.name) {
-			// 	this.state.player2 = null
-			// }
 			this.gameService.handleDisconnect(player, socket, this.server)
 			console.log("user disconnected from game socket")
 		})
@@ -73,27 +41,32 @@ export class GameGateway {
 
 	@SubscribeMessage('position')
 	async changePos(socket, data) {
-			const player = this.gameService.authAndExtract(socket)
-			if (!player) {
-				throw new WsException("fuck off")
-			}
+		const player = this.gameService.authAndExtract(socket)
+		if (!player) {
+			throw new WsException("fuck off")
+		}
 
-			this.gameService.updatePlayerPos(data, player)
-
-			// if (player.name === this.state.player1) {
-			// 	// this.state.p1pos = data.pos
-			// }
-			// else if (player.name === this.state.player2) {
-			// 	// this.state.p2pos = data.pos
-			// }
-
-			// this.server.emit('data', {data: this.state})
+		this.gameService.updatePlayerPos(data, player)
 	}
 
 	@SubscribeMessage('queue-def')
-	queuePlayer(socket) {
-		console.log(socket)
-		this.gameService.addToQueue(socket, this.server)
+	async queuePlayer(socket) {
+		try {
+			await this.gameService.addToQueue(socket, this.server)
+		}
+		catch (e) {
+			throw e
+		}
+	}
+
+	@SubscribeMessage('queue-mod')
+	async queuePlayerMod(socket) {
+		try {
+			await this.gameService.addToModQueue(socket, this.server)
+		}
+		catch(e) {
+			throw e
+		}
 	}
 
 	@SubscribeMessage('spectate')
