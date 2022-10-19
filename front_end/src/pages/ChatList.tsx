@@ -19,13 +19,13 @@ const ChatList: React.FC = () => {
 	const socket = useContext(ChatContext)
 	const [chatRooms, setChatRooms] = useState<object[]>([])
 	const [message, setMessage] = useState<string | null>(null)
-	const [rerender, setRerender] = useState(1)
+	const [rerender, setRerender] = useState(false)
 	const [userData, setUserData] = useState<any>(null)
 	const {context, setContext} = useContext(UserContext)
 	const navigate = useNavigate()
 
 	useEffect(() => {
-		axios.get(baseUrl + "chat/channels", {withCredentials: true}).then((response) => {
+		axios.get(baseUrl + `chat/channels?${Date.now()}`, {withCredentials: true}).then((response) => {
 			setChatRooms(response.data)
 		}).catch((error) => {
 			if (error.response.status === 401) {
@@ -37,6 +37,8 @@ const ChatList: React.FC = () => {
 			}
 		})
 	}, [rerender, baseUrl, navigate])
+	
+	setInterval(() => {setRerender(!rerender)}, 500)
 
 	useEffect(() => {
 		axios.get(baseUrl + "users/me", {withCredentials: true}).then((response) => {
@@ -95,19 +97,19 @@ const ChatList: React.FC = () => {
 		const handleLeave = () => {
 			axios.post(baseUrl + `chat/leave/${room.name}`, "", {withCredentials: true}).then(() => {
 				socket.emit('leave', {room: room.name})
-				setRerender(rerender + 1)
+				setRerender(!rerender)
 			}).catch(handleError)
 		}
 
 		const handleDelete = () => {
 			axios.post(baseUrl + `chat/delete/${room.name}`, "", {withCredentials: true}).then(() => {
 				socket.emit('delete', {room: room.name})
-				setRerender(rerender + 1)
+				setRerender(!rerender)
 			})
 		}
 
 		const handleChangePass = () => {
-			setRerender(rerender + 1)
+			setRerender(!rerender)
 		}
 
 		const isUserInRoom = userData?.channels.includes(room.name)
@@ -164,7 +166,7 @@ const ChatList: React.FC = () => {
 		if (values.password !== '') {
 			axios.post(baseUrl + "chat/new", {name: values.name, password: values.password}, {withCredentials: true}).then(() => {
 				// disgusting hack to retrieve the rooms without repeating code
-				setRerender(rerender + 1)
+				setRerender(!rerender)
 			}).catch((error) => {
 				if (error.response.status === 401) {
 					setContext?.(false)
@@ -182,7 +184,7 @@ const ChatList: React.FC = () => {
 		else {
 			// no password, send only name to avoid server-side error in validation
 			axios.post(baseUrl + "chat/new", {name: values.name}, {withCredentials: true}).then(() => {
-				setRerender(rerender + 1)
+				setRerender(!rerender)
 			}).catch((error) => {
 				if (error.response.status === 401) {
 					setContext?.(false)

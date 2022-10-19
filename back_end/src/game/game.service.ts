@@ -51,6 +51,64 @@ export class GameService {
 		return null
 	}
 
+	async createCustomRoomMod(p1: Socket, p2: Socket, server: Server) {
+		const user1 = this.authAndExtract(p1)
+		const user2 = this.authAndExtract(p2)
+		const roomUUID = uuidv4()
+		p1.join(roomUUID)
+		p2.join(roomUUID)
+
+		const room: Room = {
+			room: roomUUID,
+			player1: user1.name,
+			player2: user2.name,
+			ballPos: {left: BALL_LEFT, top: BALL_TOP},
+			player1Pos: PLAYER_TOP1,
+			player2Pos: PLAYER_TOP2,
+			deltaX: DELTA,
+			deltaY: DELTA,
+			p1Score: 0,
+			p2Score: 0,
+			winner: "",
+			interval: null
+		}
+
+		this.rooms.push(room)
+		server.to(room.room).emit('invite-start-mod')
+		await global.prisma.user.update({
+			where: {
+				name: room.player1
+			},
+			data: {
+				status: Status.GAME
+			}
+		})
+
+		await global.prisma.user.update({
+			where: {
+				name: room.player2
+			},
+			data: {
+				status: Status.GAME
+			}
+		})
+
+		room.interval = setInterval(() => {
+			let room_state = null
+			for (let i = 0; i < this.rooms.length; i++) {
+				if (this.rooms[i].room === room.room) {
+					room_state = this.rooms[i]
+				}
+			}
+			this.gameProcessMod(room.room)
+			server.to(room.room).emit('data', {data: room_state})
+			if (room.p1Score >= 15 || room.p2Score >= 15) {
+				clearInterval(room.interval)
+				this.handleEndGame(room_state, server)
+			}
+		}, BALL_SPEED)
+	}
+
 	async createCustomRoom(p1: Socket, p2: Socket, server: Server) {
 		const user1 = this.authAndExtract(p1)
 		const user2 = this.authAndExtract(p2)
@@ -107,24 +165,91 @@ export class GameService {
 				this.handleEndGame(room_state, server)
 			}
 		}, BALL_SPEED)
-
 	}
 
 	handleDisconnect = async (player, socket, server) => {
-		let room = null
-		for (let i = 0; i < this.rooms.length; i++) {
-			if (player?.name === this.rooms[i].player1) {
-				this.rooms[i].winner = this.rooms[i].player2
-				room = this.rooms[i]
-				break ;
+		try {
+
+			let room = null
+			for (let i = 0; i < this.rooms.length; i++) {
+				if (player?.name === this.rooms[i].player1) {
+					this.rooms[i].winner = this.rooms[i].player2
+					room = this.rooms[i]
+					break ;
+				}
+				else if (player?.name === this.rooms[i].player2) {
+					this.rooms[i].winner = this.rooms[i].player1
+					room = this.rooms[i]
+					break ;
+				}
 			}
-			else if (player?.name === this.rooms[i].player2) {
-				this.rooms[i].winner = this.rooms[i].player1
-				room = this.rooms[i]
-				break ;
+			if (room) {
+				const p1 = await global.prisma.user.findUnique({
+					where: {
+						name: room.player1
+					}
+				})
+				const p2 = await global.prisma.user.findUnique({
+					where: {
+						name: room.player2
+					}
+				})
+				const winnerId = p1.name === room.winner ? p1.id : p2.id
+				await global.prisma.user.update({
+					where: {
+						name: room.player1
+					},
+					data: {
+						matchHistory: {
+							create: [
+								{opponentId: p2.id, winner: winnerId}
+							]
+						},
+						status: p1.name === room.winner ? Status.ONLINE : Status.OFFLINE
+					}
+				})
+	
+				await global.prisma.user.update({
+					where: {
+						name: room.player2
+					},
+					data: {
+						matchHistory: {
+							create: [
+								{opponentId: p1.id, winner: winnerId}
+							]
+						},
+						status: p2.name === room.winner ? Status.ONLINE : Status.OFFLINE
+					}
+				})
+	
+				const index = this.rooms.indexOf(room)
+				clearInterval(room.interval)
+	
+				server.to(room.room).emit('end')
+				server.socketsLeave(room.room)
+				this.rooms.splice(index, 1)
+			}
+	
+			if (this.queue_def.includes(socket)) {
+				const index = this.queue_def.indexOf(socket)
+				const user = this.authAndExtract(socket)
+				await global.prisma.user.update({
+					where: {
+						name: user.name
+					},
+					data: {
+						status: Status.OFFLINE
+					}
+				})
+				this.queue_def.splice(index, 1)
 			}
 		}
-		if (room) {
+		catch (e) {}
+	}
+	
+	handleEndGame = async (room: Room, server: Server) => {
+		try {
 			const p1 = await global.prisma.user.findUnique({
 				where: {
 					name: room.player1
@@ -135,7 +260,15 @@ export class GameService {
 					name: room.player2
 				}
 			})
-			const winnerId = p1.name === room.winner ? p1.id : p2.id
+			let winnerId = null
+	
+			if (room.p1Score >= 15) {
+				winnerId = p1.id
+			}
+			else if (room.p2Score >= 15) {
+				winnerId = p2.id
+			}
+	
 			await global.prisma.user.update({
 				where: {
 					name: room.player1
@@ -146,10 +279,10 @@ export class GameService {
 							{opponentId: p2.id, winner: winnerId}
 						]
 					},
-					status: p1.name === room.winner ? Status.ONLINE : Status.OFFLINE
+					status: Status.ONLINE
 				}
 			})
-
+	
 			await global.prisma.user.update({
 				where: {
 					name: room.player2
@@ -160,85 +293,15 @@ export class GameService {
 							{opponentId: p1.id, winner: winnerId}
 						]
 					},
-					status: p2.name === room.winner ? Status.ONLINE : Status.OFFLINE
+					status: Status.ONLINE
 				}
 			})
-
 			const index = this.rooms.indexOf(room)
-			clearInterval(room.interval)
-
 			server.to(room.room).emit('end')
 			server.socketsLeave(room.room)
 			this.rooms.splice(index, 1)
 		}
-
-		if (this.queue_def.includes(socket)) {
-			const index = this.queue_def.indexOf(socket)
-			const user = this.authAndExtract(socket)
-			await global.prisma.user.update({
-				where: {
-					name: user.name
-				},
-				data: {
-					status: Status.OFFLINE
-				}
-			})
-			this.queue_def.splice(index, 1)
-		}
-
-	}
-	
-	handleEndGame = async (room: Room, server: Server) => {
-		const p1 = await global.prisma.user.findUnique({
-			where: {
-				name: room.player1
-			}
-		})
-		const p2 = await global.prisma.user.findUnique({
-			where: {
-				name: room.player2
-			}
-		})
-		let winnerId = null
-
-		if (room.p1Score >= 15) {
-			winnerId = p1.id
-		}
-		else if (room.p2Score >= 15) {
-			winnerId = p2.id
-		}
-
-		await global.prisma.user.update({
-			where: {
-				name: room.player1
-			},
-			data: {
-				matchHistory: {
-					create: [
-						{opponentId: p2.id, winner: winnerId}
-					]
-				},
-				status: Status.ONLINE
-			}
-		})
-
-		await global.prisma.user.update({
-			where: {
-				name: room.player2
-			},
-			data: {
-				matchHistory: {
-					create: [
-						{opponentId: p1.id, winner: winnerId}
-					]
-				},
-				status: Status.ONLINE
-			}
-		})
-		const index = this.rooms.indexOf(room)
-		server.to(room.room).emit('end')
-		server.socketsLeave(room.room)
-		this.rooms.splice(index, 1)
+		catch (e) {}
 	}
 
 	bounceBallMod = (room: Room) => {
@@ -465,86 +528,97 @@ export class GameService {
 	}
 
 	gameProcess = (roomUUID) => {
-		let room = null
-		for (let i = 0; i < this.rooms.length; i++) {
-			if (this.rooms[i].room === roomUUID) {
-				room = this.rooms[i]
+		try {
+			let room = null
+			for (let i = 0; i < this.rooms.length; i++) {
+				if (this.rooms[i].room === roomUUID) {
+					room = this.rooms[i]
+				}
+			}
+	
+			room = this.bounceBall(room)
+			for (let i = 0; i < this.rooms.length; i++) {
+				if (this.rooms[i].room === roomUUID) {
+					this.rooms[i] = room
+				}
 			}
 		}
-
-		room = this.bounceBall(room)
-		for (let i = 0; i < this.rooms.length; i++) {
-			if (this.rooms[i].room === roomUUID) {
-				this.rooms[i] = room
-			}
-		}
+		catch (e) {}
 	}
 
 	gameProcessMod = (roomUUID) => {
-		let room = null
-		for (let i = 0; i < this.rooms.length; i++) {
-			if (this.rooms[i].room === roomUUID) {
-				room = this.rooms[i]
+		try {
+			let room = null
+			for (let i = 0; i < this.rooms.length; i++) {
+				if (this.rooms[i].room === roomUUID) {
+					room = this.rooms[i]
+				}
+			}
+	
+			room = this.bounceBallMod(room)
+			for (let i = 0; i < this.rooms.length; i++) {
+				if (this.rooms[i].room === roomUUID) {
+					this.rooms[i] = room
+				}
 			}
 		}
-
-		room = this.bounceBallMod(room)
-		for (let i = 0; i < this.rooms.length; i++) {
-			if (this.rooms[i].room === roomUUID) {
-				this.rooms[i] = room
-			}
-		}
+		catch (e) {}
 	}
 
 	createRoom = () => {
-		const user1 = this.authAndExtract(this.queue_def[0])
-		const user2 = this.authAndExtract(this.queue_def[1])
-		const roomUUID = uuidv4()
-		this.queue_def[0].join(roomUUID)
-		this.queue_def[1].join(roomUUID)
-
-		const room: Room = {
-			room: roomUUID,
-			player1: user1.name,
-			player2: user2.name,
-			ballPos: {left: BALL_LEFT, top: BALL_TOP},
-			player1Pos: PLAYER_TOP1,
-			player2Pos: PLAYER_TOP2,
-			deltaX: DELTA,
-			deltaY: DELTA,
-			p1Score: 0,
-			p2Score: 0,
-			winner: "",
-			interval: null
+		try {
+			const user1 = this.authAndExtract(this.queue_def[0])
+			const user2 = this.authAndExtract(this.queue_def[1])
+			const roomUUID = uuidv4()
+			this.queue_def[0].join(roomUUID)
+			this.queue_def[1].join(roomUUID)
+	
+			const room: Room = {
+				room: roomUUID,
+				player1: user1.name,
+				player2: user2.name,
+				ballPos: {left: BALL_LEFT, top: BALL_TOP},
+				player1Pos: PLAYER_TOP1,
+				player2Pos: PLAYER_TOP2,
+				deltaX: DELTA,
+				deltaY: DELTA,
+				p1Score: 0,
+				p2Score: 0,
+				winner: "",
+				interval: null
+			}
+	
+			this.rooms.push(room)
+			return room
 		}
-
-		this.rooms.push(room)
-		return room
+		catch (e) {}
 	}
 
 	createModRoom = () => {
-		const user1 = this.authAndExtract(this.queue_mod[0])
-		const user2 = this.authAndExtract(this.queue_mod[1])
-		const roomUUID = uuidv4()
-		this.queue_mod[0].join(roomUUID)
-		this.queue_mod[1].join(roomUUID)
-
-		const room: Room = {
-			room: roomUUID,
-			player1: user1.name,
-			player2: user2.name,
-			ballPos: {left: BALL_LEFT, top: BALL_TOP},
-			player1Pos: PLAYER_TOP1,
-			player2Pos: PLAYER_TOP2,
-			deltaX: DELTA,
-			deltaY: DELTA,
-			p1Score: 0,
-			p2Score: 0,
-			winner: "",
-			interval: null
+		try {
+			const user1 = this.authAndExtract(this.queue_mod[0])
+			const user2 = this.authAndExtract(this.queue_mod[1])
+			const roomUUID = uuidv4()
+			this.queue_mod[0].join(roomUUID)
+			this.queue_mod[1].join(roomUUID)
+	
+			const room: Room = {
+				room: roomUUID,
+				player1: user1.name,
+				player2: user2.name,
+				ballPos: {left: BALL_LEFT, top: BALL_TOP},
+				player1Pos: PLAYER_TOP1,
+				player2Pos: PLAYER_TOP2,
+				deltaX: DELTA,
+				deltaY: DELTA,
+				p1Score: 0,
+				p2Score: 0,
+				winner: "",
+				interval: null
+			}
+			this.rooms.push(room)
+			return room
 		}
-
-		this.rooms.push(room)
-		return room
+		catch (e) {}
 	}
 }

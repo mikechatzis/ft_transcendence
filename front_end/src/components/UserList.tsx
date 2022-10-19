@@ -24,6 +24,7 @@ import { ChatContext } from "../context/ChatContext"
 import { UserContext } from "../context/UserContext"
 import { GameContext } from "../context/GameContext"
 import PendingInvite from "./PendingInvite"
+import { RerenderContext } from "../context/RerenderContext"
 
 const drawerWidth = 360
 
@@ -37,6 +38,7 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 	const [openEl, setOpenEl] = useState<null | string>(null)
 	const navigate = useNavigate()
 	const {context, setContext} = useContext(UserContext)
+	const {rerender, setRerender} = useContext(RerenderContext)
 	const baseUrl = useContext(UrlContext)
 	const socket = useContext(ChatContext)
 	const gameSocket = useContext(GameContext)
@@ -55,6 +57,10 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 
 	useEffect(() => {
 		gameSocket.on('refuse', (data: any) => {
+			setInvite(false)
+		})
+
+		gameSocket.on('refuse-mod', (data: any) => {
 			setInvite(false)
 		})
 	}, [gameSocket])
@@ -185,6 +191,7 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 				navigate("/login")
 			}
 		})
+		setRerender?.(!rerender)
 		handleClose()
 	}
 
@@ -223,6 +230,13 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 		setInvite(true)
 		handleClose()
 	}
+
+	const handleInviteMod = (user: any) => () => {
+		gameSocket.emit('invite-mod', {id: user?.id})
+		setInvite(true)
+		handleClose()
+	}
+
 	channelMembers?.sort((a,b) => a.id - b.id)
 	const map = channelMembers?.map((user: any, index: number) => {
 		return (
@@ -245,13 +259,13 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 						open={openEl === user.name}
 						onClose={handleClose}
 					>
-						{isAdmin &&
-						[<MenuItem onClick={makeAdmin(user)} key={0}>
+						{isOwner && <MenuItem onClick={makeAdmin(user)} key={0}>
 							<Typography>
 								Make admin
 							</Typography>
-						</MenuItem>,
-						<MenuItem onClick={handleMute(user)} key={1}>
+						</MenuItem>}
+						{(isAdmin && user?.id != me?.id) &&
+						[<MenuItem onClick={handleMute(user)} key={1}>
 							<Typography>
 								Mute for 15 minutes
 							</Typography>
@@ -271,12 +285,12 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 								Ban permanently
 							</Typography>
 						</MenuItem>]}
-						{!me?.blocked.includes(user.id) && <MenuItem onClick={handleBlock(user)} key={5}>
+						{(!me?.blocked.includes(user?.id) && user?.id != me?.id) && <MenuItem onClick={handleBlock(user)} key={5}>
 							<Typography>
 								Block user
 							</Typography>
 						</MenuItem>}
-						{(!me?.friends.includes(user.id) && !me?.blocked.includes(user.id)) && <MenuItem onClick={handleFriend(user)} key={6}>
+						{(!me?.friends.includes(user?.id) && !me?.blocked.includes(user?.id) && user?.id != me?.id) && <MenuItem onClick={handleFriend(user)} key={6}>
 							<Typography>
 								Add friend
 							</Typography>
@@ -286,12 +300,17 @@ const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) =
 								View profile
 							</Typography>
 						</MenuItem>
-						{(user.status === Status.ONLINE) && <MenuItem key={8} onClick={handleInvite(user)}>
+						{(user.status === Status.ONLINE && user?.id != me?.id) && <MenuItem key={8} onClick={handleInvite(user)}>
 							<Typography>
 								Invite to play
 							</Typography>
 						</MenuItem>}
-						{(user.status === Status.GAME) && <MenuItem key={9} onClick={handleSpectate(user)}>
+						{(user.status === Status.ONLINE && user?.id != me?.id) && <MenuItem key={9} onClick={handleInviteMod(user)}>
+							<Typography>
+								Invite to play reverse pong
+							</Typography>
+						</MenuItem>}
+						{(user.status === Status.GAME && user?.id != me?.id) && <MenuItem key={10} onClick={handleSpectate(user)}>
 							<Typography>
 								Spectate
 							</Typography>

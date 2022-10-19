@@ -15,6 +15,10 @@ const PendingInvite: React.FC<{open: boolean}> = ({open}) => {
 		gameSocket.on('invite-start', () => {
 			navigate("/multi-def")
 		})
+
+		gameSocket.on('invite-start-mod', () => {
+			navigate("/multmodd")
+		})
 	})
 
 	return (
