@@ -9,7 +9,13 @@ import { WsException } from "@nestjs/websockets";
 import { Status } from "../user/enums/status.enum";
 
 const BALL_SPEED = (1000/60)
-const DELTA = -0.5 * (1000/60)
+const DELTA = -0.3
+
+let BALL_LEFT = '33vw'
+let BALL_TOP = '15vw'
+
+let PLAYER_TOP1 = '10vw'
+let PLAYER_TOP2 = '10vw'
 
 @Injectable()
 export class GameService {
@@ -55,9 +61,9 @@ export class GameService {
 			room: roomUUID,
 			player1: user1.name,
 			player2: user2.name,
-			ballPos: {left: 700, top: 175},
-			player1Pos: 175,
-			player2Pos: 175,
+			ballPos: {left: BALL_LEFT, top: BALL_TOP},
+			player1Pos: PLAYER_TOP1,
+			player2Pos: PLAYER_TOP2,
 			deltaX: DELTA,
 			deltaY: DELTA,
 			p1Score: 0,
@@ -236,32 +242,32 @@ export class GameService {
 	}
 
 	bounceBall = (room: Room) => {
-		const nextPosX = room.ballPos.left + room.deltaX
-		const nextPosY = room.ballPos.top + room.deltaY
-		if (nextPosY <= -200 || nextPosY >= 700 - 220) {
+		if (parseFloat(room.ballPos.top) <= 0 || parseFloat(room.ballPos.top) >= 30.5) {
 			room.deltaY = -room.deltaY
-			room.ballPos.top -= room.deltaY
 		}
-		if (nextPosX <= 10 || nextPosX >= 1380) {
+		if (parseFloat(room.ballPos.left) <= 1 ||  parseFloat(room.ballPos.left) >= 68) {
 			if (room.deltaX === -1) {
 				room.p2Score += 1
 			}
 			else {
 				room.p1Score += 1
 			}
-			room.ballPos = {left: 700, top: 175}
+			room.ballPos = {left: BALL_LEFT, top: BALL_TOP}
 		}
-		if ((nextPosX <= 40 && nextPosX >= 20) && (nextPosY + 385 >= room.player1Pos && nextPosY + 255 <= room.player1Pos)) {
+		if ((parseFloat(room.ballPos.left) <= 2 && parseFloat(room.ballPos.left) >= 1.5) && (parseFloat(room.ballPos.top) >= parseFloat(room.player1Pos) - 1 && parseFloat(room.ballPos.top) <= parseFloat(room.player1Pos) + 6)) {
 			room.deltaX = -room.deltaX
-			room.ballPos.left -= room.deltaX
+			room.ballPos.left = parseFloat(room.ballPos.left) + room.deltaX + 'vw';
 		}
-		if ((nextPosX >= 1340 && nextPosX <= 1360) && (nextPosY + 385 >= room.player2Pos && nextPosY + 255 <= room.player2Pos)) {
+		if ((parseFloat(room.ballPos.left) >= 66.5 && parseFloat(room.ballPos.left) >= 67 ) && (parseFloat(room.ballPos.top) >= parseFloat(room.player2Pos) - 1 && parseFloat(room.ballPos.top) <= parseFloat(room.player2Pos) + 6)) {
 			room.deltaX = -room.deltaX
-			room.ballPos.left -= room.deltaX
+			room.ballPos.left = parseFloat(room.ballPos.left) + room.deltaX + 'vw';
 		}
-		
-		room.ballPos.left += room.deltaX
-		room.ballPos.top += room.deltaY
+
+		let y = parseFloat(room.ballPos.top) + room.deltaY + 'vw';
+		let x = parseFloat(room.ballPos.left) + room.deltaX + 'vw';
+		room.ballPos = {...room.ballPos, top: y}
+		room.ballPos = {...room.ballPos, left: x}
+
 		return room
 	}
 	
@@ -374,9 +380,9 @@ export class GameService {
 			room: roomUUID,
 			player1: user1.name,
 			player2: user2.name,
-			ballPos: {left: 700, top: 175},
-			player1Pos: 175,
-			player2Pos: 175,
+			ballPos: {left: BALL_LEFT, top: BALL_TOP},
+			player1Pos: PLAYER_TOP1,
+			player2Pos: PLAYER_TOP2,
 			deltaX: DELTA,
 			deltaY: DELTA,
 			p1Score: 0,
