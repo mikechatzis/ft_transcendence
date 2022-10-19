@@ -27,11 +27,12 @@ import PendingInvite from "./PendingInvite"
 
 const drawerWidth = 360
 
-const UserList: React.FC<{channel: string}> = ({channel}) => {
+const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) => {
 	const [channelMembers, setChannelMembers] = useState<any[] | null>(null)
 	const [me, setMe] = useState<any>(null)
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 	const [isAdmin, setIsAdmin] = useState(false)
+	const [isOwner, setIsOwner] = useState(false)
 	const [invite, setInvite] = useState(false)
 	const [openEl, setOpenEl] = useState<null | string>(null)
 	const navigate = useNavigate()
@@ -39,6 +40,18 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const baseUrl = useContext(UrlContext)
 	const socket = useContext(ChatContext)
 	const gameSocket = useContext(GameContext)
+
+	useEffect(() => {
+		axios.get(baseUrl + `chat/${channel}/isOwner`, {withCredentials: true}).then((response) => {
+			setIsOwner(response.data.owner)
+		}).catch((error) => {
+			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
+		})
+	}, [baseUrl, channel])
 
 	useEffect(() => {
 		gameSocket.on('refuse', (data: any) => {
@@ -128,35 +141,44 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const handlePermaBan = (user: any) => () => {
 		let banUser = {...user}
 
-		axios.post(baseUrl + `chat/${channel}/permaban`, banUser, {withCredentials: true}).catch((error) => {
+		axios.post(baseUrl + `chat/${channel}/permaban`, banUser, {withCredentials: true}).then(() => {
+			handleKick(user)
+		}).catch((error) => {
 			console.log(error)
+			console.log('here')
 			if (error.response.status === 401) {
 				setContext?.(false)
 				navigate("/login")
 			}
+			else {
+				setErr(error.response.data.message)
+			}
 		})
-		handleKick(user)
 		handleClose()
 	}
 
 	const handleBan = (user: any) => () => {
 		let banUser = {...user}
 
-		axios.post(baseUrl + `chat/${channel}/ban`, banUser, {withCredentials: true}).catch((error) => {
+		axios.post(baseUrl + `chat/${channel}/ban`, banUser, {withCredentials: true}).then(() => {
+			handleKick(user)
+		}).catch((error) => {
 			console.log(error)
 			if (error.response.status === 401) {
 				setContext?.(false)
 				navigate("/login")
 			}
+			else {
+				setErr(error.response.data.message)
+			}
 		})
-		handleKick(user)
 		handleClose()
 	}
 
 	const handleBlock = (user: any) => () => {
 		let blockUser = {...user}
 
-		axios.post(baseUrl + 'users/block', {block: blockUser.id}, {withCredentials: true}).catch((e) => {
+		axios.post(baseUrl + 'users/block', {block: blockUser?.id}, {withCredentials: true}).catch((e) => {
 			console.log(e)
 			if (e.response.status === 401) {
 				setContext?.(false)
@@ -197,10 +219,89 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	}
 
 	const handleInvite = (user: any) => () => {
-		gameSocket.emit('invite', {id: user.id})
+		gameSocket.emit('invite', {id: user?.id})
 		setInvite(true)
 		handleClose()
 	}
+	channelMembers?.sort((a,b) => a.id - b.id)
+	const map = channelMembers?.map((user: any, index: number) => {
+		return (
+			<Fragment key={index}>
+				<ListItem>
+					<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
+					<ListItemText primary={user.name} style={{padding: 10}} />
+					<ListItemIcon>
+						{chooseIcon(user)}
+					</ListItemIcon>
+					<IconButton
+						id="long-button"
+						onClick={handleClick(user)}
+					>
+						<MoreVertIcon />
+					</IconButton>
+					<Menu
+						id="long-menu"
+						anchorEl={anchorEl}
+						open={openEl === user.name}
+						onClose={handleClose}
+					>
+						{isAdmin &&
+						[<MenuItem onClick={makeAdmin(user)} key={0}>
+							<Typography>
+								Make admin
+							</Typography>
+						</MenuItem>,
+						<MenuItem onClick={handleMute(user)} key={1}>
+							<Typography>
+								Mute for 15 minutes
+							</Typography>
+						</MenuItem>,
+						<MenuItem onClick={() => {handleKick(user)}} key={2}>
+							<Typography>
+								Kick
+							</Typography>
+						</MenuItem>,
+						<MenuItem onClick={handleBan(user)}key={3}>
+							<Typography>
+								Ban for 15 minutes
+							</Typography>
+						</MenuItem>,
+						<MenuItem onClick={handlePermaBan(user)} key={4}>
+							<Typography>
+								Ban permanently
+							</Typography>
+						</MenuItem>]}
+						{!me?.blocked.includes(user.id) && <MenuItem onClick={handleBlock(user)} key={5}>
+							<Typography>
+								Block user
+							</Typography>
+						</MenuItem>}
+						{(!me?.friends.includes(user.id) && !me?.blocked.includes(user.id)) && <MenuItem onClick={handleFriend(user)} key={6}>
+							<Typography>
+								Add friend
+							</Typography>
+						</MenuItem>}
+						<MenuItem onClick={handleView(user)} key={7}>
+							<Typography>
+								View profile
+							</Typography>
+						</MenuItem>
+						{(user.status === Status.ONLINE) && <MenuItem key={8} onClick={handleInvite(user)}>
+							<Typography>
+								Invite to play
+							</Typography>
+						</MenuItem>}
+						{(user.status === Status.GAME) && <MenuItem key={9} onClick={handleSpectate(user)}>
+							<Typography>
+								Spectate
+							</Typography>
+						</MenuItem>}
+					</Menu>
+				</ListItem>
+				<hr />
+			</Fragment>
+		)
+	}).sort()
 
 	return (
 		<>
@@ -219,84 +320,7 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		>
 			<Toolbar />
 			<List>
-				{channelMembers?.map((user: any, index: number) => {
-					return (
-						<Fragment key={index}>
-							<ListItem>
-								<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
-								<ListItemText primary={user.name} style={{padding: 10}} />
-								<ListItemIcon>
-									{chooseIcon(user)}
-								</ListItemIcon>
-								<IconButton
-									id="long-button"
-									onClick={handleClick(user)}
-								>
-									<MoreVertIcon />
-								</IconButton>
-								<Menu
-									id="long-menu"
-									anchorEl={anchorEl}
-									open={openEl === user.name}
-									onClose={handleClose}
-								>
-									{(isAdmin && user.id != me.id) &&
-									[<MenuItem onClick={makeAdmin(user)} key={0}>
-										<Typography>
-											Make admin
-										</Typography>
-									</MenuItem>,
-									<MenuItem onClick={handleMute(user)} key={1}>
-										<Typography>
-											Mute for 15 minutes
-										</Typography>
-									</MenuItem>,
-									<MenuItem onClick={() => {handleKick(user)}} key={2}>
-										<Typography>
-											Kick
-										</Typography>
-									</MenuItem>,
-									<MenuItem onClick={handleBan(user)}key={3}>
-										<Typography>
-											Ban for 15 minutes
-										</Typography>
-									</MenuItem>,
-									<MenuItem onClick={handlePermaBan(user)} key={4}>
-										<Typography>
-											Ban permanently
-										</Typography>
-									</MenuItem>]}
-									{(!me?.blocked.includes(user.id) && user.id != me.id) && <MenuItem onClick={handleBlock(user)} key={5}>
-										<Typography>
-											Block user
-										</Typography>
-									</MenuItem>}
-									{(!me?.friends.includes(user.id) && !me?.blocked.includes(user.id) && user.id != me.id) && <MenuItem onClick={handleFriend(user)} key={6}>
-										<Typography>
-											Add friend
-										</Typography>
-									</MenuItem>}
-									<MenuItem onClick={handleView(user)} key={7}>
-										<Typography>
-											View profile
-										</Typography>
-									</MenuItem>
-									{(user.status === Status.ONLINE && user.id != me.id) && <MenuItem key={8} onClick={handleInvite(user)}>
-										<Typography>
-											Invite to play
-										</Typography>
-									</MenuItem>}
-									{(user.status === Status.GAME && user.id != me.id) && <MenuItem key={9} onClick={handleSpectate(user)}>
-										<Typography>
-											Spectate
-										</Typography>
-									</MenuItem>}
-								</Menu>
-							</ListItem>
-							<hr />
-						</Fragment>
-					)
-}				)}
+				{map}
 			</List>
 		</Drawer>
 		</>

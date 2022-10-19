@@ -2,18 +2,25 @@ import React, { useContext } from 'react'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import Avatar from '@mui/material/Avatar'
-import Button from "@mui/material/Button"
-import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
+// import Button from "@mui/material/Button"
+// import Container from '@mui/material/Container'
+// import Grid from '@mui/material/Grid'
+// import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../context/UserContext'
 import { UrlContext } from '../context/UrlContext'
+import { RerenderContext } from '../context/RerenderContext'
+import MatchHistory from '../components/MatchHistory'
+
+import './styles/AccountStyles.css'
+import { Typography } from '@mui/material'
 
 const Account: React.FC = () => {
-	const [name, setName] = useState('')
+	const [user, setUser] = useState<any>(null)
+	const [avatar, setAvatar] = useState<any>(null)
 	const {context, setContext} = useContext(UserContext)
+	const {rerender, setRerender} = useContext(RerenderContext)
 	const baseUrl = useContext(UrlContext)
 
 	const navigate = useNavigate()
@@ -23,8 +30,8 @@ const Account: React.FC = () => {
 			withCredentials: true
 		}
 
-		axios.get(baseUrl + "users/me/name", config).then(response => {
-			setName(response.data)
+		axios.get(baseUrl + "users/me", config).then(response => {
+			setUser(response.data)
 		}).catch((error) => {
 			if (error.response.status === 401) {
 				setContext?.(false)
@@ -36,33 +43,42 @@ const Account: React.FC = () => {
 		})
 	}
 
-	useEffect(getName, [])
+	useEffect(getName, [baseUrl, navigate])
+	useEffect(() => {
+		setAvatar(<Avatar src={baseUrl + `users/me/profileImg?${Date.now()}`} />)
+	}, [rerender, context])
+
+	//src={baseUrl + "users/me/profileImg"}
+	//navigate("/settings")
 
 	return (
-		<div>
-			{<Container>
-				<Grid container spacing={10}>
-					<Grid item>
-						<Box component="img" alt="profile" src={baseUrl + `users/me/profileImg?${Date.now()}`} />
-					</Grid>
-					<Grid item xs={6}>
-						<Box display="flex" justifyContent="center" alignItems="center">
-							<Typography variant="h1">Hello</Typography>
-						</Box>
-					</Grid>
-					<Grid item xs={6}>
-						<Box display="flex" justifyContent="center" alignItems="center">
-							<Typography variant="h1">World</Typography>
-						</Box>
-					</Grid>
-					<Grid item>
-						<Typography variant="h1">
-							{`Your username is ${name}`}
-						</Typography>
-					</Grid>
-				</Grid>
-			</Container>}
-		</div>
+		<section className="profile">
+			<Box className="header">
+				<div className="details">
+					<div className="btn btn-one" onClick={() => (navigate("/settings"))}>
+						<span className="btn btn-one">ACCOUNT SETTINGS</span>
+					</div>
+					<div className='emptySpace'></div>
+					<img src={baseUrl + `users/me/profileImg?${Date.now()}`} alt="" className="profile-pic"></img>
+					<h1 className="heading">Username: {user?.name}</h1>
+					{user?.intraName && <h1 className="sub">Intra Name: {user?.intraName ? user?.intraName : 'not used'}</h1>} 
+					<div className="stats">
+						<div className="col-4">
+							<h4>Score</h4>
+							<p>{user?.score}</p>
+						</div>
+						<div className="col-4">
+							<h4>Rank</h4>
+							<p>{user?.rank}</p>
+						</div>
+					</div>
+				</div>
+			</Box>
+			<Box maxWidth={'90%'} paddingLeft='10vw' paddingBottom={'2vh'} fontWeight='bold' textAlign={'center'} fontSize='4vh'>
+			Match History
+					<MatchHistory />
+			</Box>
+		</section>
 	)
 }
 

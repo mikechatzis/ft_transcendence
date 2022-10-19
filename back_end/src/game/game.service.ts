@@ -22,7 +22,8 @@ export class GameService {
 	constructor(private jwt: JwtService, private config: ConfigService) {}
 
 	rooms: Room[] = []
-	queue: Socket[] = []
+	queue_def: Socket[] = []
+	queue_mod: Socket[] = []
 
 	authAndExtract(socket) {
 		const cookies_raw = socket.handshake.headers.cookie
@@ -110,7 +111,6 @@ export class GameService {
 	}
 
 	handleDisconnect = async (player, socket, server) => {
-		console.log(this.queue.length)
 		let room = null
 		for (let i = 0; i < this.rooms.length; i++) {
 			if (player?.name === this.rooms[i].player1) {
@@ -172,8 +172,8 @@ export class GameService {
 			this.rooms.splice(index, 1)
 		}
 
-		if (this.queue.includes(socket)) {
-			const index = this.queue.indexOf(socket)
+		if (this.queue_def.includes(socket)) {
+			const index = this.queue_def.indexOf(socket)
 			const user = this.authAndExtract(socket)
 			await global.prisma.user.update({
 				where: {
@@ -183,7 +183,7 @@ export class GameService {
 					status: Status.OFFLINE
 				}
 			})
-			this.queue.splice(index, 1)
+			this.queue_def.splice(index, 1)
 		}
 
 	}
@@ -241,6 +241,41 @@ export class GameService {
 		this.rooms.splice(index, 1)
 	}
 
+	bounceBallMod = (room: Room) => {
+		if (parseFloat(room.ballPos.top) <= 0 || parseFloat(room.ballPos.top) >= 30.5) {
+			room.deltaY = -room.deltaY
+		}
+		if (parseFloat(room.ballPos.left) <= 0 ||  parseFloat(room.ballPos.left) >= 69) {
+			room.deltaX = -room.deltaX
+			room.ballPos.left = parseFloat(room.ballPos.left) + room.deltaX + 'vw';
+		}
+		if ((parseFloat(room.ballPos.left) <= 2 && parseFloat(room.ballPos.left) >= 1.5) && (parseFloat(room.ballPos.top) >= parseFloat(room.player1Pos) - 1 && parseFloat(room.ballPos.top) <= parseFloat(room.player1Pos) + 6)) {
+			if (room.deltaX === -1) {
+				room.p2Score += 1
+			}
+			else {
+				room.p1Score += 1
+			}
+			room.ballPos = {left: BALL_LEFT, top: BALL_TOP}
+		}
+		if ((parseFloat(room.ballPos.left) >= 66.5 && parseFloat(room.ballPos.left) >= 67 ) && (parseFloat(room.ballPos.top) >= parseFloat(room.player2Pos) - 1 && parseFloat(room.ballPos.top) <= parseFloat(room.player2Pos) + 6)) {
+			if (room.deltaX === -1) {
+				room.p2Score += 1
+			}
+			else {
+				room.p1Score += 1
+			}
+			room.ballPos = {left: BALL_LEFT, top: BALL_TOP}
+		}
+
+		let y = parseFloat(room.ballPos.top) + room.deltaY + 'vw';
+		let x = parseFloat(room.ballPos.left) + room.deltaX + 'vw';
+		room.ballPos = {...room.ballPos, top: y}
+		room.ballPos = {...room.ballPos, left: x}
+
+		return room
+	}
+
 	bounceBall = (room: Room) => {
 		if (parseFloat(room.ballPos.top) <= 0 || parseFloat(room.ballPos.top) >= 30.5) {
 			room.deltaY = -room.deltaY
@@ -272,58 +307,134 @@ export class GameService {
 	}
 	
 	addToQueue = async (socket: Socket, server: Server) => {
-		this.queue.push(socket)
-		console.log('add to queue')
-
-		if (this.queue.length >= 2) {
-			console.log('queue pops')
-			const room = this.createRoom()
-			this.queue.splice(0, 2)
-			server.to(room.room).emit('start-def')
-
-			await global.prisma.user.update({
-				where: {
-					name: room.player1
-				},
-				data: {
-					status: Status.GAME
-				}
-			})
-
-			await global.prisma.user.update({
-				where: {
-					name: room.player2
-				},
-				data: {
-					status: Status.GAME
-				}
-			})
-
-			room.interval = setInterval(() => {
-				let room_state = null
-				for (let i = 0; i < this.rooms.length; i++) {
-					if (this.rooms[i].room === room.room) {
-						room_state = this.rooms[i]
+		const newPlayer = await global.prisma.user.findUnique({
+			where: {
+				id: this.authAndExtract(socket).sub
+			}
+		})
+		if (newPlayer.status != Status.QUEUE && newPlayer.status != Status.GAME) {
+			this.queue_def.push(socket)
+			console.log('add to queue')
+	
+			if (this.queue_def.length >= 2) {
+				console.log('queue pops')
+				const room = this.createRoom()
+				this.queue_def.splice(0, 2)
+				server.to(room.room).emit('start-def')
+	
+				await global.prisma.user.update({
+					where: {
+						name: room.player1
+					},
+					data: {
+						status: Status.GAME
 					}
-				}
-				this.gameProcess(room.room)
-				server.to(room.room).emit('data', {data: room_state})
-				if (room.p1Score >= 15 || room.p2Score >= 15) {
-					clearInterval(room.interval)
-					this.handleEndGame(room_state, server)
-				}
-			}, BALL_SPEED)
+				})
+	
+				await global.prisma.user.update({
+					where: {
+						name: room.player2
+					},
+					data: {
+						status: Status.GAME
+					}
+				})
+	
+				room.interval = setInterval(() => {
+					let room_state = null
+					for (let i = 0; i < this.rooms.length; i++) {
+						if (this.rooms[i].room === room.room) {
+							room_state = this.rooms[i]
+						}
+					}
+					this.gameProcess(room.room)
+					server.to(room.room).emit('data', {data: room_state})
+					if (room.p1Score >= 15 || room.p2Score >= 15) {
+						clearInterval(room.interval)
+						this.handleEndGame(room_state, server)
+					}
+				}, BALL_SPEED)
+			}
+			else {
+				const user = this.authAndExtract(socket)
+				await global.prisma.user.update({
+					where: {
+						name: user.name
+					},
+					data: {
+						status: Status.QUEUE
+					}
+				})
+			}
 		}
 		else {
-			const user = this.authAndExtract(socket)
-			await global.prisma.user.update({
-				where: {
-					name: user.name
-				},
-				data: {
-					status: Status.QUEUE
-				}
-			})
+			throw new WsException("This user is already in Queue/in Game!")
+		}
+	}
+
+	async addToModQueue(socket: Socket, server: Server) {
+		const newPlayer = await global.prisma.user.findUnique({
+			where: {
+				id: this.authAndExtract(socket).sub
+			}
+		})
+		if (newPlayer.status != Status.QUEUE && newPlayer.status != Status.GAME) {
+			this.queue_mod.push(socket)
+			console.log('add to mod queue')
+
+			if (this.queue_mod.length >= 2) {
+				console.log('mod queue pops')
+				const room = this.createModRoom()
+				this.queue_mod.splice(0, 2)
+				server.to(room.room).emit('start-mod')
+
+				await global.prisma.user.update({
+					where: {
+						name: room.player1
+					},
+					data: {
+						status: Status.GAME
+					}
+				})
+
+				await global.prisma.user.update({
+					where: {
+						name: room.player2
+					},
+					data: {
+						status: Status.GAME
+					}
+				})
+
+				room.interval = setInterval(() => {
+					let room_state = null
+					for (let i = 0; i < this.rooms.length; i++) {
+						if (this.rooms[i].room === room.room) {
+							room_state = this.rooms[i]
+						}
+					}
+					this.gameProcessMod(room.room)
+					server.to(room.room).emit('data', {data: room_state})
+					if (room.p1Score >= 15 || room.p2Score >= 15) {
+						clearInterval(room.interval)
+						this.handleEndGame(room_state, server)
+					}
+				}, BALL_SPEED)
+			}
+			else {
+				const user = this.authAndExtract(socket)
+				await global.prisma.user.update({
+					where: {
+						name: user.name
+					},
+					data: {
+						status: Status.QUEUE
+					}
+				})
+			}
+		}
+		else {
+			throw new WsException("This user is already in Queue/in Game!")
 		}
 	}
 
@@ -369,12 +480,54 @@ export class GameService {
 		}
 	}
 
+	gameProcessMod = (roomUUID) => {
+		let room = null
+		for (let i = 0; i < this.rooms.length; i++) {
+			if (this.rooms[i].room === roomUUID) {
+				room = this.rooms[i]
+			}
+		}
+
+		room = this.bounceBallMod(room)
+		for (let i = 0; i < this.rooms.length; i++) {
+			if (this.rooms[i].room === roomUUID) {
+				this.rooms[i] = room
+			}
+		}
+	}
+
 	createRoom = () => {
-		const user1 = this.authAndExtract(this.queue[0])
-		const user2 = this.authAndExtract(this.queue[1])
+		const user1 = this.authAndExtract(this.queue_def[0])
+		const user2 = this.authAndExtract(this.queue_def[1])
 		const roomUUID = uuidv4()
-		this.queue[0].join(roomUUID)
-		this.queue[1].join(roomUUID)
+		this.queue_def[0].join(roomUUID)
+		this.queue_def[1].join(roomUUID)
+
+		const room: Room = {
+			room: roomUUID,
+			player1: user1.name,
+			player2: user2.name,
+			ballPos: {left: BALL_LEFT, top: BALL_TOP},
+			player1Pos: PLAYER_TOP1,
+			player2Pos: PLAYER_TOP2,
+			deltaX: DELTA,
+			deltaY: DELTA,
+			p1Score: 0,
+			p2Score: 0,
+			winner: "",
+			interval: null
+		}
+
+		this.rooms.push(room)
+		return room
+	}
+
+	createModRoom = () => {
+		const user1 = this.authAndExtract(this.queue_mod[0])
+		const user2 = this.authAndExtract(this.queue_mod[1])
+		const roomUUID = uuidv4()
+		this.queue_mod[0].join(roomUUID)
+		this.queue_mod[1].join(roomUUID)
 
 		const room: Room = {
 			room: roomUUID,

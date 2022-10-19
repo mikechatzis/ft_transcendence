@@ -48,6 +48,7 @@ model Match {
 model Channel {
   name   String   @unique
   admins Int[]
+  owner Int ?
   messages Json[]
 
   hash String?

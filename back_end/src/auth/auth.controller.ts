@@ -55,7 +55,30 @@ export class AuthController {
 	@Post('signin')
 	async signin(@Body() dto: AuthDto, @Res({passthrough: true}) res: Response) {
 		const token = await this.authService.signin(dto)
-		const refreshToken = await this.authService.createRefreshToken(dto)
+
+		const user = await global.prisma.user.findUnique({
+			where: {
+				name: dto.name
+			}
+		})
+
+		if (!user.twoFactorAuth) {
+			const refreshToken = await this.authService.createRefreshToken(dto)
+
+			res.cookie('jwt-refresh', refreshToken, {
+				httpOnly: true,
+				sameSite: 'strict'
+			})
+	
+			await global.prisma.user.update({
+				where: {
+					name: dto.name
+				},
+				data: {
+					refreshToken
+				}
+			})
+		}
 
 		res.cookie('jwt', token, {
 			httpOnly: true,
@@ -63,19 +86,6 @@ export class AuthController {
 			maxAge: 15 * 60 * 1000
 		})
 
-		res.cookie('jwt-refresh', refreshToken, {
-			httpOnly: true,
-			sameSite: 'strict'
-		})
-
-		const user = await global.prisma.user.update({
-			where: {
-				name: dto.name
-			},
-			data: {
-				refreshToken
-			}
-		})
 		delete user.hash
 		delete user.twoFactorSecret
 		delete user.refreshToken
@@ -91,11 +101,13 @@ export class AuthController {
 				id: req.user.sub
 			}
 		})
+
 		if (req.user.refreshToken && req.user.refreshToken === user.refreshToken) {
 			const token = await this.authService.signToken({
 				sub: user.id,
 				name: user.name,
 				twoFactorAuthEnabled: !!user.twoFactorAuth,
+				isAuthenticated: !!user.twoFactorAuth ? true : null
 			},
 			{
 				expiresIn: '15m'
@@ -132,31 +144,35 @@ export class AuthController {
 		{
 			expiresIn: '15m'
 		})
-		const refreshToken = await this.authService.signToken({
-			sub: user.id,
-			name: user.name
-		},
-		{
-			secret: process.env.REFRESH_SECRET
-		})
 
-		await global.prisma.user.update({
-			where: {
-				id: user.id
+		if (!user.twoFactorAuth) {
+			const refreshToken = await this.authService.signToken({
+				sub: user.id,
+				name: user.name
 			},
-			data: {
-				refreshToken
-			}
-		})
+			{
+				secret: process.env.REFRESH_SECRET
+			})
+
+			await global.prisma.user.update({
+				where: {
+					id: user.id
+				},
+				data: {
+					refreshToken
+				}
+			})
+			res.cookie('jwt-refresh', refreshToken, {
+				httpOnly: true,
+				sameSite: 'strict'
+			})
+
+		}
 	
 		res.cookie('jwt', accessToken, {
 			httpOnly: true,
 			sameSite: 'strict',
 			maxAge: 15 * 60 * 1000
-		})
-		res.cookie('jwt-refresh', refreshToken, {
-			httpOnly: true,
-			sameSite: 'strict'
 		})
 		if (user.twoFactorAuth) {
 			res.redirect("http://localhost:3000/2fa")
@@ -258,10 +274,31 @@ export class AuthController {
 
 		const logData = await this.authService.login2fa(req.user)
 
+		const refreshToken = await this.authService.signToken({
+			sub: req.user.sub
+		},
+		{
+			secret: process.env.REFRESH_SECRET
+		})
+
 		res.cookie('jwt', logData.access_token, {
 			httpOnly: true,
 			sameSite: 'strict',
 			maxAge: 15 * 60 * 1000
+		})
+
+		res.cookie('jwt-refresh', refreshToken, {
+			httpOnly: true,
+			sameSite: 'strict',
+		})
+
+		await global.prisma.user.update({
+			where: {
+				id: req.user.sub
+			},
+			data: {
+				refreshToken
+			}
 		})
 	}
 

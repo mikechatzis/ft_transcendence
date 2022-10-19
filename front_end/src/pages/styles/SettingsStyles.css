@@ -1,0 +1,105 @@
+/* Input[type=file]::file-selector-button {
+	color: rgb(208, 205, 205);
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 1.2em;
+
+	border: 1px solid rgb(139, 136, 136);
+	border-radius: 5px;
+
+	padding: 1vh;
+
+	background: linear-gradient(to left, #37292b, #064870);
+	cursor: pointer;
+}
+
+Input[type=file]::file-selector-button:hover {
+	border-color: white;
+	color: white;
+} */
+
+#uploadBtn {
+	visibility: hidden;
+}
+
+#drop-container {
+	background: grey;
+  	background: linear-gradient(to right, #37292b, #064870);
+
+	position: relative;
+	display: flex;
+
+	gap: 10px;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	height: 150px;
+	padding: 2vh;
+	border-radius: 10px;
+	border: 2px solid black;
+	color: rgb(149, 146, 146);
+	transition: background .2s ease-in-out, border .2s ease-in-out;
+  }
+
+  #drop-container:hover .drop-title {
+	color: white;
+  }
+
+  #drop-container.drag-active {
+	background: linear-gradient(to left, rgb(53, 53, 53), grey);
+  }
+
+  #drop-container.drag-active .drop-title {
+	color: black;
+  }
+
+  
+ .drop-title2:hover {
+	color: white;
+  }
+  
+  .drop-title {
+	padding-top: 1vh;
+	color: rgb(162, 162, 162);
+	padding-bottom: 1vh;
+	font-size: 20px;
+	font-weight: bolder;
+	text-align: center;
+	transition: color .2s ease-in-out;
+  }
+
+  .drop-title2 {
+	color: rgb(162, 162, 162);
+	padding-top: 1vh;
+	font-size: 20px;
+	text-decoration: underline;
+	font-weight: bold;
+	text-align: center;
+	transition: color .2s ease-in-out;
+	cursor: pointer;
+  }
+
+  #drag-file-element {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border-radius: 1rem;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
+  }
+
+  .uploaded {
+	padding-top: 1vh;
+	color: rgb(162, 162, 162);
+	padding-bottom: 1vh;
+	font-size: 20px;
+	font-weight: bolder;
+	text-align: center;
+	transition: color .2s ease-in-out;
+	cursor: pointer;
+  }
+
+  .uploaded:hover {
+	color: white;
+  }

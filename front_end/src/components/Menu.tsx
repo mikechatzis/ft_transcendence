@@ -32,6 +32,7 @@ import { RerenderContext } from '../context/RerenderContext'
 import { Status } from "../enum/status"
 import { GameContext } from '../context/GameContext'
 import GameInvite from './GameInvite'
+import PendingInvite from './PendingInvite'
 
 const drawerWidth = 360
 
@@ -46,6 +47,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	const [friends, setFriends] = useState<any[]>([])
 	const [friendsOpen, setFriendsOpen] = useState(false)
 	const [invite, setInvite] = useState(false)
+	const [sentInvite, setSentInvite] = useState(false)
 	const [challenger, setChallenger] = useState('')
 	const [challengerId, setChallengerId] = useState(-1)
 	const [openEl, setOpenEl] = useState<null | string>(null)
@@ -64,7 +66,6 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	useEffect(() => {
 		axios.get(baseUrl + 'users/me/friends', {withCredentials: true}).then((response) => {
 			setFriends(response.data)
-			console.log(response.data)
 		}).catch((e) => {
 			console.log(e)
 		})
@@ -75,6 +76,14 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 			setInvite(true)
 			setChallenger(data.user)
 			setChallengerId(data.id)
+		})
+
+		gameSocket.on('invite-start', () => {
+			setSentInvite(false)
+		})
+
+		gameSocket.on('refuse', (data: any) => {
+			setSentInvite(false)
 		})
 	}, [gameSocket])
 
@@ -110,7 +119,16 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	}
 
 	const handleDm = (user: any) => () => {
+		gameSocket?.disconnect()
+		gameSocket?.connect()
 		navigate(`/dm/${user.id}`)
+		handleSmallClose()
+		setFriendsOpen(false)
+	}
+
+	const handleInvite = (user: any) => () => {
+		gameSocket.emit('invite', {id: user.id})
+		setSentInvite(true)
 		handleSmallClose()
 		setFriendsOpen(false)
 	}
@@ -132,6 +150,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 
 	return (
 		<Box sx={{flexGrow: 1}}>
+			<PendingInvite open={sentInvite} />
 			<GameInvite open={invite} user={challenger} id={challengerId} handleClose={() => setInvite(false)} />
 			<AppBar position="relative" style={{
 				zIndex: theme.zIndex.drawer + 1
@@ -147,9 +166,21 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 						</IconButton>
 					</Box>
 					<Box display="flex" justifyContent="center" alignItems="center" flex={1}>
-						<Button color="inherit" onClick={() => (navigate("/"))}>Home</Button>
-						<Button color="inherit" onClick={() => (navigate("/play"))}>Play</Button>
-						<Button color="inherit" onClick={() => (navigate("/chat-list"))}>Chat</Button>
+						<Button color="inherit" onClick={() => {
+							navigate("/")
+							gameSocket?.disconnect()
+							gameSocket?.connect()
+						}}>Home</Button>
+						<Button color="inherit" onClick={() => {
+							navigate("/play")
+							gameSocket?.disconnect()
+							gameSocket?.connect()
+						}}>Play</Button>
+						<Button color="inherit" onClick={() => {
+							navigate("/chat-list")
+							gameSocket?.disconnect()
+							gameSocket?.connect()
+						}}>Chat</Button>
 					</Box>
 					<Box>
 						<SearchBar />
@@ -180,7 +211,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 									return (
 										<Fragment key={index}>
 											<ListItem>
-												<Avatar src={baseUrl + `users/${user.id}/profileImg`} />
+												<Avatar src={baseUrl + `users/${user.id}/profileImg?${Date.now()}`} />
 												<ListItemText primary={user.name} style={{padding: 10}} />
 												<ListItemIcon>
 													{chooseIcon(user)}
@@ -198,6 +229,8 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 													onClose={handleSmallClose}
 												>
 													<MenuItem onClick={() => {
+														gameSocket?.disconnect()
+														gameSocket?.connect()
 														navigate(`/users/${user.name}`)
 														handleSmallClose()
 														setFriendsOpen(false)
@@ -217,7 +250,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 														</Typography>
 													</MenuItem>
 													{user.status === Status.ONLINE && <MenuItem>
-														<Typography>
+														<Typography onClick={handleInvite(user)}>
 															Invite to play
 														</Typography>
 													</MenuItem>}
@@ -262,12 +295,16 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 							{context && <MenuItem onClick={() => {
 								handleClose()
 								navigate("/account")
+								gameSocket?.disconnect()
+								gameSocket?.connect()
 							}} >
 								Account
 							</MenuItem>}
 							{context && <MenuItem onClick= {() => {
 								handleClose()
 								navigate("/settings")
+								gameSocket?.disconnect()
+								gameSocket?.connect()
 							}}>
 								Settings
 							</MenuItem>}

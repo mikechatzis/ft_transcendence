@@ -112,7 +112,7 @@ const ChatList: React.FC = () => {
 
 		const isUserInRoom = userData?.channels.includes(room.name)
 
-		const isUserAdmin = room.admins.includes(userData?.id)
+		const isUserOwner = room.owner === userData?.id
 
 		if (room.isPrivate && !room.isDmChannel) {
 			return (
@@ -120,12 +120,12 @@ const ChatList: React.FC = () => {
 				<ListItem>
 					<ListItemText primary={room.name} />
 					<JoinPrivate handleError={handleError} url={baseUrl + `chat/join/${room.name}`} handleJoin={handleJoin} />
-					{(isUserInRoom && isUserAdmin) && <ChannelSettings handleSubmit={handleChangePass} url={baseUrl + `chat/change-pass/${room.name}`} handleError={handleError} />}
+					{(isUserInRoom && isUserOwner) && <ChannelSettings handleSubmit={handleChangePass} url={baseUrl + `chat/change-pass/${room.name}`} handleError={handleError} />}
 					{isUserInRoom && <Button style={{
 						backgroundColor: "red",
 						color: "white"
 					}} onClick={handleLeave}>Leave</Button> }
-					{(isUserInRoom && isUserAdmin) && <Button style={{
+					{(isUserInRoom && isUserOwner) && <Button style={{
 						backgroundColor: "red",
 						color: "white"
 					}} onClick={handleDelete}>Delete</Button>}
@@ -144,12 +144,12 @@ const ChatList: React.FC = () => {
 					}}>
 						Join
 					</Button>
-					{(isUserInRoom && isUserAdmin) && <ChannelSettings handleSubmit={handleChangePass} url={baseUrl + `chat/change-pass/${room.name}`} handleError={handleError} />}
+					{(isUserInRoom && isUserOwner) && <ChannelSettings handleSubmit={handleChangePass} url={baseUrl + `chat/change-pass/${room.name}`} handleError={handleError} />}
 					{isUserInRoom && <Button style={{
 						backgroundColor: "red",
 						color: "white"
 					}} onClick={handleLeave}>Leave</Button> }
-					{(isUserInRoom && isUserAdmin) && <Button style={{
+					{(isUserInRoom && isUserOwner) && <Button style={{
 						backgroundColor: "red",
 						color: "white"
 					}} onClick={handleDelete}>Delete</Button>}

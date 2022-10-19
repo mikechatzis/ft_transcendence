@@ -28,31 +28,29 @@ const TwoFactor: React.FC = () => {
 					style={{minHeight: "80vh"}}
 				>
 					<Paper elevation={2} sx={{padding: 5}}>
-						<form>
-							<Grid container direction="column" spacing={2}>
-								<Grid item>
-									<TextField fullWidth
-										label="Google Authenticator code"
-										placeholder="Code"
-										variant="outlined"
-										required
-										onChange={(e) => setCode(e.target.value)} />
-								</Grid>
-								<Grid item>
-									<Button fullWidth variant="contained" onClick={() => {
-										axios.post(baseUrl + "auth/2fa/authenticate", {twoFactorAuthenticationCode: code}, {withCredentials: true}).then(() => {
-											setContext?.(true)
-											navigate("/account")
-										}).catch((error) => {
-											setMessage("Authentication code invalid")
-											setTimeout(() => {setMessage(null)}, 5000)
-										})
-									}} >
-										Submit
-									</Button>
-								</Grid>
+						<Grid container direction="column" spacing={2}>
+							<Grid item>
+								<TextField fullWidth
+									label="Google Authenticator code"
+									placeholder="Code"
+									variant="outlined"
+									required
+									onChange={(e) => setCode(e.target.value)} />
 							</Grid>
-						</form>
+							<Grid item>
+								<Button fullWidth variant="contained" onClick={() => {
+									axios.post(baseUrl + "auth/2fa/authenticate", {twoFactorAuthenticationCode: code}, {withCredentials: true}).then(() => {
+										setContext?.(true)
+										navigate("/account")
+									}).catch((error) => {
+										setMessage("Authentication code invalid")
+										setTimeout(() => {setMessage(null)}, 5000)
+									})
+								}} >
+									Submit
+								</Button>
+							</Grid>
+						</Grid>
 					</Paper>
 				</Grid>
 			</Container>

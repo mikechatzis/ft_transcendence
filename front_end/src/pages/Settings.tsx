@@ -2,7 +2,7 @@ import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import Input from "@mui/material/Input"
+// import Input from "@mui/material/Input"
 import Paper from '@mui/material/Paper'
 import TextField from '@mui/material/TextField'
 import axios from 'axios'
@@ -13,6 +13,8 @@ import { UrlContext } from '../context/UrlContext'
 import { RerenderContext } from '../context/RerenderContext'
 import { UserContext } from '../context/UserContext'
 
+import './styles/SettingsStyles.css'
+import { FormControl, FormLabel, Input, Typography } from '@mui/material'
 
 const Settings: React.FC = () => {
 	const [name, setName] = useState('')
@@ -41,22 +43,34 @@ const Settings: React.FC = () => {
 		// event.preventDefault()
 		const formData = new FormData()
 		formData.append('file', selectedFile)
-		
-		axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: {
-			'Content-Type': 'multipart/form-data'
-		} }).catch((error) => {
-			console.log(error)
-			if (error.response.status === 401) {
-				setContext?.(false)
-				navigate("/login")
-			}
-		})
-		setRerender?.(!Boolean(rerender))
-		navigate("/account")
+
+		if (selectedFile !== null) {
+			axios.post(baseUrl + 'users/me/profileImg', formData, {withCredentials: true, headers: {
+				'Content-Type': 'multipart/form-data'
+			} }).catch((error) => {
+				console.log(error)
+				if (error.response.status === 401) {
+					setContext?.(false)
+					navigate("/login")
+				}
+			})
+			setRerender?.(!Boolean(rerender))
+			navigate("/account")
+		}
+		else {
+			setMessage("No file uploaded, or file type is not supported. Supported file types: jpeg, jpg, png")
+		}
 	}
 
 	const handleFileSelect = (event: any) => {
-		setSelectedFile(event.target.files[0])
+		if (event.target.files[0] === null || event.target.files[0] === undefined
+			|| !(['image/jpeg', 'image/jpg', 'image/png'].includes(event.target.files[0].type))) {
+				setSelectedFile(null);
+			}
+		else {
+			setMessage("")
+			setSelectedFile(event.target.files[0])
+		}
 	}
 
 	const handleNameChange = () => {
@@ -92,6 +106,42 @@ const Settings: React.FC = () => {
 		}
 	}
 
+	// drag state
+	const [dragActive, setDragActive] = useState(false);
+
+	// handle drag events
+	const handleDrag = function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		if ( !(
+			e.dataTransfer.types &&
+			( e.dataTransfer.types.indexOf ? e.dataTransfer.types.indexOf( "Files" ) !== -1 : e.dataTransfer.types.contains( "Files" ) )
+		) ) {
+			setDragActive(false);
+		}
+		if (e.type === "dragenter" || e.type === "dragover") {
+			setDragActive(true);
+		} else if (e.type === "dragleave") {
+			setDragActive(false);
+		}
+	}
+
+	// triggers when file is dropped
+	const handleDrop = function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		setDragActive(false);
+		if ((e.dataTransfer.files[0] === null || e.dataTransfer.files[0] === undefined
+			|| !(['image/jpeg', 'image/jpg', 'image/png'].includes(e.dataTransfer.files[0].type)))) {
+				setMessage("No file uploaded, or file type is not supported. Supported file types: jpeg, jpg, png")
+				return
+			}
+		if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+			setSelectedFile(e.dataTransfer.files[0])
+			setMessage("")
+		}
+	}
+
 	return (
 		<div>
 			<Notification message={message} />
@@ -100,10 +150,12 @@ const Settings: React.FC = () => {
 					spacing={2}
 					direction="column"
 					justifyContent="center"
-					style={{minHeight: "80vh"}}
+					style={{minHeight: "80vh",
+						// background: "linear-gradient(to right, #37292b, #064870"
+					}}
 				>
 					<Paper elevation={2} sx={{padding: 5}}>
-						<form>
+						<FormLabel>
 							<Grid container direction="column" spacing={2}>
 								<Grid item>
 									<TextField fullWidth
@@ -120,8 +172,17 @@ const Settings: React.FC = () => {
 										Change username
 									</Button>
 								</Grid>
-								<Grid item>
-									<Input type="file" onChange={handleFileSelect} fullWidth />
+								<Grid item onDragEnter={handleDrag} onSubmit={(e) => e.preventDefault()}>
+								<Paper id='drop-container' className={dragActive ? "drag-active" : ""}>
+									<FormLabel htmlFor="uploadBtn">
+										<Box className="drop-title">Drop an image here</Box>
+										<Box className="drop-title">or</Box>
+										{selectedFile !== null ? <Box className="uploaded"> uploaded: {selectedFile.name} </Box>
+										: <Box className="drop-title2">upload from device</Box> }
+										<input type="file"  onChange={handleFileSelect} id='uploadBtn' ></input>
+									</FormLabel>
+								</Paper>
+								{ dragActive && <div id="drag-file-element" onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}></div> }
 								</Grid>
 								<Grid item>
 									<Button fullWidth variant="contained" onClick={handleSubmit} >
@@ -172,7 +233,7 @@ const Settings: React.FC = () => {
 									</Button>
 								</Grid>}
 							</Grid>
-						</form>
+						</FormLabel>
 					</Paper>
 				</Grid>
 			</Container>

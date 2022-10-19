@@ -138,6 +138,9 @@ export class UserService {
 		const user = await global.prisma.user.findUnique({
 			where: {
 				id
+			},
+			include: {
+				matchHistory: true
 			}
 		})
 
@@ -157,6 +160,9 @@ export class UserService {
 		const user = await global.prisma.user.findUnique({
 			where: {
 				name
+			},
+			include: {
+				matchHistory: true
 			}
 		})
 

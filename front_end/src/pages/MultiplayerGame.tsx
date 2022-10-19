@@ -1,5 +1,4 @@
-import { Switch } from '@mui/material';
-import React, { useContext } from 'react'
+import React from 'react'
 import { Navigate, useNavigate } from 'react-router-dom';
 import { GameContext } from '../context/GameContext';
 
@@ -67,7 +66,6 @@ class MultiPong extends React.Component <any, any>{
 
 	moveEvent = (event: any) => {
 		let mousey = event.clientY / window.innerHeight * 100 - 25;
-		console.log(mousey)
 		if (mousey <= 1) {
 			mousey = 1
 		}
@@ -134,7 +132,6 @@ class MultiPong extends React.Component <any, any>{
 		})
 
 		this.socket?.on('exception', (data: any) => {
-			console.log('frog')
 			if (data?.message === "???? this room does not exist") {
 				this.setState({finished: true})
 				window.removeEventListener("mousemove", this.moveEvent)
