@@ -108,6 +108,11 @@ const SelectGame: React.FC = () => {
 			navigate("/multi-def")
 		})
 
+		socket.on('start-mod', () => {
+			setOpenQueue(false)
+			navigate("/multmodd")
+		})
+
 		socket.on('exception', (data) => {
 			setErr(data.message)
 			setTimeout(() => setErr(null), 5000)
@@ -127,8 +132,10 @@ const SelectGame: React.FC = () => {
 			socket.emit('queue-def', {})
 			setOpenQueue(true)
 		}
-		else if (image === "MODDED")
-			navigate("/multmodd");
+		else if (image === "MODDED") {
+			socket.emit('queue-mod', {})
+			setOpenQueue(true)
+		}
 	  };
 
 	return (

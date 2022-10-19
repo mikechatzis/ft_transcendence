@@ -488,7 +488,7 @@ export class GameService {
 			}
 		}
 
-		room = this.bounceBall(room)
+		room = this.bounceBallMod(room)
 		for (let i = 0; i < this.rooms.length; i++) {
 			if (this.rooms[i].room === roomUUID) {
 				this.rooms[i] = room
