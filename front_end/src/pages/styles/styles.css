@@ -1,0 +1,30 @@
+.redButton{
+	position:absolute;
+	margin-top: calc(100vw * 6 / 19);
+	background-color:red;
+	margin-left:45%;
+	width: 30px;
+	height: 30px;
+	border: none;
+	border-radius: 50%;
+}
+.greenButton{
+	position: absolute;
+	margin-top: calc(100vw * 6 / 19);
+	background-color:green;
+	margin-left:50%;
+	width: 30px;
+	height: 30px;
+	border: none;
+	border-radius: 50%;
+}
+.blueButton{
+	position: absolute;
+	margin-top: calc(100vw * 6 / 19);
+	background-color:blue;
+	margin-left:55%;
+	width: 30px;
+	height: 30px;
+	border: none;
+	border-radius: 50%;
+}
