@@ -65,19 +65,28 @@ export class AuthController {
 		if (!user.twoFactorAuth) {
 			const refreshToken = await this.authService.createRefreshToken(dto)
 
-			res.cookie('jwt-refresh', refreshToken, {
-				httpOnly: true,
-				sameSite: 'strict'
-			})
-	
-			await global.prisma.user.update({
-				where: {
-					name: dto.name
-				},
-				data: {
-					refreshToken
-				}
-			})
+			if (user.refreshToken) {
+				res.cookie('jwt-refresh', user.refreshToken, {
+					httpOnly: true,
+					sameSite: 'strict'
+				})
+			}
+			else {
+				res.cookie('jwt-refresh', refreshToken, {
+					httpOnly: true,
+					sameSite: 'strict'
+				})
+
+				await global.prisma.user.update({
+					where: {
+						name: dto.name
+					},
+					data: {
+						refreshToken
+					}
+				})
+			}
+			
 		}
 
 		res.cookie('jwt', token, {

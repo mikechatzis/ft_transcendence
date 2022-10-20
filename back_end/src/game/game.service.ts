@@ -26,7 +26,7 @@ function setRank(score: number){
 		}
 		case score <= 2000: {
 			return "tadpole"
-		}
+		} 
 		case score <= 3000: {
 			return "lake strider"
 		}
@@ -191,15 +191,14 @@ export class GameService {
 
 	handleDisconnect = async (player, socket, server) => {
 		try {
-
 			let room = null
 			for (let i = 0; i < this.rooms.length; i++) {
-				if (player?.name === this.rooms[i].player1) {
+				if (player?.name === this.rooms[i].player1 && socket.rooms.includes(this.rooms[i].room)) {
 					this.rooms[i].winner = this.rooms[i].player2
 					room = this.rooms[i]
 					break ;
 				}
-				else if (player?.name === this.rooms[i].player2) {
+				else if (player?.name === this.rooms[i].player2 && socket.rooms.includes(this.rooms[i].room)) {
 					this.rooms[i].winner = this.rooms[i].player1
 					room = this.rooms[i]
 					break ;
@@ -217,7 +216,6 @@ export class GameService {
 					}
 				})
 				const winnerId = p1.name === room.winner ? p1.id : p2.id
-				console.log(p1.score, p2.score)
 				await global.prisma.user.update({
 					where: {
 						name: room.player1

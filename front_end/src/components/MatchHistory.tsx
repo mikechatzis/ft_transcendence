@@ -84,7 +84,7 @@ const MatchHistory = () => {
 		}
 	 }
 	
-	useEffect(getName, [baseUrl, navigate, opponents])
+	useEffect(getName, [baseUrl, navigate])
 	useEffect(getOpponent, [baseUrl, navigate, user])
 	makeArray()
 	
