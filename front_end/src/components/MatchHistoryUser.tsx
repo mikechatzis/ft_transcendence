@@ -68,8 +68,15 @@ const MatchHistoryUser = () => {
 	useEffect(getOpponent, [baseUrl, navigate, user])
 	if (user) {
 		for (let i = 0; i < opponents.length; i++) {
+			let name;
+			for (let j = 0; j < opponents.length; j++) {
+				if (opponents[j].id === user?.matchHistory[i]?.opponentId) {
+					name = opponents[j].name
+					break
+				}
+			}
 			if (user?.matchHistory[i]?.date)
-				rows.push(singleRow(rowsId++, opponents[i]?.name, new Date(user?.matchHistory[i]?.date).toLocaleString(), user?.matchHistory[i]?.winner == user?.id ? "victory" : "defeat"))
+				rows.push(singleRow(rowsId++, name, new Date(user?.matchHistory[i]?.date).toLocaleString(), user?.matchHistory[i]?.winner == user?.id ? "victory" : "defeat"))
 		}
 		if (rows.length > 1) {
 			rows.shift()

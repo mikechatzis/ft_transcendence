@@ -118,18 +118,18 @@ export class UserController {
 	//end code
 
 	//04/10/2022, set score and update user's rank
-	@UseGuards(Jwt2faGuard)
-	@Post('user/setScore')
-	async updateScore(@GetUser() user: User, @Body('score') score: number) {
-		try {
-			const userUpdated = await this.userService.setScoreAndRank(user, score)
-			delete userUpdated.hash
-			return userUpdated
-		}
-		catch(err){
-			console.error(err)
-		}
-	}
+	// @UseGuards(Jwt2faGuard)
+	// @Post('user/setScore')
+	// async updateScore(@GetUser() user: User, @Body('score') score: number) {
+	// 	try {
+	// 		const userUpdated = await this.userService.setScoreAndRank(user, score)
+	// 		delete userUpdated.hash
+	// 		return userUpdated
+	// 	}
+	// 	catch(err){
+	// 		console.error(err)
+	// 	}
+	// }
 	//code end
 
 	// @UseGuards(Jwt2faGuard)
