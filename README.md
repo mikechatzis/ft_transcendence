@@ -1,5 +1,7 @@
 # ft_transcendence
-Final project from the 42 core curriculum
+Final project from the 42 core curriculum. Full stack development of a website to play Pong with your friends, from scratch.
+Stack: frontend: React (typescript), backend: nestjs. Database: PostgresSQL
+Deployment: Run "docker compose up", in the root of the repository
 
 ## dev stuff
 
