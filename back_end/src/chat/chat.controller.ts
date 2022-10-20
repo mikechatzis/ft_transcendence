@@ -1,4 +1,5 @@
 import { Body, Controller, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { useContainer } from 'class-validator';
 import { Jwt2faGuard } from '../auth/guard';
 import { ChatService } from './chat.service';
 import { ChannelDto } from './dto/channel.dto';
@@ -113,6 +114,25 @@ export class ChatController {
 				})
 			}
 		}, 900000)
+	}
+
+	@UseGuards(Jwt2faGuard)
+	@Get(':name/isOwner')
+	async isUserOwner(@Req() req, @Param('name') name) {
+		const user = req.user
+
+		const channel = await global.prisma.channel.findUnique({
+			where: {
+				name
+			}
+		})
+
+		if (channel.owner === user.id) {
+			return {owner: true}
+		}
+		else {
+			return {owner: false}
+		}
 	}
 
 	@UseGuards(Jwt2faGuard)

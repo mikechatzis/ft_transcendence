@@ -4,11 +4,14 @@ import Autocomplete from "@mui/material/Autocomplete"
 import axios from "axios"
 import { UrlContext } from "../context/UrlContext"
 import { useNavigate } from "react-router-dom"
+import { GameContext } from "../context/GameContext"
 
 const SearchBar: React.FC = () => {
 	const [users, setUsers] = useState<any[]>([])
 	const [rerender, setRerender] = useState(false)
+	const [value, setValue] = useState('')
 	const baseUrl = useContext(UrlContext)
+	const gameSocket = useContext(GameContext)
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -19,20 +22,25 @@ const SearchBar: React.FC = () => {
 
 	return (
 		<Autocomplete
+			value={value}
 			freeSolo
 			id="search-bar"
 			options={users.map((user) => user.name)}
 			renderInput={(params) => {
-				// setRerender(!rerender)
 				return (
-					<TextField {...params} label="Search" onChange={() => setRerender(!rerender)} />
+					<TextField {...params} label="Search" />
 				)
 			}}
 			onChange={(e, value) => {
 				e.preventDefault()
-				navigate(`/users/${value}`)
+				axios.get(baseUrl + `users/user/${value}`, {withCredentials: true}).then(() => {
+					gameSocket?.disconnect()
+					gameSocket?.connect()
+					navigate(`/users/${value}`)
+				}).catch()
+				
 			}}
-			disableClearable
+			// disableClearable
 			style={{width: 250}}
 		/>
 	)

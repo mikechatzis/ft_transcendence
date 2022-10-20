@@ -22,19 +22,48 @@ import { useNavigate } from "react-router-dom"
 import { Socket } from "socket.io-client"
 import { ChatContext } from "../context/ChatContext"
 import { UserContext } from "../context/UserContext"
+import { GameContext } from "../context/GameContext"
+import PendingInvite from "./PendingInvite"
+import { RerenderContext } from "../context/RerenderContext"
 
 const drawerWidth = 360
 
-const UserList: React.FC<{channel: string}> = ({channel}) => {
+const UserList: React.FC<{channel: string, setErr: any}> = ({channel, setErr}) => {
 	const [channelMembers, setChannelMembers] = useState<any[] | null>(null)
 	const [me, setMe] = useState<any>(null)
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 	const [isAdmin, setIsAdmin] = useState(false)
+	const [isOwner, setIsOwner] = useState(false)
+	const [invite, setInvite] = useState(false)
 	const [openEl, setOpenEl] = useState<null | string>(null)
 	const navigate = useNavigate()
 	const {context, setContext} = useContext(UserContext)
+	const {rerender, setRerender} = useContext(RerenderContext)
 	const baseUrl = useContext(UrlContext)
 	const socket = useContext(ChatContext)
+	const gameSocket = useContext(GameContext)
+
+	useEffect(() => {
+		axios.get(baseUrl + `chat/${channel}/isOwner`, {withCredentials: true}).then((response) => {
+			setIsOwner(response.data.owner)
+		}).catch((error) => {
+			console.log(error)
+			if (error.response.status === 401) {
+				setContext?.(false)
+				navigate("/login")
+			}
+		})
+	}, [baseUrl, channel])
+
+	useEffect(() => {
+		gameSocket.on('refuse', (data: any) => {
+			setInvite(false)
+		})
+
+		gameSocket.on('refuse-mod', (data: any) => {
+			setInvite(false)
+		})
+	}, [gameSocket])
 
 	useEffect(() => {
 		axios.get(baseUrl + `chat/${channel}/users`, {withCredentials: true}).then((response) => {
@@ -118,41 +147,51 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 	const handlePermaBan = (user: any) => () => {
 		let banUser = {...user}
 
-		axios.post(baseUrl + `chat/${channel}/permaban`, banUser, {withCredentials: true}).catch((error) => {
+		axios.post(baseUrl + `chat/${channel}/permaban`, banUser, {withCredentials: true}).then(() => {
+			handleKick(user)
+		}).catch((error) => {
 			console.log(error)
+			console.log('here')
 			if (error.response.status === 401) {
 				setContext?.(false)
 				navigate("/login")
 			}
+			else {
+				setErr(error.response.data.message)
+			}
 		})
-		handleKick(user)
 		handleClose()
 	}
 
 	const handleBan = (user: any) => () => {
 		let banUser = {...user}
 
-		axios.post(baseUrl + `chat/${channel}/ban`, banUser, {withCredentials: true}).catch((error) => {
+		axios.post(baseUrl + `chat/${channel}/ban`, banUser, {withCredentials: true}).then(() => {
+			handleKick(user)
+		}).catch((error) => {
 			console.log(error)
 			if (error.response.status === 401) {
 				setContext?.(false)
 				navigate("/login")
 			}
+			else {
+				setErr(error.response.data.message)
+			}
 		})
-		handleKick(user)
 		handleClose()
 	}
 
 	const handleBlock = (user: any) => () => {
 		let blockUser = {...user}
 
-		axios.post(baseUrl + 'users/block', {block: blockUser.id}, {withCredentials: true}).catch((e) => {
+		axios.post(baseUrl + 'users/block', {block: blockUser?.id}, {withCredentials: true}).catch((e) => {
 			console.log(e)
 			if (e.response.status === 401) {
 				setContext?.(false)
 				navigate("/login")
 			}
 		})
+		setRerender?.(!rerender)
 		handleClose()
 	}
 
@@ -180,6 +219,24 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 		}
 	}
 
+	const handleSpectate = (user: any) => () => {
+		gameSocket.emit('spectate', {name: user.name})
+		setTimeout(() => {navigate("/multi-spec")}, 500)
+		handleClose()
+	}
+
+	const handleInvite = (user: any) => () => {
+		gameSocket.emit('invite', {id: user?.id})
+		setInvite(true)
+		handleClose()
+	}
+
+	const handleInviteMod = (user: any) => () => {
+		gameSocket.emit('invite-mod', {id: user?.id})
+		setInvite(true)
+		handleClose()
+	}
+
 	channelMembers?.sort((a,b) => a.id - b.id)
 	const map = channelMembers?.map((user: any, index: number) => {
 		return (
@@ -202,13 +259,13 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 						open={openEl === user.name}
 						onClose={handleClose}
 					>
-						{isAdmin &&
-						[<MenuItem onClick={makeAdmin(user)} key={0}>
+						{isOwner && <MenuItem onClick={makeAdmin(user)} key={0}>
 							<Typography>
 								Make admin
 							</Typography>
-						</MenuItem>,
-						<MenuItem onClick={handleMute(user)} key={1}>
+						</MenuItem>}
+						{(isAdmin && user?.id != me?.id) &&
+						[<MenuItem onClick={handleMute(user)} key={1}>
 							<Typography>
 								Mute for 15 minutes
 							</Typography>
@@ -228,12 +285,12 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 								Ban permanently
 							</Typography>
 						</MenuItem>]}
-						{!me?.blocked.includes(user.id) && <MenuItem onClick={handleBlock(user)} key={5}>
+						{(!me?.blocked.includes(user?.id) && user?.id != me?.id) && <MenuItem onClick={handleBlock(user)} key={5}>
 							<Typography>
 								Block user
 							</Typography>
 						</MenuItem>}
-						{(!me?.friends.includes(user.id) && !me?.blocked.includes(user.id)) && <MenuItem onClick={handleFriend(user)} key={6}>
+						{(!me?.friends.includes(user?.id) && !me?.blocked.includes(user?.id) && user?.id != me?.id) && <MenuItem onClick={handleFriend(user)} key={6}>
 							<Typography>
 								Add friend
 							</Typography>
@@ -243,12 +300,17 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 								View profile
 							</Typography>
 						</MenuItem>
-						{(user.status === Status.ONLINE) && <MenuItem key={8}>
+						{(user.status === Status.ONLINE && user?.id != me?.id) && <MenuItem key={8} onClick={handleInvite(user)}>
 							<Typography>
 								Invite to play
 							</Typography>
 						</MenuItem>}
-						{(user.status === Status.GAME) && <MenuItem key={9}>
+						{(user.status === Status.ONLINE && user?.id != me?.id) && <MenuItem key={9} onClick={handleInviteMod(user)}>
+							<Typography>
+								Invite to play reverse pong
+							</Typography>
+						</MenuItem>}
+						{(user.status === Status.GAME && user?.id != me?.id) && <MenuItem key={10} onClick={handleSpectate(user)}>
 							<Typography>
 								Spectate
 							</Typography>
@@ -259,13 +321,10 @@ const UserList: React.FC<{channel: string}> = ({channel}) => {
 			</Fragment>
 		)
 	}).sort()
-	// useEffect(() => {
-	// 	console.log(map!.at(0)?.key)
-	// }, [map])
-	// map!
 
 	return (
 		<>
+		<PendingInvite open={invite} />
 		<Drawer
 			sx={{
 				width: drawerWidth,

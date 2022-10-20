@@ -179,6 +179,16 @@ export class ChatGateway {
 			if (!userId) {
 				userId = token_decrypt['id']
 			}
+
+			const channel = await global.prisma.channel.findUnique({
+				where: {
+					name: data.room
+				}
+			})
+
+			if (channel.admins.includes(data.user.id)) {
+				throw new WsException("Can't kick another admin")
+			}
 			
 			if (userId === data.user.id) {
 				sockets[i].leave(data.room)

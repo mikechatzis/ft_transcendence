@@ -21,7 +21,9 @@ import UserList from "../components/UserList"
 import { UrlContext } from "../context/UrlContext"
 import { Status } from "../enum/status"
 import CircleIcon from '@mui/icons-material/Circle';
+import PendingIcon from '@mui/icons-material/Pending';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import axios from "axios"
 import { UserContext } from "../context/UserContext"
 
@@ -133,6 +135,21 @@ const DmChat: React.FC = () => {
 		}
 	}
 
+	const chooseIcon = (user: any) => {
+		if (user?.status === Status.ONLINE) {
+			return <CircleIcon style={{color: "green"}} fontSize="small" />
+		}
+		else if (user?.status === Status.OFFLINE) {
+			return <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />
+		}
+		else if (user?.status === Status.GAME) {
+			return <VideogameAssetIcon style={{color: "yellow"}} fontSize="small" />
+		}
+		else if (user?.status === Status.QUEUE) {
+			return <PendingIcon style={{color: "yellow"}} fontSize="small" />
+		}
+	}
+
 	return (
 		<>
 			<Notification message={error} />
@@ -150,7 +167,7 @@ const DmChat: React.FC = () => {
 									<Avatar src={baseUrl + `users/${otherUser?.id}/profileImg`} />
 									<ListItemText primary={<Typography variant="h5">{otherUser?.name}</Typography>} style={{paddingLeft: 15}} />
 									<ListItemIcon>
-										{(otherUser?.status === Status.ONLINE) ? <CircleIcon style={{color: "green"}} fontSize="small" /> : <RadioButtonUncheckedIcon style={{color: "grey"}} fontSize="small" />}
+										{chooseIcon(otherUser)}
 									</ListItemIcon>
 								</ListItem>
 							</List>

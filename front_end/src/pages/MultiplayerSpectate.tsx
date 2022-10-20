@@ -1,4 +1,5 @@
-import React from 'react'
+import { Switch } from '@mui/material';
+import React, { useContext } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom';
 import { GameContext } from '../context/GameContext';
 
@@ -16,7 +17,7 @@ let ballDLeft = '33vw';
 let PLAYER_TOP1 = '10vw'
 let PLAYER_TOP2 = '10vw'
 
-class MultiPong extends React.Component <any, any>{
+class MultiSpectate extends React.Component <any, any>{
 	constructor(props: any){
 		super(props);
 		this.state = this.InitState();
@@ -63,24 +64,12 @@ class MultiPong extends React.Component <any, any>{
 		borderRadius: "100%",
 		
 	} as const;
-
-	moveEvent = (event: any) => {
-		let mousey = event.clientY / window.innerHeight * 100 - 25;
-		if (mousey <= 1) {
-			mousey = 1
-		}
-		else if (mousey >= 24) {
-			mousey = 24
-		}
-		let newPos = mousey + 'vw';
-		this.socket?.emit('position', {pos: newPos, room: this.state.room})
-	}
 	
 	getStyle = (val: number) => {
 		if(val === OPPONENT)
-			return this.opponentStyle;
+		return this.opponentStyle;
 		else if (val === PLAYER)
-			return this.playerStyle;
+		return this.playerStyle;
 		return this.ballStyle;
 	}
 	
@@ -90,7 +79,7 @@ class MultiPong extends React.Component <any, any>{
 			opponent: 0,
 			
 			ball: 0,
-			ballSpeed: 1000/60,
+			ballSpeed: 2,
 			deltaY: -1,
 			deltaX: -1,
 			
@@ -128,16 +117,7 @@ class MultiPong extends React.Component <any, any>{
 
 		this.socket?.on('end', () => {
 			this.setState({finished: true})
-			window.removeEventListener("mousemove", this.moveEvent)
 		})
-
-		this.socket?.on('exception', (data: any) => {
-			if (data?.message === "???? this room does not exist") {
-				this.setState({finished: true})
-				window.removeEventListener("mousemove", this.moveEvent)
-			}
-		})	
-		setTimeout(() => {window.addEventListener("mousemove", this.moveEvent)}, 500)
 	}
 		
 	changeColor = (color: string) => () => {
@@ -169,19 +149,19 @@ class MultiPong extends React.Component <any, any>{
 		return (
 			<div style={ this.canv }>
 				{this.state.finished && <Navigate to="/selectgamemode" replace={true} />}
-				<div style={{position:'absolute', marginLeft: 10}}>{`${this.state.p1name} Score: ${this.state.playerScore}`}</div>
-				<div style={{position:'absolute', marginTop: 20, marginLeft: 10}}>{`${this.state.p2name} Score: ${this.state.opponentScore}`}</div>
+				<div style={{position:'absolute'}}>{`${this.state.p1name} Score: ${this.state.playerScore}`}</div>
+				<div style={{position:'absolute', marginTop: 20}}>{`${this.state.p2name} Score: ${this.state.opponentScore}`}</div>
 				<div style={this.getStyle(OPPONENT)}></div>
 				<div style={this.getStyle(PLAYER)}></div>
 				<div style={this.getStyle(BALL)}></div>
-				<button className='redButton' onClick={this.changeColor("red")}></button>
-				<button className='greenButton' onClick={this.changeColor('green')}></button>
-				<button className='blueButton' onClick={this.changeColor('blue')}></button>
+				<button className='redButton' onClick={this.changeColor("red")} />
+				<button className='greenButton' onClick={this.changeColor('green')} />
+				<button className='blueButton' onClick={this.changeColor('blue')} />
 			</div>
 		)
 	}
 }
 
-MultiPong.contextType = GameContext
-
-export default MultiPong
+	MultiSpectate.contextType = GameContext
+	
+	export default MultiSpectate

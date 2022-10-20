@@ -9,6 +9,7 @@ import Login from './pages/Login'
 import Error401 from './pages/Error401'
 import Error404 from './pages/Error404'
 import Pong from './pages/Game'
+import MultiPong from './pages/MultiplayerGame'
 import SelectGame from './pages/SelectGame'
 import Account from './pages/Account'
 import Settings from './pages/Settings'
@@ -23,8 +24,8 @@ import { ChatContext, chatSocket } from './context/ChatContext'
 import { GameContext, gameSocket } from './context/GameContext'
 import User from './pages/User'
 import ChatList from './pages/ChatList'
-import MultiPong from './pages/MultiplayerGame'
 import MultModd from './pages/MultModd'
+import MultiSpectate from './pages/MultiplayerSpectate'
 
 axios.interceptors.response.use(
 	function (response) {
@@ -136,6 +137,7 @@ const App: React.FC = () => {
 					<Route path="/game" element={<Pong />} />
 					<Route path="/selectgamemode" element={<SelectGame />} />
 					<Route path="/multi-def" element={<MultiPong />} />
+					<Route path="/multi-spec" element={<MultiSpectate />} />
 					<Route path="/multmodd" element={<MultModd />} />
 				</Routes>
 			</UserContext.Provider>

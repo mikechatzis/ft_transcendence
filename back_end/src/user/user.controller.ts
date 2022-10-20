@@ -26,7 +26,6 @@ export class UserController {
 	@UseGuards(Jwt2faGuard)
 	@Get('me')
 	getMe(@GetUser() user: User) {
-		console.log(user)
 		delete user.hash
 		delete user.twoFactorSecret
 		return user

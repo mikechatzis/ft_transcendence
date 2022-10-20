@@ -37,6 +37,7 @@ export class ChatService {
 				data: {
 					name: body.name,
 					admins: [user.id],
+					owner: user.id,
 					isDmChannel: false,
 					isPrivate: false
 				}
@@ -207,7 +208,7 @@ export class ChatService {
 			}
 		})
 
-		if (channelData.admins.includes(userId)) {
+		if (channelData.owner === userId) {
 			await global.prisma.channel.delete({
 				where: {
 					name: channel
@@ -255,7 +256,7 @@ export class ChatService {
 			}
 		})
 
-		if (channelData.admins.includes(userId)) {
+		if (channelData.owner === userId) {
 			if (body.password) {
 				const hash = await argon.hash(body.password)
 
@@ -311,14 +312,17 @@ export class ChatService {
 	}
 
 	async setUserStatus(userId: number, userStatus: number) {
-		const user = await global.prisma.user.update({
-			where: {
-				id: userId
-			},
-			data: {
-				status: userStatus
-			}
-		})
+		try {
+			const user = await global.prisma.user.update({
+				where: {
+					id: userId
+				},
+				data: {
+					status: userStatus
+				}
+			})
+		}
+		catch (e) {}
 	}
 
 	authAndExtract(socket) {
@@ -334,7 +338,7 @@ export class ChatService {
 			return
 		}
 
-		const payload = this.jwt.verify(cookies.jwt, {publicKey: this.config.get('JWT_SECRET')})
+		const payload = this.jwt.verify(cookies.jwt, {publicKey: this.config.get('JWT_SECRET'), ignoreExpiration: true})
 
 		return payload
 	}
@@ -342,7 +346,7 @@ export class ChatService {
 	authAndExtractRaw(cookies_raw) {
 		const cookies = cookie.parse(cookies_raw)
 
-		const payload = this.jwt.verify(cookies.jwt, {publicKey: this.config.get('JWT_SECRET')})
+		const payload = this.jwt.verify(cookies.jwt, {publicKey: this.config.get('JWT_SECRET'), ignoreExpiration: true})
 
 		return payload
 	}
@@ -397,6 +401,9 @@ export class ChatService {
 			}
 		})
 
+		if (channel.admins.includes(body.id)) {
+			throw new ForbiddenException("Can't block an admin")
+		}
 		if (channel.admins.includes(req.user.id)) {
 			await global.prisma.channel.update({
 				where: {
@@ -419,7 +426,7 @@ export class ChatService {
 			}
 		})
 
-		if (channel.admins.includes(req.user.id)) {
+		if (channel.owner === req.user.id) {
 			await global.prisma.channel.update({
 				where: {
 					name
