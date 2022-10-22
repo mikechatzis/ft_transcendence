@@ -124,7 +124,6 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 		let blockUser = {...user}
 
 		axios.post(baseUrl + 'users/block', {block: blockUser.id}, {withCredentials: true}).catch((e) => {
-			console.log(e)
 			if (e.response.status === 401) {
 				setContext?.(false)
 				navigate("/login")
@@ -143,7 +142,8 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 	}
 
 	const handleInvite = (user: any) => () => {
-		gameSocket.emit('invite', {id: user.id})
+		console.log('here')
+		gameSocket.emit('invite', {id: user?.id})
 		setSentInvite(true)
 		handleSmallClose()
 		setFriendsOpen(false)
@@ -270,7 +270,7 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 															View profile
 														</Typography>
 													</MenuItem>
-													<MenuItem onClick={handleDm(user)} >
+													<MenuItem onClick={handleDm(user)}>
 														<Typography>
 															Direct Message
 														</Typography>
@@ -280,18 +280,18 @@ const MenuBar: React.FC<MenuProps> = ({handleToggle}) => {
 															Block
 														</Typography>
 													</MenuItem>
-													{user.status === Status.ONLINE && <MenuItem>
-														<Typography onClick={handleInvite(user)}>
+													{user.status === Status.ONLINE && <MenuItem onClick={handleInvite(user)}>
+														<Typography>
 															Invite to play
 														</Typography>
 													</MenuItem>}
-													{user.status === Status.ONLINE && <MenuItem>
-														<Typography onClick={handleInviteMod(user)}>
+													{user.status === Status.ONLINE && <MenuItem onClick={handleInviteMod(user)}>
+														<Typography>
 															Invite to play reverse pong
 														</Typography>
 													</MenuItem>}
-													{user.status === Status.GAME && <MenuItem>
-														<Typography onClick={handleSpectate(user)}>
+													{user.status === Status.GAME && <MenuItem onClick={handleSpectate(user)}>
+														<Typography>
 															Spectate
 														</Typography>
 													</MenuItem>}
